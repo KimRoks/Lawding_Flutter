@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,8 @@ import '../../../infrastructure/services/crashlytics_service.dart';
 import '../../providers/providers.dart';
 import '../../widgets/force_update_dialog.dart';
 import '../calculator/calculator_screen.dart';
+import '../dictionary/dictionary_screen.dart';
+import '../main/main_tab_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -85,13 +88,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const CalculatorScreen(),
+              _buildMainScreen(),
           transitionDuration: const Duration(milliseconds: 800),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
@@ -105,10 +105,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       // 에러가 발생해도 앱은 계속 진행
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const CalculatorScreen()),
+          MaterialPageRoute(builder: (_) => _buildMainScreen()),
         );
       }
     }
+  }
+
+  Widget _buildMainScreen() {
+    return MainTabScreen(
+      tabs: [
+        TabItemInfo(
+          title: '연차 계산기',
+          icon: Image.asset(
+            'assets/icons/calculator_outlined.png',
+            width: 24,
+            height: 24,
+          ),
+          activeIcon: Image.asset(
+            'assets/icons/calculator.png',
+            width: 24,
+            height: 24,
+          ),
+          screen: const CalculatorScreen(),
+        ),
+        TabItemInfo(
+          title: '연차 사전',
+          icon: Image.asset(
+            'assets/icons/dictionary_outlined.png',
+            width: 24,
+            height: 24,
+          ),
+          activeIcon: Image.asset(
+            'assets/icons/dictionary.png',
+            width: 24,
+            height: 24,
+          ),
+          screen: const DictionaryScreen(),
+        ),
+      ],
+    );
   }
 
   @override
