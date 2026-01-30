@@ -52,16 +52,16 @@ void main() {
       useCase = SearchDictionaryUseCase(mockRepository);
     });
 
-    final mockDictionarySearchResult = DictionarySearchResult(
+    const mockDictionarySearchResult = DictionarySearchResult(
       items: [
-        const Dictionary(
+        Dictionary(
           id: 1,
           category: DictionaryCategory(id: 100, name: '연차발생'),
           question: '연차는 어떻게 발생하나요?',
           content: '연차는 근로기준법에 따라 발생합니다.',
         ),
       ],
-      pageInfo: const PageInfo(
+      pageInfo: PageInfo(
         page: 0,
         size: 10,
         totalElements: 1,
