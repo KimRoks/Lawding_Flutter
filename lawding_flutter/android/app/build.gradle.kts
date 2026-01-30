@@ -35,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "GGimiOwner.AnnualLeaveCalculator"
+        applicationId = "com.lawding.annualleavecalculator"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
