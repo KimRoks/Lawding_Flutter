@@ -139,5 +139,73 @@ final submitFeedbackUseCaseProvider =
 // ignore: unused_element
 typedef SubmitFeedbackUseCaseRef =
     AutoDisposeProviderRef<SubmitFeedbackUseCase>;
+String _$dictionaryRepositoryHash() =>
+    r'65c7b015ebb2095043c46ea655c30107b8ce51f1';
+
+/// DictionaryRepository Provider
+/// 용어 사전 Repository 구현체 제공
+///
+/// Copied from [dictionaryRepository].
+@ProviderFor(dictionaryRepository)
+final dictionaryRepositoryProvider =
+    AutoDisposeProvider<DictionaryRepository>.internal(
+      dictionaryRepository,
+      name: r'dictionaryRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$dictionaryRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef DictionaryRepositoryRef = AutoDisposeProviderRef<DictionaryRepository>;
+String _$getDictionariesUseCaseHash() =>
+    r'39fb7bbbb8daf06bbe48de49201a328006e52b59';
+
+/// GetDictionariesUseCase Provider
+/// 전체 용어 사전 목록 조회 비즈니스 로직 제공
+///
+/// Copied from [getDictionariesUseCase].
+@ProviderFor(getDictionariesUseCase)
+final getDictionariesUseCaseProvider =
+    AutoDisposeProvider<GetDictionariesUseCase>.internal(
+      getDictionariesUseCase,
+      name: r'getDictionariesUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getDictionariesUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetDictionariesUseCaseRef =
+    AutoDisposeProviderRef<GetDictionariesUseCase>;
+String _$searchDictionaryUseCaseHash() =>
+    r'c56773b49b11a10d2bf4ffcb22bba3b84e235a1b';
+
+/// SearchDictionaryUseCase Provider
+/// 용어 사전 검색 비즈니스 로직 제공
+///
+/// Copied from [searchDictionaryUseCase].
+@ProviderFor(searchDictionaryUseCase)
+final searchDictionaryUseCaseProvider =
+    AutoDisposeProvider<SearchDictionaryUseCase>.internal(
+      searchDictionaryUseCase,
+      name: r'searchDictionaryUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$searchDictionaryUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SearchDictionaryUseCaseRef =
+    AutoDisposeProviderRef<SearchDictionaryUseCase>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
