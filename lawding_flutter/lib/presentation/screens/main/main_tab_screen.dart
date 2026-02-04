@@ -8,12 +8,14 @@ class TabItemInfo {
   final Widget icon;
   final Widget? activeIcon;
   final Widget screen;
+  final VoidCallback? onTabActivated; // 탭이 활성화될 때 호출되는 콜백
 
   const TabItemInfo({
     required this.title,
     required this.icon,
     this.activeIcon,
     required this.screen,
+    this.onTabActivated,
   });
 }
 
@@ -34,6 +36,20 @@ class _MainTabScreenState extends State<MainTabScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+
+    // 초기 탭의 콜백 호출
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.tabs[_currentIndex].onTabActivated?.call();
+    });
+  }
+
+  void _onTabChanged(int index) {
+    if (_currentIndex == index) return;
+
+    setState(() => _currentIndex = index);
+
+    // 탭이 변경되면 해당 탭의 콜백 호출
+    widget.tabs[index].onTabActivated?.call();
   }
 
   @override
@@ -68,7 +84,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
               ),
               child: BottomNavigationBar(
                 currentIndex: _currentIndex,
-                onTap: (index) => setState(() => _currentIndex = index),
+                onTap: _onTabChanged,
                 type: BottomNavigationBarType.fixed,
                 backgroundColor: Colors.white,
                 elevation: 0,

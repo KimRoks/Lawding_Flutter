@@ -25,6 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   final _crashlytics = CrashlyticsService();
   final _appVersionService = AppVersionService();
   final _startTime = DateTime.now();
+  final _dictionaryScreenKey = GlobalKey();
 
   @override
   void initState() {
@@ -140,7 +141,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             width: 24,
             height: 24,
           ),
-          screen: const DictionaryScreen(),
+          screen: DictionaryScreen(key: _dictionaryScreenKey),
+          onTabActivated: () {
+            // 탭이 활성화되면 DictionaryScreen의 onTabActivated 메서드 호출
+            final state = _dictionaryScreenKey.currentState;
+            if (state != null && state.mounted) {
+              (state as TabActivationMixin).onTabActivated();
+            }
+          },
         ),
       ],
     );
