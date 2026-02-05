@@ -467,7 +467,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                           const SizedBox(height: 12),
                           AnimatedOpacity(
                             opacity: isExpanded ? 1.0 : 0.0,
-                            duration: Duration(milliseconds: isExpanded ? 250 : 150),
+                            duration: Duration(
+                              milliseconds: isExpanded ? 250 : 150,
+                            ),
                             curve: isExpanded ? Curves.easeIn : Curves.easeOut,
                             child: Text(
                               dictionary.content,

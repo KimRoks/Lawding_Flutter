@@ -148,7 +148,7 @@ class DictionaryState {
     List<Dictionary>? allDictionaries,
     List<Dictionary>? filteredDictionaries,
     List<DictionaryCategory>? categories,
-    int? selectedCategoryId,
+    Object? selectedCategoryId = _sentinel,
     Set<int>? expandedIds,
     String? searchQuery,
     bool? isLoading,
@@ -160,7 +160,9 @@ class DictionaryState {
       allDictionaries: allDictionaries ?? this.allDictionaries,
       filteredDictionaries: filteredDictionaries ?? this.filteredDictionaries,
       categories: categories ?? this.categories,
-      selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+      selectedCategoryId: identical(selectedCategoryId, _sentinel)
+          ? this.selectedCategoryId
+          : selectedCategoryId as int?,
       expandedIds: expandedIds ?? this.expandedIds,
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
@@ -170,3 +172,6 @@ class DictionaryState {
     );
   }
 }
+
+/// copyWith에서 nullable 파라미터를 구분하기 위한 sentinel 객체
+const _sentinel = Object();
