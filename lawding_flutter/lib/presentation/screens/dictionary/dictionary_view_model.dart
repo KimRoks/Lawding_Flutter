@@ -4,12 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/network/network_error.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/dictionary.dart';
+import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/crashlytics_service.dart';
 import '../../providers/providers.dart';
 
 part 'dictionary_view_model.g.dart';
 
 @riverpod
 class DictionaryViewModel extends _$DictionaryViewModel {
+  final _analytics = AnalyticsService();
+  final _crashlytics = CrashlyticsService();
+
   @override
   DictionaryState build() {
     return DictionaryState();
@@ -40,6 +45,12 @@ class DictionaryViewModel extends _$DictionaryViewModel {
           isLoading: false,
         );
 
+        // 데이터 로딩 성공 이벤트 기록
+        await _analytics.logDictionaryDataLoaded(
+          totalCount: value.items.length,
+          categoryCount: allCategories.length,
+        );
+
       case Failure(:final error):
         final errorMessage = switch (error) {
           ServerError(message: final msg) => msg,
@@ -49,6 +60,15 @@ class DictionaryViewModel extends _$DictionaryViewModel {
           _ => '용어 사전을 불러오는데 실패했습니다.',
         };
         state = state.copyWith(errorMessage: errorMessage, isLoading: false);
+
+        // 데이터 로딩 실패 이벤트 및 에러 기록
+        await _analytics.logDictionaryDataLoadFailed(errorMessage);
+        await _crashlytics.recordUIError(
+          screenName: 'DictionaryScreen',
+          error: error,
+          stack: StackTrace.current,
+          action: 'load_dictionaries',
+        );
     }
   }
 

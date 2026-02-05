@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/dictionary.dart';
+import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/crashlytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import 'dictionary_guide_dialog.dart';
@@ -23,6 +25,8 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
     with TabActivationMixin {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _categoryScrollController = ScrollController();
+  final _analytics = AnalyticsService();
+  final _crashlytics = CrashlyticsService();
 
   // 개발 모드: true로 설정하면 매번 안내 다이얼로그가 표시됩니다
   static const bool _showGuideAlways = false;
@@ -46,6 +50,12 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   @override
   void onTabActivated() {
     _checkAndShowGuide();
+    _trackScreenView();
+  }
+
+  void _trackScreenView() {
+    _analytics.logDictionaryScreenViewed();
+    _crashlytics.setScreenContext('DictionaryScreen');
   }
 
   void _checkAndShowGuide() {
@@ -68,11 +78,19 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   }
 
   Future<void> _showGuideDialog() async {
+    // 안내 다이얼로그 표시 이벤트 기록
+    await _analytics.logDictionaryGuideShown();
+
+    if (!mounted) return;
+
     await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const DictionaryGuideDialog(),
     );
+
+    // 안내 다이얼로그 닫기 이벤트 기록
+    await _analytics.logDictionaryGuideDismissed();
   }
 
   @override
@@ -135,6 +153,15 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
         controller: _searchController,
         onChanged: (query) {
           ref.read(dictionaryViewModelProvider.notifier).onSearchChanged(query);
+
+          // 검색 이벤트 기록
+          if (query.isNotEmpty) {
+            final state = ref.read(dictionaryViewModelProvider);
+            _analytics.logDictionarySearchPerformed(
+              query: query,
+              resultCount: state.filteredDictionaries.length,
+            );
+          }
         },
         style: pretendard(weight: 600, size: 14, color: AppColors.textPrimary),
         decoration: InputDecoration(
@@ -182,6 +209,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                     ref
                         .read(dictionaryViewModelProvider.notifier)
                         .onSearchChanged('');
+
+                    // 검색 초기화 이벤트 기록
+                    _analytics.logDictionarySearchCleared();
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(right: 16),
@@ -287,6 +317,13 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
             ref
                 .read(dictionaryViewModelProvider.notifier)
                 .filterByCategory(categoryId);
+
+            // 카테고리 선택 이벤트 기록
+            final updatedState = ref.read(dictionaryViewModelProvider);
+            _analytics.logDictionaryCategorySelected(
+              categoryName: label,
+              resultCount: updatedState.filteredDictionaries.length,
+            );
           },
           showCheckmark: false,
           backgroundColor: AppColors.backgroundChip,
@@ -328,6 +365,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
+                // 재시도 이벤트 기록
+                _analytics.logDictionaryRetryPressed();
+
                 ref
                     .read(dictionaryViewModelProvider.notifier)
                     .loadDictionaries();
@@ -379,9 +419,22 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
       ),
       child: InkWell(
         onTap: () {
+          final willBeExpanded = !isExpanded;
+
           ref
               .read(dictionaryViewModelProvider.notifier)
               .toggleExpanded(dictionary.id);
+
+          // 펼치기/접기 이벤트 기록
+          if (willBeExpanded) {
+            _analytics.logDictionaryItemExpanded(
+              dictionaryId: dictionary.id,
+              question: dictionary.question,
+              category: dictionary.category.name,
+            );
+          } else {
+            _analytics.logDictionaryItemCollapsed(dictionary.id);
+          }
         },
         borderRadius: BorderRadius.circular(12),
         splashColor: Colors.transparent,

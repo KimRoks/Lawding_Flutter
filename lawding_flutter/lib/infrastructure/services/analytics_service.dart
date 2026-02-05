@@ -255,4 +255,103 @@ class AnalyticsService {
   Future<void> setUserId(String? userId) async {
     await _analytics.setUserId(id: userId);
   }
+
+  // 용어 사전 화면 조회 이벤트
+  Future<void> logDictionaryScreenViewed() async {
+    await _analytics.logEvent(name: 'dictionary_screen_viewed');
+  }
+
+  // 용어 사전 안내 다이얼로그 표시 이벤트
+  Future<void> logDictionaryGuideShown() async {
+    await _analytics.logEvent(name: 'dictionary_guide_shown');
+  }
+
+  // 용어 사전 안내 다이얼로그 닫기 이벤트
+  Future<void> logDictionaryGuideDismissed() async {
+    await _analytics.logEvent(name: 'dictionary_guide_dismissed');
+  }
+
+  // 용어 사전 검색 이벤트
+  Future<void> logDictionarySearchPerformed({
+    required String query,
+    required int resultCount,
+  }) async {
+    await _analytics.logEvent(
+      name: 'dictionary_search_performed',
+      parameters: {
+        'query_length': query.length,
+        'result_count': resultCount,
+      },
+    );
+  }
+
+  // 용어 사전 검색 초기화 이벤트
+  Future<void> logDictionarySearchCleared() async {
+    await _analytics.logEvent(name: 'dictionary_search_cleared');
+  }
+
+  // 용어 사전 카테고리 선택 이벤트
+  Future<void> logDictionaryCategorySelected({
+    required String categoryName,
+    required int resultCount,
+  }) async {
+    await _analytics.logEvent(
+      name: 'dictionary_category_selected',
+      parameters: {
+        'category': categoryName,
+        'result_count': resultCount,
+      },
+    );
+  }
+
+  // 용어 사전 항목 펼치기 이벤트
+  Future<void> logDictionaryItemExpanded({
+    required int dictionaryId,
+    required String question,
+    required String category,
+  }) async {
+    await _analytics.logEvent(
+      name: 'dictionary_item_expanded',
+      parameters: {
+        'dictionary_id': dictionaryId,
+        'question_length': question.length,
+        'category': category,
+      },
+    );
+  }
+
+  // 용어 사전 항목 접기 이벤트
+  Future<void> logDictionaryItemCollapsed(int dictionaryId) async {
+    await _analytics.logEvent(
+      name: 'dictionary_item_collapsed',
+      parameters: {'dictionary_id': dictionaryId},
+    );
+  }
+
+  // 용어 사전 데이터 로딩 성공 이벤트
+  Future<void> logDictionaryDataLoaded({
+    required int totalCount,
+    required int categoryCount,
+  }) async {
+    await _analytics.logEvent(
+      name: 'dictionary_data_loaded',
+      parameters: {
+        'total_count': totalCount,
+        'category_count': categoryCount,
+      },
+    );
+  }
+
+  // 용어 사전 데이터 로딩 실패 이벤트
+  Future<void> logDictionaryDataLoadFailed(String errorMessage) async {
+    await _analytics.logEvent(
+      name: 'dictionary_data_load_failed',
+      parameters: {'error_message': errorMessage},
+    );
+  }
+
+  // 용어 사전 재시도 버튼 클릭 이벤트
+  Future<void> logDictionaryRetryPressed() async {
+    await _analytics.logEvent(name: 'dictionary_retry_pressed');
+  }
 }
