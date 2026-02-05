@@ -3,6 +3,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../core/design_system.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/custom_scaffold.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
@@ -42,9 +43,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(title: widget.title, backgroundColor: Colors.white),
+      dismissKeyboardOnTap: false,
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),

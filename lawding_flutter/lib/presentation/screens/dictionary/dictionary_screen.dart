@@ -113,7 +113,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
               _buildSearchBox(state),
               _buildCategoryChips(state),
               Expanded(child: _buildBody(state)),
-              // TODO: 하단 버튼 임시로 숨김 기존 높이 80
+              // TODO: 하단 버튼 임시로 숨김 기존 높이 80 및 buildBottomButton() 주석 처리
               const SizedBox(height: 0),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system.dart';
+import '../../widgets/common/custom_scaffold.dart';
 
 /// 탭 아이템 정보를 담는 클래스
 class TabItemInfo {
@@ -54,8 +55,10 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: Colors.white,
+      useDefaultAppBar: false,
+      dismissKeyboardOnTap: false,
       body: IndexedStack(
         index: _currentIndex,
         children: widget.tabs.map((tab) => tab.screen).toList(),

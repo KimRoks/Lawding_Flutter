@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/submit_button.dart';
 import 'feedback_view_model.dart';
 
@@ -51,7 +52,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '피드백'),
       body: SingleChildScrollView(
