@@ -4,6 +4,7 @@ import '../../../domain/entities/annual_leave.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/submit_button.dart';
 import '../../widgets/result/result_badge.dart';
 import '../calculation_detail/calculation_detail_screen.dart';
@@ -16,7 +17,7 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '계산결과'),
       body: SingleChildScrollView(

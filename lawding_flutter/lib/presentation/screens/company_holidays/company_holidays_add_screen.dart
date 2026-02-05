@@ -6,6 +6,7 @@ import '../../core/design_system.dart';
 import '../../widgets/common/badge_label.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/date_button.dart';
 import '../../widgets/common/date_picker_sheet.dart';
 import '../../widgets/common/dropdown_button.dart';
@@ -55,7 +56,7 @@ class _CompanyHolidaysAddScreenState extends State<CompanyHolidaysAddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '선택사항'),
       body: SingleChildScrollView(

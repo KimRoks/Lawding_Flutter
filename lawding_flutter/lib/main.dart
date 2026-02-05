@@ -12,22 +12,15 @@ import 'presentation/screens/splash/splash_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // .env 파일 로드
   await dotenv.load(fileName: '.env');
 
-  // Firebase 초기화
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Crashlytics 초기화
   await CrashlyticsService().initialize();
 
-  // 앱 시작 이벤트 기록
   await AnalyticsService().logAppLaunched();
 
-  runApp(
-    // Riverpod ProviderScope로 앱 전체 감싸기
-    const ProviderScope(child: MyApp()),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

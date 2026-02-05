@@ -27,6 +27,7 @@ class AppColors {
   // ============================================================================
   static const Color textPrimary = Color(0xFF111111);
   static const Color textSecondary = Color(0xFF999999);
+  static const Color textTertiary = Color(0xFF777777);
   static const Color textDisabled = Color(0xFFCCCCCC);
   static const Color textHint = Color(0xFFDADADA);
 
@@ -37,6 +38,7 @@ class AppColors {
   static const Color backgroundLight = Color(0xFFF6F6F6);
   static const Color backgroundCard = Color(0xFFF5F5F5);
   static const Color backgroundField = Color(0xFFF7F7F7);
+  static const Color backgroundChip = Color(0xFFF1F1F1);
 
   // ============================================================================
   // Border & Divider Colors
@@ -52,6 +54,7 @@ class AppColors {
   static const Color overlay = Color(0x80000000); // black 50%
   static const Color switchInactive = Color(0xFFD9D9D9);
   static const Color highlight = Color(0xFFFFFA99);
+  static const Color iconInactive = Color(0xFFC9C9C9);
 
   // ============================================================================
   // Legacy (for backwards compatibility)

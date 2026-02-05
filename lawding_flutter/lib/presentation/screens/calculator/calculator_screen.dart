@@ -5,6 +5,7 @@ import '../../../domain/entities/help_content.dart';
 import '../../core/design_system.dart';
 import '../../widgets/calculator/calculation_type_card.dart';
 import '../../widgets/calculator/period_list_card.dart';
+import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/date_picker_sheet.dart';
 import '../../widgets/common/quick_help_sheet.dart';
 import '../../widgets/common/submit_button.dart';
@@ -23,33 +24,7 @@ class CalculatorScreen extends ConsumerWidget {
     final viewModel = ref.watch(calculatorViewModelProvider.notifier);
     final state = ref.watch(calculatorViewModelProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: AppBar(
-          backgroundColor: AppColors.background,
-          surfaceTintColor: AppColors.background,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          automaticallyImplyLeading: false,
-          leadingWidth: 150,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'LawDing',
-                style: pretendard(
-                  weight: 700,
-                  size: 20,
-                  color: AppColors.brandColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    return CustomScaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

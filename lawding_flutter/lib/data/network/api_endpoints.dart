@@ -9,4 +9,10 @@ class ApiEndpoints {
 
   // App Version
   static const String checkVersion = '/v1/app/version-check';
+
+  // Dictionaries
+  static const String dictionaries = '/v1/dictionaries';
+
+  // Dictionary Search
+  static const String dictionarySearch = '/v1/dictionaries/search';
 }
