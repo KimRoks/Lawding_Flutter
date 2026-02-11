@@ -29,6 +29,13 @@ extension CalculatorResponseMapper on CalculatorResponse {
       baseAnnualLeave: calculationDetail.baseAnnualLeave,
       additionalLeave: calculationDetail.additionalLeave,
       attendanceRate: calculationDetail.attendanceRate?.rate,
+      prescribedWorkingRatio: calculationDetail.prescribedWorkingRatio != null
+          ? RatioEntity(
+              numerator: calculationDetail.prescribedWorkingRatio!.numerator,
+              denominator: calculationDetail.prescribedWorkingRatio!.denominator,
+              rate: calculationDetail.prescribedWorkingRatio!.rate,
+            )
+          : null,
       explanations: explanations,
       nonWorkingExplanations: nonWorkingExplanations,
       accrualPeriod: calculationDetail.accrualPeriod != null

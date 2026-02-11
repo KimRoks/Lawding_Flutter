@@ -39,6 +39,9 @@ class AnnualLeave {
   /// 출근율
   final double? attendanceRate;
 
+  /// 소정근로비율 (ANNUAL 타입 등에서 top-level로 사용)
+  final RatioEntity? prescribedWorkingRatio;
+
   /// 설명
   final List<String> explanations;
 
@@ -71,6 +74,7 @@ class AnnualLeave {
     this.baseAnnualLeave,
     this.additionalLeave,
     this.attendanceRate,
+    this.prescribedWorkingRatio,
     required this.explanations,
     this.nonWorkingExplanations,
     this.accrualPeriod,
