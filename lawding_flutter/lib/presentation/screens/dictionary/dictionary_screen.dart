@@ -163,13 +163,13 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
             );
           }
         },
-        style: pretendard(weight: 600, size: 14, color: AppColors.textPrimary),
+        style: pretendard(weight: 600, size: 14, color: AppColors.textGray11),
         decoration: InputDecoration(
           hintText: '궁금한 연차 정보를 검색해보세요.',
           hintStyle: pretendard(
             weight: 600,
             size: 14,
-            color: AppColors.textSecondary,
+            color: AppColors.textGray99,
           ),
           filled: true,
           fillColor: const Color(0xFFF6F6F6),
@@ -331,7 +331,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
           labelStyle: pretendard(
             weight: 600,
             size: 14,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : AppColors.textGray99,
           ),
           side: const BorderSide(color: Colors.transparent, width: 0),
           shape: RoundedRectangleBorder(
@@ -360,7 +360,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
           children: [
             Text(
               state.errorMessage!,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(color: AppColors.textGray99),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -386,7 +386,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
       return const Center(
         child: Text(
           '검색 결과가 없습니다.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+          style: TextStyle(color: AppColors.textGray99, fontSize: 14),
         ),
       );
     }
@@ -488,7 +488,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                       curve: Curves.easeInOut,
                       child: const Icon(
                         Icons.keyboard_arrow_down,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textGray99,
                         size: 24,
                       ),
                     ),
@@ -528,9 +528,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                             child: Text(
                               dictionary.content,
                               style: pretendard(
-                                weight: 600,
-                                size: 12,
-                                color: AppColors.textTertiary,
+                                weight: 500,
+                                size: 14,
+                                color: AppColors.textGray55,
                                 height: 1.5,
                               ),
                             ),

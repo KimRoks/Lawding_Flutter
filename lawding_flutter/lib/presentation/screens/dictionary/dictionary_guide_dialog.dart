@@ -47,7 +47,7 @@ class DictionaryGuideDialog extends StatelessWidget {
                       style: pretendard(
                         weight: 700,
                         size: titleSize,
-                        color: AppColors.textPrimary,
+                        color: AppColors.textGray11,
                       ),
                     ),
                     SizedBox(height: isLandscape ? 16 : 24),
@@ -135,7 +135,7 @@ class DictionaryGuideDialog extends StatelessWidget {
             style: pretendard(
               weight: 500,
               size: textSize,
-              color: AppColors.textPrimary,
+              color: AppColors.textGray11,
               height: 1.4,
             ),
           ),

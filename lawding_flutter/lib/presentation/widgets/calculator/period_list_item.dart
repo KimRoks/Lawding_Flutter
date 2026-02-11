@@ -35,7 +35,7 @@ class PeriodListItem extends StatelessWidget {
                   style: pretendard(
                     size: 12,
                     weight: 500,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textGray99,
                   ),
                 ),
               ],
@@ -50,7 +50,7 @@ class PeriodListItem extends StatelessWidget {
                 style: pretendard(
                   size: 12,
                   weight: 700,
-                  color: AppColors.textHint,
+                  color: AppColors.textGrayDA,
                 ),
               ),
             ),
