@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/help_content.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/calculator/calculation_type_card.dart';
 import '../../widgets/calculator/period_list_card.dart';
@@ -21,6 +22,7 @@ class CalculatorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final analytics = AnalyticsService();
     final viewModel = ref.watch(calculatorViewModelProvider.notifier);
     final state = ref.watch(calculatorViewModelProvider);
 
@@ -47,6 +49,7 @@ class CalculatorScreen extends ConsumerWidget {
                 viewModel.setReferenceDate,
               ),
               onHelpTap: () {
+                analytics.logHelpButtonClicked('calculation_type');
                 QuickHelpSheet.show(
                   context,
                   kind: QuickHelpKind.calculationType,
@@ -90,6 +93,7 @@ class CalculatorScreen extends ConsumerWidget {
               },
               onDeleteItem: viewModel.removeNonWorkingPeriod,
               onHelpTap: () {
+                analytics.logHelpButtonClicked('detail_periods');
                 QuickHelpSheet.show(context, kind: QuickHelpKind.detailPeriods);
               },
             ),
@@ -127,6 +131,7 @@ class CalculatorScreen extends ConsumerWidget {
               },
               onDeleteItem: viewModel.removeCompanyHoliday,
               onHelpTap: () {
+                analytics.logHelpButtonClicked('company_holidays');
                 QuickHelpSheet.show(
                   context,
                   kind: QuickHelpKind.companyHolidays,
@@ -136,12 +141,14 @@ class CalculatorScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             TermsAgreementText(
               onTermsTap: () {
+                const termsUrl =
+                    'https://maze-palladium-edf.notion.site/Lawding-273c4b24d2e2805f99f5f0eba1645a96?source=copy_link';
+                analytics.logExternalLinkClicked('terms', termsUrl);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const WebViewScreen(
-                      url:
-                          'https://maze-palladium-edf.notion.site/Lawding-273c4b24d2e2805f99f5f0eba1645a96?source=copy_link',
+                      url: termsUrl,
                       title: '이용약관',
                     ),
                   ),

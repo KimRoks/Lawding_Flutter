@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/annual_leave.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -17,6 +18,7 @@ class CalculationDetailScreen extends StatefulWidget {
 }
 
 class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
+  final _analytics = AnalyticsService();
   int _selectedSegmentIndex = 0; // 0: 월차, 1: 비례연차
 
   bool get _showSegment => widget.result.leaveType == 'MONTHLY_AND_PRORATED';
@@ -24,6 +26,8 @@ class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Analytics: 화면 진입 이벤트
+    _analytics.logScreenView('CalculationDetailScreen');
   }
 
   @override
@@ -88,7 +92,11 @@ class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedSegmentIndex = 0),
+                  onTap: () {
+                    setState(() => _selectedSegmentIndex = 0);
+                    // Analytics: 세그먼트 변경 이벤트
+                    _analytics.logDetailSegmentChanged('monthly');
+                  },
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     alignment: Alignment.center,
@@ -98,7 +106,7 @@ class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
                         weight: 700,
                         size: 16,
                         color: _selectedSegmentIndex == 0
-                            ? AppColors.textPrimary
+                            ? AppColors.textGray11
                             : AppColors.secondaryTextColor,
                       ),
                       child: const Text('월차'),
@@ -108,7 +116,11 @@ class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
               ),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedSegmentIndex = 1),
+                  onTap: () {
+                    setState(() => _selectedSegmentIndex = 1);
+                    // Analytics: 세그먼트 변경 이벤트
+                    _analytics.logDetailSegmentChanged('prorated');
+                  },
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     alignment: Alignment.center,
@@ -118,7 +130,7 @@ class _CalculationDetailScreenState extends State<CalculationDetailScreen> {
                         weight: 700,
                         size: 16,
                         color: _selectedSegmentIndex == 1
-                            ? AppColors.textPrimary
+                            ? AppColors.textGray11
                             : AppColors.secondaryTextColor,
                       ),
                       child: const Text('비례연차'),
@@ -238,7 +250,7 @@ class _DetailCard extends StatelessWidget {
     items.add(
       Text(
         '연차 합계:  ${_formatNumber(monthly.totalLeaveDays)}일',
-        style: pretendard(weight: 700, size: 13, color: AppColors.textPrimary),
+        style: pretendard(weight: 700, size: 13, color: AppColors.textGray11),
       ),
     );
 
@@ -330,7 +342,7 @@ class _DetailCard extends StatelessWidget {
     items.add(
       Text(
         '월차 합계:  ${_formatNumber(monthly.totalLeaveDays)}일',
-        style: pretendard(weight: 700, size: 13, color: AppColors.textPrimary),
+        style: pretendard(weight: 700, size: 13, color: AppColors.textGray11),
       ),
     );
 
@@ -412,7 +424,7 @@ class _DetailCard extends StatelessWidget {
     items.add(
       Text(
         '비례연차 합계:  ${_formatNumber(prorated.totalLeaveDays)}일',
-        style: pretendard(weight: 700, size: 13, color: AppColors.textPrimary),
+        style: pretendard(weight: 700, size: 13, color: AppColors.textGray11),
       ),
     );
 
@@ -511,7 +523,7 @@ class _DetailCard extends StatelessWidget {
     items.add(
       Text(
         '비례연차 합계:  ${_formatNumber(prorated.totalLeaveDays)}일',
-        style: pretendard(weight: 700, size: 13, color: AppColors.textPrimary),
+        style: pretendard(weight: 700, size: 13, color: AppColors.textGray11),
       ),
     );
 
@@ -563,6 +575,16 @@ class _DetailCard extends StatelessWidget {
       items.add(const SizedBox(height: 10));
     }
 
+    // 소정근로비율
+    if (result.prescribedWorkingRatio != null) {
+      items.add(
+        _buildInfoRow(
+          '소정근로비율:  ${_formatPercent(result.prescribedWorkingRatio!.rate)} (${result.prescribedWorkingRatio!.numerator}일 / ${result.prescribedWorkingRatio!.denominator}일)',
+        ),
+      );
+      items.add(const SizedBox(height: 10));
+    }
+
     // 기본연차/가산연차 (맨 아래 배치, 간격 20)
     final hasBaseOrAdditional =
         result.baseAnnualLeave != null || result.additionalLeave != null;
@@ -586,7 +608,7 @@ class _DetailCard extends StatelessWidget {
     items.add(
       Text(
         '총 발생 연차:  ${_formatNumber(result.totalDays)}일',
-        style: pretendard(weight: 700, size: 12, color: AppColors.textPrimary),
+        style: pretendard(weight: 700, size: 12, color: AppColors.textGray11),
       ),
     );
 
@@ -607,7 +629,7 @@ class _DetailCard extends StatelessWidget {
   Widget _buildInfoRow(String text) {
     return Text(
       text,
-      style: pretendard(weight: 500, size: 12, color: AppColors.textSecondary),
+      style: pretendard(weight: 500, size: 12, color: AppColors.textGray99),
     );
   }
 }
@@ -674,7 +696,7 @@ class _RecordsCard extends StatelessWidget {
                     style: pretendard(
                       weight: 500,
                       size: 12,
-                      color: AppColors.textSecondary,
+                      color: AppColors.textGray99,
                     ),
                   ),
                   const Spacer(),
@@ -732,7 +754,7 @@ class _ExplanationCard extends StatelessWidget {
                   style: pretendard(
                     weight: 500,
                     size: 12,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textGray99,
                   ),
                 ),
               );
@@ -753,7 +775,7 @@ class _ExplanationCard extends StatelessWidget {
                   style: pretendard(
                     weight: 500,
                     size: 12,
-                    color: AppColors.textSecondary,
+                    color: AppColors.textGray99,
                   ),
                 ),
               );

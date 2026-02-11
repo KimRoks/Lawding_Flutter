@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/custom_scaffold.dart';
@@ -16,12 +17,17 @@ class WebViewScreen extends StatefulWidget {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
+  final _analytics = AnalyticsService();
   late final WebViewController _controller;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
+    // Analytics: 웹뷰 열기 이벤트
+    _analytics.logWebViewOpened(widget.url, widget.title);
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(

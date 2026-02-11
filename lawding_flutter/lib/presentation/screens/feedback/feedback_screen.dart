@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -18,6 +19,7 @@ class FeedbackScreen extends ConsumerStatefulWidget {
 }
 
 class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
+  final _analytics = AnalyticsService();
   int _selectedTypeIndex = 0;
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -27,6 +29,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Analytics: 화면 진입 이벤트
+    _analytics.logFeedbackScreenOpened(calculationId: widget.calculationId);
+
     if (widget.calculationId != null) {
       Future.microtask(() {
         ref
@@ -131,6 +137,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                   ref
                                       .read(feedbackViewModelProvider.notifier)
                                       .setFeedbackType(index);
+
+                                  // Analytics: 피드백 유형 선택 이벤트
+                                  _analytics.logFeedbackTypeSelected(
+                                    _feedbackTypes[index],
+                                  );
                                 },
                                 behavior: HitTestBehavior.opaque,
                                 child: Center(
@@ -141,7 +152,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                       size: 12,
                                       color: isSelected
                                           ? AppColors.primaryTextColor
-                                          : AppColors.textHint,
+                                          : AppColors.textGrayDA,
                                     ),
                                     child: Text(_feedbackTypes[index]),
                                   ),
@@ -191,7 +202,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                         hintStyle: pretendard(
                           weight: 500,
                           size: 15,
-                          color: AppColors.textSecondary,
+                          color: AppColors.textGray99,
                         ),
                         border: InputBorder.none,
                       ),
@@ -235,7 +246,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                           hintStyle: pretendard(
                             weight: 400,
                             size: 14,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textGray99,
                           ),
                           isCollapsed: true,
                           border: InputBorder.none,
@@ -295,7 +306,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
               style: pretendard(
                 weight: 500,
                 size: 12,
-                color: AppColors.textSecondary,
+                color: AppColors.textGray99,
               ),
             ),
             const SizedBox(height: 32),
