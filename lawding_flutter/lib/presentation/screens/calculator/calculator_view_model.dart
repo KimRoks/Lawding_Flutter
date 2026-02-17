@@ -6,6 +6,8 @@ import '../../../domain/entities/annual_leave.dart';
 import '../../../domain/entities/company_holiday.dart';
 import '../../../domain/entities/non_working_period.dart';
 import '../../../domain/repositories/annual_leave_repository.dart';
+import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/crashlytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 
@@ -13,30 +15,47 @@ part 'calculator_view_model.g.dart';
 
 @riverpod
 class CalculatorViewModel extends _$CalculatorViewModel {
+  final _analytics = AnalyticsService();
+  final _crashlytics = CrashlyticsService();
+
   @override
   CalculatorState build() {
     return CalculatorState();
   }
 
   void setCalculationType(int index) {
-    state = state.copyWith(
-      calculationType: index == 0
-          ? CalculationType.standard
-          : CalculationType.proRated,
+    final calculationType = index == 0
+        ? CalculationType.standard
+        : CalculationType.proRated;
+
+    state = state.copyWith(calculationType: calculationType);
+
+    // Analytics 이벤트 기록
+    _analytics.logCalculationTypeSelected(
+      calculationType == CalculationType.standard ? 'standard' : 'pro_rated',
     );
   }
 
   void setHireDate(DateTime date) {
     state = state.copyWith(hireDate: date);
+
+    // Analytics 이벤트 기록
+    _analytics.logHireDateSelected(date.toIso8601String());
   }
 
   void setReferenceDate(DateTime date) {
     state = state.copyWith(referenceDate: date);
+
+    // Analytics 이벤트 기록
+    _analytics.logReferenceDateSelected(date.toIso8601String());
   }
 
   void setFiscalYearStartMonth(int month) {
     // 회계연도 시작 월 저장
     state = state.copyWith(fiscalYearStartMonth: month);
+
+    // Analytics 이벤트 기록
+    _analytics.logFiscalYearStartMonthSelected(month);
   }
 
   /// 특이사항 추가 가능 여부 검증
@@ -114,6 +133,9 @@ class CalculatorViewModel extends _$CalculatorViewModel {
       final updated = [...state.nonWorkingPeriods, period];
       state = state.copyWith(nonWorkingPeriods: updated);
 
+      // Analytics 이벤트 기록
+      _analytics.logNonWorkingPeriodAdded(displayName);
+
       return null;
     } catch (e) {
       return '데이터 처리 중 오류가 발생했습니다.';
@@ -121,9 +143,13 @@ class CalculatorViewModel extends _$CalculatorViewModel {
   }
 
   void removeNonWorkingPeriod(int index) {
+    final removedPeriod = state.nonWorkingPeriods[index];
     final updated = List<NonWorkingPeriod>.from(state.nonWorkingPeriods)
       ..removeAt(index);
     state = state.copyWith(nonWorkingPeriods: updated);
+
+    // Analytics 이벤트 기록
+    _analytics.logNonWorkingPeriodRemoved(removedPeriod.displayName);
   }
 
   /// 회사휴일 추가 가능 여부 검증
@@ -169,6 +195,9 @@ class CalculatorViewModel extends _$CalculatorViewModel {
       final updated = [...state.companyHolidays, holiday];
       state = state.copyWith(companyHolidays: updated);
 
+      // Analytics 이벤트 기록
+      _analytics.logCompanyHolidayAdded(displayName);
+
       return null;
     } catch (e) {
       return '데이터 처리 중 오류가 발생했습니다.';
@@ -176,9 +205,13 @@ class CalculatorViewModel extends _$CalculatorViewModel {
   }
 
   void removeCompanyHoliday(int index) {
+    final removedHoliday = state.companyHolidays[index];
     final updated = List<CompanyHoliday>.from(state.companyHolidays)
       ..removeAt(index);
     state = state.copyWith(companyHolidays: updated);
+
+    // Analytics 이벤트 기록
+    _analytics.logCompanyHolidayRemoved(removedHoliday.displayName);
   }
 
   /// 계산하기 검증
@@ -234,6 +267,18 @@ class CalculatorViewModel extends _$CalculatorViewModel {
         ? DateFormatter.toMonthDayFormat(state.fiscalYearStartMonth)
         : null;
 
+    // Analytics: 계산 시작 이벤트
+    final calculationTypeString =
+        state.calculationType == CalculationType.standard ? 'standard' : 'pro_rated';
+    await _analytics.logCalculationStarted(calculationTypeString);
+
+    // Crashlytics 컨텍스트 설정
+    await _crashlytics.setCalculationContext(
+      calculationType: calculationTypeString,
+      hireDate: hireDate.toIso8601String(),
+      referenceDate: referenceDate.toIso8601String(),
+    );
+
     state = state.copyWith(isLoading: true, error: null);
 
     final useCase = ref.read(calculateAnnualLeaveUseCaseProvider);
@@ -249,6 +294,16 @@ class CalculatorViewModel extends _$CalculatorViewModel {
     switch (result) {
       case Success(:final value):
         state = state.copyWith(isLoading: false, result: value);
+
+        // Analytics: 계산 완료 이벤트
+        final serviceYears = referenceDate.difference(hireDate).inDays ~/ 365;
+        await _analytics.logCalculationCompleted(
+          calculationType: calculationTypeString,
+          leaveType: value.leaveType,
+          totalDays: value.totalDays,
+          serviceYears: serviceYears,
+        );
+
       case Failure(:final error):
         final errorMessage = switch (error) {
           ServerError(:final message) => message,
@@ -259,6 +314,22 @@ class CalculatorViewModel extends _$CalculatorViewModel {
         };
 
         state = state.copyWith(isLoading: false, error: errorMessage);
+
+        // Analytics: 계산 실패 이벤트
+        await _analytics.logCalculationFailed(
+          calculationType: calculationTypeString,
+          errorMessage: errorMessage,
+        );
+
+        // Crashlytics: 계산 에러 기록
+        await _crashlytics.recordCalculationError(
+          calculationType: calculationTypeString,
+          error: error,
+          additionalData: {
+            'hire_date': hireDate.toIso8601String(),
+            'reference_date': referenceDate.toIso8601String(),
+          },
+        );
     }
   }
 }

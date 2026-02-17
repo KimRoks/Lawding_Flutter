@@ -3,12 +3,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../data/network/network_error.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/feedback.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../providers/providers.dart';
 
 part 'feedback_view_model.g.dart';
 
 @riverpod
 class FeedbackViewModel extends _$FeedbackViewModel {
+  final _analytics = AnalyticsService();
+
   @override
   FeedbackState build() {
     return FeedbackState();
@@ -57,6 +60,13 @@ class FeedbackViewModel extends _$FeedbackViewModel {
 
   /// 피드백 제출
   Future<void> submitFeedback() async {
+    // Analytics: 피드백 제출 시작 이벤트
+    final feedbackTypeString = _getFeedbackTypeString(state.category);
+    await _analytics.logFeedbackSubmitStarted(
+      feedbackType: feedbackTypeString,
+      includeCalculationData: state.includeCalculationData,
+    );
+
     state = state.copyWith(isLoading: true, error: null);
 
     final useCase = ref.read(submitFeedbackUseCaseProvider);
@@ -73,6 +83,12 @@ class FeedbackViewModel extends _$FeedbackViewModel {
     result.fold(
       onSuccess: (_) {
         state = state.copyWith(isLoading: false, isSubmitted: true);
+
+        // Analytics: 피드백 제출 성공 이벤트
+        _analytics.logFeedbackSubmitted(
+          feedbackType: feedbackTypeString,
+          includeCalculationData: state.includeCalculationData,
+        );
       },
       onFailure: (error) {
         final errorMessage = switch (error) {
@@ -83,8 +99,24 @@ class FeedbackViewModel extends _$FeedbackViewModel {
           _ => '피드백 전송에 실패했습니다.',
         };
         state = state.copyWith(isLoading: false, error: errorMessage);
+
+        // Analytics: 피드백 제출 실패 이벤트
+        _analytics.logFeedbackSubmitFailed(
+          feedbackType: feedbackTypeString,
+          errorMessage: errorMessage,
+        );
       },
     );
+  }
+
+  String _getFeedbackTypeString(FeedbackCategory category) {
+    return switch (category) {
+      FeedbackCategory.errorReport => 'error_report',
+      FeedbackCategory.question => 'question',
+      FeedbackCategory.improvement => 'improvement',
+      FeedbackCategory.satisfaction => 'satisfaction',
+      FeedbackCategory.other => 'other',
+    };
   }
 }
 

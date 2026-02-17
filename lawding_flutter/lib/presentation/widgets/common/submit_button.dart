@@ -23,7 +23,7 @@ class SubmitButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandColor,
-          disabledBackgroundColor: AppColors.textDisabled,
+          disabledBackgroundColor: AppColors.textGrayCC,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
         ),

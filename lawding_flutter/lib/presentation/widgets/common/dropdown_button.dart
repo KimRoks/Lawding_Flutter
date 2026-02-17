@@ -188,7 +188,7 @@ class _CustomDropdownButtonState<T> extends State<CustomDropdownButton<T>>
                   style: pretendard(weight: 500, size: 15).copyWith(
                     color: widget.selectedValue != null
                         ? AppColors.primaryTextColor
-                        : AppColors.textDisabled,
+                        : AppColors.textGrayCC,
                   ),
                 ),
               ),
@@ -196,7 +196,7 @@ class _CustomDropdownButtonState<T> extends State<CustomDropdownButton<T>>
               const Icon(
                 Icons.keyboard_arrow_down,
                 size: 20,
-                color: AppColors.textDisabled,
+                color: AppColors.textGrayCC,
               ),
             ],
           ),

@@ -8,9 +8,11 @@ import 'network_error.dart';
 class DioClient {
   final Dio _dio;
 
+  static String get _platformString =>
+      defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios';
+
   DioClient({
     required String baseUrl,
-    String platform = 'ios',
     bool isTestMode = kDebugMode,
     Dio? dio,
   }) : _dio =
@@ -23,7 +25,7 @@ class DioClient {
                headers: {
                  'Content-Type': 'application/json',
                  'Accept': 'application/json',
-                 'X-Platform': platform,
+                 'X-Platform': _platformString,
                  'X-Test': isTestMode.toString(),
                },
              ),
@@ -32,7 +34,7 @@ class DioClient {
     if (dio != null) {
       _dio.options.baseUrl = baseUrl;
       _dio.options.headers.addAll({
-        'X-Platform': platform,
+        'X-Platform': _platformString,
         'X-Test': isTestMode.toString(),
       });
     }

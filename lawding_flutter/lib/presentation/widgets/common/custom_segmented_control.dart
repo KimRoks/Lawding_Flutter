@@ -63,8 +63,8 @@ class _CustomSegmentedControlState extends State<CustomSegmentedControl> {
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: isSelected
-                            ? AppColors.textPrimary
-                            : AppColors.textHint,
+                            ? AppColors.textGray11
+                            : AppColors.textGrayDA,
                       ),
                       child: Text(widget.items[index]),
                     ),

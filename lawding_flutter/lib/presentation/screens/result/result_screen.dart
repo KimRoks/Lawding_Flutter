@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/annual_leave.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -10,13 +11,29 @@ import '../../widgets/result/result_badge.dart';
 import '../calculation_detail/calculation_detail_screen.dart';
 import '../feedback/feedback_screen.dart';
 
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   final AnnualLeave result;
 
   const ResultScreen({super.key, required this.result});
 
   @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen> {
+  final _analytics = AnalyticsService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Analytics: 화면 진입 이벤트
+    _analytics.logScreenView('ResultScreen');
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final result = widget.result;
+
     return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '계산결과'),
@@ -33,6 +50,12 @@ class ResultScreen extends StatelessWidget {
             const SizedBox(height: 22),
             GestureDetector(
               onTap: () {
+                // Analytics: 피드백 링크 클릭 이벤트
+                _analytics.logExternalLinkClicked(
+                  'feedback_from_result',
+                  'internal://feedback',
+                );
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -116,7 +139,7 @@ class _ResultCard extends StatelessWidget {
             style: pretendard(
               weight: 500,
               size: 12,
-              color: AppColors.textSecondary,
+              color: AppColors.textGray99,
             ),
           ),
           const SizedBox(height: 14),
@@ -372,6 +395,8 @@ class _CalculationDetailSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final analytics = AnalyticsService();
+
     return CardContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +420,7 @@ class _CalculationDetailSection extends StatelessWidget {
                     style: pretendard(
                       weight: 500,
                       size: 12,
-                      color: AppColors.textSecondary,
+                      color: AppColors.textGray99,
                     ),
                   ),
                 ],
@@ -403,6 +428,9 @@ class _CalculationDetailSection extends StatelessWidget {
               const Spacer(),
               GestureDetector(
                 onTap: () {
+                  // Analytics: 계산 상세 보기 이벤트
+                  analytics.logCalculationDetailViewed(result.leaveType);
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(

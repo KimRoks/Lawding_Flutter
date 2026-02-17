@@ -23,13 +23,14 @@ class AppColors {
   static const Color brandLight = Color(0xFFCFE6FF);
 
   // ============================================================================
-  // Text Colors
+  // Text Colors (hex 값 기반 네이밍, 어두운 순)
   // ============================================================================
-  static const Color textPrimary = Color(0xFF111111);
-  static const Color textSecondary = Color(0xFF999999);
-  static const Color textTertiary = Color(0xFF777777);
-  static const Color textDisabled = Color(0xFFCCCCCC);
-  static const Color textHint = Color(0xFFDADADA);
+  static const Color textGray11 = Color(0xFF111111);
+  static const Color textGray55 = Color(0xFF555555);
+  static const Color textGray77 = Color(0xFF777777);
+  static const Color textGray99 = Color(0xFF999999);
+  static const Color textGrayCC = Color(0xFFCCCCCC);
+  static const Color textGrayDA = Color(0xFFDADADA);
 
   // ============================================================================
   // Background Colors
@@ -57,10 +58,10 @@ class AppColors {
   static const Color iconInactive = Color(0xFFC9C9C9);
 
   // ============================================================================
-  // Legacy (for backwards compatibility)
+  // Legacy Aliases (for backwards compatibility)
   // ============================================================================
-  static const Color primaryTextColor = textPrimary;
-  static const Color secondaryTextColor = textSecondary;
+  static const Color primaryTextColor = textGray11;
+  static const Color secondaryTextColor = textGray99;
 }
 
 /// Hex 문자열을 Color로 변환

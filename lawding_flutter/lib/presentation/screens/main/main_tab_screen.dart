@@ -92,7 +92,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
                 backgroundColor: Colors.white,
                 elevation: 0,
                 selectedItemColor: AppColors.brandColor,
-                unselectedItemColor: AppColors.textSecondary,
+                unselectedItemColor: AppColors.textGray99,
 
                 selectedFontSize: 10,
                 unselectedFontSize: 10,
