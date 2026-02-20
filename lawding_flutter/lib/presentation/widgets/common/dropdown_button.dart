@@ -170,8 +170,8 @@ class _CustomDropdownButtonState<T> extends State<CustomDropdownButton<T>>
       child: GestureDetector(
         onTap: _toggleDropdown,
         child: Container(
-          width: 200,
-          height: 44,
+          width: 144,
+          height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: AppColors.background,
