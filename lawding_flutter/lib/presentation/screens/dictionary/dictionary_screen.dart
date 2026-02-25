@@ -22,11 +22,12 @@ class DictionaryScreen extends ConsumerStatefulWidget {
 }
 
 class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
-    with TabActivationMixin {
+    with TabActivationMixin, SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _categoryScrollController = ScrollController();
   final _analytics = AnalyticsService();
   final _crashlytics = CrashlyticsService();
+  late AnimationController _shimmerController;
 
   // 개발 모드: true로 설정하면 매번 안내 다이얼로그가 표시됩니다
   static const bool _showGuideAlways = false;
@@ -38,6 +39,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   void initState() {
     super.initState();
     _categoryScrollController.addListener(_onCategoryScroll);
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
   }
 
   /// 탭이 활성화되었을 때 호출되는 메서드 (외부에서 호출 가능)
@@ -95,6 +100,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
 
   @override
   void dispose() {
+    _shimmerController.dispose();
     _categoryScrollController.removeListener(_onCategoryScroll);
     _categoryScrollController.dispose();
     _searchController.dispose();
@@ -130,6 +136,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
             children: [
               _buildSearchBox(state),
               _buildCategoryChips(state),
+              if (state.categories.isNotEmpty || state.isLoading) const SizedBox(height: 21),
               Expanded(child: _buildBody(state)),
               // TODO: 하단 버튼 임시로 숨김 기존 높이 80 및 buildBottomButton() 주석 처리
               const SizedBox(height: 0),
@@ -228,6 +235,25 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   }
 
   Widget _buildCategoryChips(DictionaryState state) {
+    if (state.isLoading) {
+      return SizedBox(
+        height: 30,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          physics: const NeverScrollableScrollPhysics(),
+          children: [64.0, 48.0, 72.0, 44.0, 56.0]
+              .map(
+                (w) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _skeletonBox(width: w, height: 30, radius: 20),
+                ),
+              )
+              .toList(),
+        ),
+      );
+    }
+
     if (state.categories.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -347,10 +373,8 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   }
 
   Widget _buildBody(DictionaryState state) {
-    if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.brandColor),
-      );
+    if (state.isLoading || (state.allDictionaries.isEmpty && state.errorMessage == null)) {
+      return _buildBodySkeleton();
     }
 
     if (state.errorMessage != null) {
@@ -392,7 +416,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 21),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: state.filteredDictionaries.length,
       itemBuilder: (context, index) {
         final dictionary = state.filteredDictionaries[index];
@@ -541,6 +565,76 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                   : const SizedBox.shrink(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // Skeleton UI
+  // ============================================================
+
+  Widget _buildBodySkeleton() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: 5,
+      itemBuilder: (_, _) => _buildSkeletonItem(),
+    );
+  }
+
+  Widget _buildSkeletonItem() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(left: 20, top: 20, right: 15, bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            spreadRadius: 1,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _skeletonBox(width: 48, height: 14, radius: 4),
+                const SizedBox(height: 10),
+                _skeletonBox(height: 18, radius: 4),
+                const SizedBox(height: 6),
+                _skeletonBox(width: 180, height: 18, radius: 4),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Padding(
+            padding: const EdgeInsets.only(top: 18),
+            child: _skeletonBox(width: 24, height: 24, radius: 4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _skeletonBox({double? width, required double height, double radius = 6}) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (_, _) => Opacity(
+        opacity: 0.3 + (_shimmerController.value * 0.4),
+        child: Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: const Color(0xFFDDDDDD),
+            borderRadius: BorderRadius.circular(radius),
+          ),
         ),
       ),
     );
