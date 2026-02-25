@@ -38,12 +38,6 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   void initState() {
     super.initState();
     _categoryScrollController.addListener(_onCategoryScroll);
-
-    // 데이터 로딩
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = ref.read(dictionaryViewModelProvider.notifier);
-      viewModel.loadDictionaries();
-    });
   }
 
   /// 탭이 활성화되었을 때 호출되는 메서드 (외부에서 호출 가능)
@@ -51,6 +45,12 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   void onTabActivated() {
     _checkAndShowGuide();
     _trackScreenView();
+
+    // Lazy loading: 최초 탭 진입 시에만 API 호출
+    final state = ref.read(dictionaryViewModelProvider);
+    if (state.allDictionaries.isEmpty && !state.isLoading) {
+      ref.read(dictionaryViewModelProvider.notifier).loadDictionaries();
+    }
   }
 
   void _trackScreenView() {
