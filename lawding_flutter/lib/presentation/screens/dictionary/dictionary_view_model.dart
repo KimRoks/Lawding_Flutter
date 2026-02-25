@@ -22,7 +22,7 @@ class DictionaryViewModel extends _$DictionaryViewModel {
 
   Future<void> loadDictionaries() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-
+  
     final useCase = ref.read(getDictionariesUseCaseProvider);
     final result = await useCase.execute();
 
@@ -155,7 +155,7 @@ class DictionaryState {
     this.selectedCategoryId,
     Set<int>? expandedIds,
     this.searchQuery = '',
-    this.isLoading = true,
+    this.isLoading = false,
     this.errorMessage,
     this.showLeftFade = false,
     this.showRightFade = true,
