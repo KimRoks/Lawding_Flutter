@@ -130,7 +130,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
     final state = ref.watch(dictionaryViewModelProvider);
 
     return CustomScaffold(
-      body: Stack(
+      body: Listener(
+        onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Stack(
         children: [
           Column(
             children: [
@@ -145,6 +147,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
           // _buildBottomButton(),
         ],
       ),
+    ),
     );
   }
 
