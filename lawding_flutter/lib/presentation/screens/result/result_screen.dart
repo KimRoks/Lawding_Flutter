@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/annual_leave.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/in_app_review_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/card_container.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -22,6 +23,7 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> {
   final _analytics = AnalyticsService();
+  final _inAppReview = InAppReviewService();
 
   @override
   void initState() {
@@ -91,8 +93,11 @@ class _ResultScreenState extends State<ResultScreen> {
             const SizedBox(height: 20),
             SubmitButton(
               text: '처음으로',
-              onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+              onPressed: () async {
+                await _inAppReview.onResultScreenHome();
+                if (context.mounted) {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                }
               },
             ),
           ],
