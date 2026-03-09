@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/dictionary.dart';
 import '../../../infrastructure/services/analytics_service.dart';
 import '../../../infrastructure/services/crashlytics_service.dart';
+import '../../../infrastructure/services/in_app_review_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import 'dictionary_guide_dialog.dart';
@@ -27,6 +28,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   final ScrollController _categoryScrollController = ScrollController();
   final _analytics = AnalyticsService();
   final _crashlytics = CrashlyticsService();
+  final _inAppReview = InAppReviewService();
   late AnimationController _shimmerController;
 
   // 개발 모드: true로 설정하면 매번 안내 다이얼로그가 표시됩니다
@@ -459,6 +461,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
               question: dictionary.question,
               category: dictionary.category.name,
             );
+            _inAppReview.onDictionaryItemExpanded();
           } else {
             _analytics.logDictionaryItemCollapsed(dictionary.id);
           }
