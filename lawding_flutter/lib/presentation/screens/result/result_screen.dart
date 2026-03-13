@@ -39,11 +39,13 @@ class _ResultScreenState extends State<ResultScreen> {
     return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '계산결과'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             _ResultCard(result: result),
             const SizedBox(height: 22),
             _InfoCard(result: result),
@@ -100,7 +102,8 @@ class _ResultScreenState extends State<ResultScreen> {
                 }
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
