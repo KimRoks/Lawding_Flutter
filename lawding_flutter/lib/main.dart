@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,6 +41,15 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.brandColor,
         fontFamily: 'Pretendard',
       ),
+      builder: (context, child) {
+        // 테마 brightness 기반으로 status bar 아이콘 색상 자동 결정
+        // 라이트 모드 → 다크 아이콘 / 다크 모드 → 라이트 아이콘
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+          child: child!,
+        );
+      },
       navigatorObservers: [AnalyticsService().getAnalyticsObserver()],
       home: const SplashScreen(),
     );

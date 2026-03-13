@@ -61,11 +61,13 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '피드백'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             CardContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +322,8 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                 );
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

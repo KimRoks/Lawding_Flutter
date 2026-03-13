@@ -27,7 +27,9 @@ class CalculatorScreen extends ConsumerWidget {
     final state = ref.watch(calculatorViewModelProvider);
 
     return CustomScaffold(
-      body: SingleChildScrollView(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
@@ -187,6 +189,7 @@ class CalculatorScreen extends ConsumerWidget {
               },
             ),
           ],
+        ),
         ),
       ),
     );

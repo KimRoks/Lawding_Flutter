@@ -59,46 +59,49 @@ class _CompanyHolidaysAddScreenState extends State<CompanyHolidaysAddScreen> {
     return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: '선택사항'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            CardContainer(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '공휴일 외 회사휴일',
-                        style: pretendard(weight: 700, size: 20),
-                      ),
-                      const SizedBox(width: 8),
-                      HelpButton(
-                        onTap: () {
-                          QuickHelpSheet.show(
-                            context,
-                            kind: QuickHelpKind.companyHolidays,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  const BadgeLabel(
-                    text: '회사휴일은 최대 3개까지 입력 가능',
-                    isRequired: false,
-                  ),
-                  const SizedBox(height: 18),
-                  _buildReasonRow(),
-                  const SizedBox(height: 12),
-                  _buildDateRow(),
-                ],
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              CardContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '공휴일 외 회사휴일',
+                          style: pretendard(weight: 700, size: 20),
+                        ),
+                        const SizedBox(width: 8),
+                        HelpButton(
+                          onTap: () {
+                            QuickHelpSheet.show(
+                              context,
+                              kind: QuickHelpKind.companyHolidays,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    const BadgeLabel(
+                      text: '회사휴일은 최대 3개까지 입력 가능',
+                      isRequired: false,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildReasonRow(),
+                    const SizedBox(height: 12),
+                    _buildDateRow(),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            SubmitButton(text: '추가하기', onPressed: _handleAddHoliday),
-          ],
+              const SizedBox(height: 20),
+              SubmitButton(text: '추가하기', onPressed: _handleAddHoliday),
+            ],
+          ),
         ),
       ),
     );

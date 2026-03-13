@@ -37,8 +37,10 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Container(
-      height: 310,
+      height: 310 + bottomInset,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -86,7 +88,7 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 30 + bottomInset),
             child: SubmitButton(
               text: '확인',
               onPressed: () {
