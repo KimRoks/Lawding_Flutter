@@ -673,7 +673,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                             width: 32,
                             height: 32,
                             child: Image.asset(
-                              'assets/icons/questionmark.png',
+                              'assets/icons/menuBook.png',
                               color: AppColors.brandColor,
                             ),
                           ),
