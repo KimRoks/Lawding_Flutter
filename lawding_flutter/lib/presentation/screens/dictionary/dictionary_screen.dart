@@ -8,6 +8,7 @@ import '../../../infrastructure/services/in_app_review_service.dart';
 import '../../core/design_system.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import 'dictionary_guide_dialog.dart';
+import 'dictionary_suggestion_screen.dart';
 import 'dictionary_view_model.dart';
 
 /// 탭 활성화 감지를 위한 mixin
@@ -121,10 +122,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   }
 
   void _onBottomButtonPressed() {
-    // TODO: 화면 push 구현
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('문의하기 화면으로 이동')));
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DictionarySuggestionScreen()),
+    );
   }
 
   @override
@@ -135,21 +135,22 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
       body: Listener(
         onPointerDown: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         child: Stack(
-        children: [
-          Column(
-            children: [
-              _buildSearchBox(state),
-              _buildCategoryChips(state),
-              if (state.categories.isNotEmpty || state.isLoading) const SizedBox(height: 21),
-              Expanded(child: _buildBody(state)),
-              // TODO: 하단 버튼 임시로 숨김 기존 높이 80 및 buildBottomButton() 주석 처리
-              const SizedBox(height: 0),
-            ],
-          ),
-          // _buildBottomButton(),
-        ],
+          children: [
+            Column(
+              children: [
+                _buildSearchBox(state),
+                _buildCategoryChips(state),
+                if (state.categories.isNotEmpty || state.isLoading)
+                  const SizedBox(height: 21),
+                Expanded(child: _buildBody(state)),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+            _buildBottomButton(),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -199,7 +200,12 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
             minHeight: 40,
           ),
           prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 16, top: 11, bottom: 11, right: 10),
+            padding: const EdgeInsets.only(
+              left: 16,
+              top: 11,
+              bottom: 11,
+              right: 10,
+            ),
             child: Image.asset(
               'assets/icons/magnifying.png',
               width: 18,
@@ -378,7 +384,8 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   }
 
   Widget _buildBody(DictionaryState state) {
-    if (state.isLoading || (state.allDictionaries.isEmpty && state.errorMessage == null)) {
+    if (state.isLoading ||
+        (state.allDictionaries.isEmpty && state.errorMessage == null)) {
       return _buildBodySkeleton();
     }
 
@@ -403,8 +410,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brandColor,
+                foregroundColor: Colors.white,
               ),
-              child: const Text('다시 시도'),
+              child: const Text('다시 시도', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -629,7 +637,11 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
     );
   }
 
-  Widget _skeletonBox({double? width, required double height, double radius = 6}) {
+  Widget _skeletonBox({
+    double? width,
+    required double height,
+    double radius = 6,
+  }) {
     return AnimatedBuilder(
       animation: _shimmerController,
       builder: (_, _) => Opacity(
@@ -664,40 +676,31 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                     child: Container(
                       color: AppColors.brandLight,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
+                        horizontal: 12,
+                        vertical: 14,
                       ),
                       child: Row(
                         children: [
                           SizedBox(
-                            width: 32,
-                            height: 32,
+                            width: 26,
+                            height: 26,
                             child: Image.asset(
-                              'assets/icons/questionmark.png',
+                              'assets/icons/menuBook.png',
                               color: AppColors.brandColor,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  '연차 관련 궁금한 사항이 있나요?',
+                                  '추가했으면 하는 연차 정보를 제안해 주세요',
                                   style: pretendard(
-                                    weight: 600,
-                                    size: 14,
+                                    weight: 700,
+                                    size: 16,
                                     color: AppColors.brandColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '연차에 대해 궁금하신 점을 질문해주세요.\n노무사가 직접 답변해드립니다.',
-                                  style: pretendard(
-                                    weight: 400,
-                                    size: 12,
-                                    color: AppColors.primaryTextColor,
                                   ),
                                 ),
                               ],
@@ -708,14 +711,16 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                     ),
                   ),
                   Container(
-                    width: 72,
+                    width: 45,
+                    height: 40,
                     color: AppColors.brandColor,
-                    child: const Center(
-                      child: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Image.asset(
+                      'assets/icons/ic_next.png',
+                      width: 20,
+                      height: 20,
+                      color: Colors.white,
                     ),
                   ),
                 ],
