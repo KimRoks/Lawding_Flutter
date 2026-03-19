@@ -22,12 +22,34 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
   final List<int> years = List.generate(56, (i) => 1980 + i); // 1980-2035
   final List<int> months = List.generate(12, (i) => i + 1);
 
+  late final FixedExtentScrollController _yearController;
+  late final FixedExtentScrollController _monthController;
+  late final FixedExtentScrollController _dayController;
+
   @override
   void initState() {
     super.initState();
     selectedYear = widget.initialDate.year;
     selectedMonth = widget.initialDate.month;
     selectedDay = widget.initialDate.day;
+
+    _yearController = FixedExtentScrollController(
+      initialItem: years.indexOf(selectedYear),
+    );
+    _monthController = FixedExtentScrollController(
+      initialItem: months.indexOf(selectedMonth),
+    );
+    _dayController = FixedExtentScrollController(
+      initialItem: selectedDay - 1,
+    );
+  }
+
+  @override
+  void dispose() {
+    _yearController.dispose();
+    _monthController.dispose();
+    _dayController.dispose();
+    super.dispose();
   }
 
   List<int> get days {
@@ -60,25 +82,29 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
           Expanded(
             child: Row(
               children: [
-                _buildPicker(years, selectedYear, (value) {
+                _buildPicker(years, _yearController, (value) {
                   HapticFeedback.selectionClick();
                   setState(() {
                     selectedYear = value;
-                    if (selectedDay > days.length) {
-                      selectedDay = days.length;
+                    final maxDay = days.length;
+                    if (selectedDay > maxDay) {
+                      selectedDay = maxDay;
+                      _dayController.jumpToItem(selectedDay - 1);
                     }
                   });
                 }, '년'),
-                _buildPicker(months, selectedMonth, (value) {
+                _buildPicker(months, _monthController, (value) {
                   HapticFeedback.selectionClick();
                   setState(() {
                     selectedMonth = value;
-                    if (selectedDay > days.length) {
-                      selectedDay = days.length;
+                    final maxDay = days.length;
+                    if (selectedDay > maxDay) {
+                      selectedDay = maxDay;
+                      _dayController.jumpToItem(selectedDay - 1);
                     }
                   });
                 }, '월'),
-                _buildPicker(days, selectedDay, (value) {
+                _buildPicker(days, _dayController, (value) {
                   HapticFeedback.selectionClick();
                   setState(() {
                     selectedDay = value;
@@ -106,15 +132,13 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
 
   Widget _buildPicker(
     List<int> items,
-    int selectedValue,
+    FixedExtentScrollController controller,
     ValueChanged<int> onChanged,
     String suffix,
   ) {
     return Expanded(
       child: CupertinoPicker(
-        scrollController: FixedExtentScrollController(
-          initialItem: items.indexOf(selectedValue),
-        ),
+        scrollController: controller,
         itemExtent: 40,
         onSelectedItemChanged: (index) => onChanged(items[index]),
         children: items.map((item) {
