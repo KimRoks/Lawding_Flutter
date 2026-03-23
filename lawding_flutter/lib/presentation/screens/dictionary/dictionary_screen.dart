@@ -38,6 +38,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
   // 최초 접근 체크 완료 여부
   bool _hasCheckedFirstAccess = false;
 
+  // 각 아이템의 위치를 추적하기 위한 GlobalKey 맵
+  final Map<int, GlobalKey> _itemKeys = {};
+
   @override
   void initState() {
     super.initState();
@@ -434,13 +437,19 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
       itemBuilder: (context, index) {
         final dictionary = state.filteredDictionaries[index];
         final isExpanded = state.expandedIds.contains(dictionary.id);
-        return _buildDictionaryItem(dictionary, isExpanded);
+        final itemKey = _itemKeys[dictionary.id] ??= GlobalKey();
+        return _buildDictionaryItem(dictionary, isExpanded, itemKey);
       },
     );
   }
 
-  Widget _buildDictionaryItem(Dictionary dictionary, bool isExpanded) {
+  Widget _buildDictionaryItem(
+    Dictionary dictionary,
+    bool isExpanded,
+    GlobalKey itemKey,
+  ) {
     return Container(
+      key: itemKey,
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -462,8 +471,18 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
               .read(dictionaryViewModelProvider.notifier)
               .toggleExpanded(dictionary.id);
 
-          // 펼치기/접기 이벤트 기록
           if (willBeExpanded) {
+            // 펼치기 애니메이션과 동시에 스크롤 → 하나의 자연스러운 동작처럼 보임
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted || itemKey.currentContext == null) return;
+              Scrollable.ensureVisible(
+                itemKey.currentContext!,
+                alignment: 0.0,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.fastOutSlowIn,
+              );
+            });
+
             _analytics.logDictionaryItemExpanded(
               dictionaryId: dictionary.id,
               question: dictionary.question,
