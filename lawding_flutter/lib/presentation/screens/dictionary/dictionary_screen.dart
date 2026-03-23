@@ -718,7 +718,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
                                   '추가했으면 하는 연차 정보를 제안해 주세요',
                                   style: pretendard(
                                     weight: 700,
-                                    size: 16,
+                                    size: 14,
                                     color: AppColors.brandColor,
                                   ),
                                 ),
