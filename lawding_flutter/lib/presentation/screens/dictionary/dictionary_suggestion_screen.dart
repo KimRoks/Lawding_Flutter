@@ -55,7 +55,7 @@ class _DictionarySuggestionScreenState
     final state = ref.watch(dictionarySuggestionViewModelProvider);
 
     return CustomScaffold(
-      appBar: const CustomAppBar(title: '질문'),
+      appBar: const CustomAppBar(title: '건의하기'),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -159,16 +159,7 @@ class _DictionarySuggestionScreenState
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                '여러분이 추가하면 좋을 내용을 보내주시면 검토할게요',
-                style: pretendard(
-                  weight: 500,
-                  size: 12,
-                  color: AppColors.textGray99,
-                ),
-              ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 26),
               SubmitButton(
                 text: '보내기',
                 isLoading: state.isLoading,
