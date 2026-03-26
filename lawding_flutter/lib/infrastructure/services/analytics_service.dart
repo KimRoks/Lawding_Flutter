@@ -238,6 +238,14 @@ class AnalyticsService {
     await _analytics.logEvent(name: 'app_launched');
   }
 
+  // 인앱 리뷰 요청 노출 이벤트
+  Future<void> logInAppReviewRequested({required String trigger}) async {
+    await _analytics.logEvent(
+      name: 'in_app_review_requested',
+      parameters: {'trigger': trigger},
+    );
+  }
+
   // 스플래시 화면 완료 이벤트
   Future<void> logSplashCompleted(int durationMs) async {
     await _analytics.logEvent(
