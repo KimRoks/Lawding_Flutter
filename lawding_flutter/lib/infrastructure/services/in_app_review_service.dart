@@ -1,6 +1,8 @@
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'analytics_service.dart';
+
 class InAppReviewService {
   static final InAppReviewService _instance = InAppReviewService._internal();
   factory InAppReviewService() => _instance;
@@ -17,7 +19,7 @@ class InAppReviewService {
 
   /// 계산 결과 화면 '처음으로' 버튼 클릭 시 호출
   Future<void> onResultScreenHome() async {
-    await _requestReviewIfEligible();
+    await _requestReviewIfEligible(trigger: 'result_screen');
   }
 
   /// 용어사전 아이템 펼치기 시 호출 — 누적 3회 달성 시 리뷰 요청
@@ -27,17 +29,18 @@ class InAppReviewService {
     await prefs.setInt(_keyDictionaryExpandCount, count);
 
     if (count >= _expandThreshold) {
-      await _requestReviewIfEligible();
+      await _requestReviewIfEligible(trigger: 'dictionary_expand');
     }
   }
 
   /// 쿨다운 조건 확인 후 리뷰 요청
-  Future<void> _requestReviewIfEligible() async {
+  Future<void> _requestReviewIfEligible({required String trigger}) async {
     if (!await _isEligible()) return;
 
     final inAppReview = InAppReview.instance;
     if (!await inAppReview.isAvailable()) return;
 
+    await AnalyticsService().logInAppReviewRequested(trigger: trigger);
     await inAppReview.requestReview();
     await _recordRequest();
   }
