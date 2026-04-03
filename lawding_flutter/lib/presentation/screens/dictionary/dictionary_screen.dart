@@ -345,42 +345,52 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen>
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: Theme(
-        data: ThemeData(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: ChoiceChip(
-          label: Text(label),
-          selected: isSelected,
-          onSelected: (_) {
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(500),
+        child: InkWell(
+          splashColor: Colors.white.withValues(alpha: 0.2),
+          highlightColor: Colors.white.withValues(alpha: 0.1),
+          onTap: () {
             ref
                 .read(dictionaryViewModelProvider.notifier)
                 .filterByCategory(categoryId);
 
-            // 카테고리 선택 이벤트 기록
             final updatedState = ref.read(dictionaryViewModelProvider);
+            // 카테고리 선택 이벤트 기록
             _analytics.logDictionaryCategorySelected(
               categoryName: label,
               resultCount: updatedState.filteredDictionaries.length,
             );
           },
-          showCheckmark: false,
-          backgroundColor: AppColors.backgroundChip,
-          selectedColor: AppColors.brandColor,
-          labelStyle: pretendard(
-            weight: 600,
-            size: 14,
-            color: isSelected ? Colors.white : AppColors.textGray99,
+          borderRadius: BorderRadius.circular(500),
+          child: Container(
+            height: 30,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.brandColor
+                  : AppColors.backgroundChip,
+              borderRadius: BorderRadius.circular(500),
+            ),
+            alignment: Alignment.center,
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              style: pretendard(
+                weight: 600,
+                size: 14,
+                color: isSelected ? Colors.white : AppColors.textGray99,
+              ),
+              child: Text(
+                label,
+                textHeightBehavior: const TextHeightBehavior(
+                  applyHeightToFirstAscent: false,
+                  applyHeightToLastDescent: false,
+                ),
+              ),
+            ),
           ),
-          side: const BorderSide(color: Colors.transparent, width: 0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 0,
-          pressElevation: 0,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
         ),
       ),
     );
