@@ -20,8 +20,7 @@ platform :android do
   lane :beta do
     gradle(
       task: "bundle",
-      build_type: "Release",
-      project_dir: "android/"
+      build_type: "Release"
     )
     upload_to_play_store(
       track: "internal",
