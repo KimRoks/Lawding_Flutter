@@ -16,7 +16,7 @@ jobs:
       - name: Bump patch version
         id: bump
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          VERSION=$(grep '^version:' lawding_flutter/pubspec.yaml | sed 's/version: //' | tr -d ' ')
           MAJOR=$(echo $VERSION | cut -d. -f1)
           MINOR=$(echo $VERSION | cut -d. -f2)
           PATCH=$(echo $VERSION | cut -d. -f3 | cut -d+ -f1)
@@ -24,14 +24,14 @@ jobs:
           NEW_PATCH=$((PATCH + 1))
           NEW_BUILD=$((BUILD + 1))
           NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH+$NEW_BUILD"
-          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          sed -i "s/^version: .*/version: $NEW_VERSION/" lawding_flutter/pubspec.yaml
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit version bump
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add pubspec.yaml
+          git add lawding_flutter/pubspec.yaml
           git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }}"
           git push
 
@@ -49,16 +49,17 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: lawding_flutter
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
           bundler-cache: true
-          working-directory: ios
+          working-directory: lawding_flutter/ios
 
       - name: Run Fastlane iOS beta
-        working-directory: ios
+        working-directory: lawding_flutter/ios
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
@@ -80,29 +81,30 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: lawding_flutter
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
           bundler-cache: true
-          working-directory: android
+          working-directory: lawding_flutter/android
 
       - name: Setup keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > lawding_flutter/android/app/upload-keystore.jks
 
       - name: Create key.properties
         run: |
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=upload" >> android/key.properties
-          echo "storeFile=/home/runner/work/lawding_flutter/lawding_flutter/android/app/upload-keystore.jks" >> android/key.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > lawding_flutter/android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> lawding_flutter/android/key.properties
+          echo "keyAlias=upload" >> lawding_flutter/android/key.properties
+          echo "storeFile=/home/runner/work/Lawding_Flutter/Lawding_Flutter/lawding_flutter/android/app/upload-keystore.jks" >> lawding_flutter/android/key.properties
 
       - name: Create Google Play key
         run: |
-          echo '${{ secrets.GOOGLE_PLAY_KEY_JSON }}' > android/fastlane/google-play-key.json
+          echo '${{ secrets.GOOGLE_PLAY_KEY_JSON }}' > lawding_flutter/android/fastlane/google-play-key.json
 
       - name: Run Fastlane Android beta
-        working-directory: android
+        working-directory: lawding_flutter/android
         run: bundle exec fastlane beta
