@@ -1,2 +1,6 @@
 .DS_Store
 .idea/
+
+# iOS build artifacts
+lawding_flutter/ios/Runner.app.dSYM.zip
+lawding_flutter/ios/Runner.ipa
