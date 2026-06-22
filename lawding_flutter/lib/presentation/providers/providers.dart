@@ -6,11 +6,15 @@ import '../../data/annual_leave_calculator/calculator_repository_impl.dart';
 import '../../data/app_version/app_version_repository_impl.dart';
 import '../../data/dictionary/dictionary_repository_impl.dart';
 import '../../data/feedback/feedback_repository_impl.dart';
+import '../../data/holiday/holiday_repository_impl.dart';
+import '../../data/auth/auth_repository_impl.dart';
 import '../../data/network/dio_client.dart';
 import '../../domain/repositories/annual_leave_repository.dart';
 import '../../domain/repositories/app_version_repository.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/dictionary_repository.dart';
 import '../../domain/repositories/feedback_repository.dart';
+import '../../domain/repositories/holiday_repository.dart';
 import '../../domain/usecases/calculate_annual_leave_usecase.dart';
 import '../../domain/usecases/get_dictionaries_usecase.dart';
 import '../../domain/usecases/search_dictionary_usecase.dart';
@@ -22,12 +26,27 @@ part 'providers.g.dart';
 // Infrastructure Layer (Network)
 // ============================================================================
 
+/// AuthRepository Provider
+/// 토큰 저장/조회/삭제 Repository 구현체 제공
+@riverpod
+AuthRepository authRepository(Ref ref) {
+  return AuthRepositoryImpl();
+}
+
 /// DioClient Provider
 /// 네트워크 통신을 위한 DioClient 인스턴스 제공
 @riverpod
 DioClient dioClient(Ref ref) {
   final baseUrl = dotenv.env['BASE_URL'] ?? 'https://api.default.com';
-  return DioClient(baseUrl: baseUrl);
+  final auth = ref.watch(authRepositoryProvider);
+  return DioClient(baseUrl: baseUrl, authRepository: auth);
+}
+
+/// baseUrl Provider
+/// .env의 BASE_URL 제공
+@riverpod
+String baseUrl(Ref ref) {
+  return dotenv.env['BASE_URL'] ?? 'https://api.default.com';
 }
 
 // ============================================================================
@@ -56,6 +75,14 @@ FeedbackRepository feedbackRepository(Ref ref) {
 AppVersionRepository appVersionRepository(Ref ref) {
   final dioClient = ref.watch(dioClientProvider);
   return AppVersionRepositoryImpl(dioClient);
+}
+
+/// HolidayRepository Provider
+/// 공휴일 목록 조회 Repository 구현체 제공
+@riverpod
+HolidayRepository holidayRepository(Ref ref) {
+  final dioClient = ref.watch(dioClientProvider);
+  return HolidayRepositoryImpl(dioClient);
 }
 
 // ============================================================================

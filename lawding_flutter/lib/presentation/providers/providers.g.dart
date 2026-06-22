@@ -6,7 +6,27 @@ part of 'providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dioClientHash() => r'1e01a172917b0cd3222effb0bdb534bf02f7346b';
+String _$authRepositoryHash() => r'a8767550d220ede9bb05149c073a651c4422d5ef';
+
+/// AuthRepository Provider
+/// 토큰 저장/조회/삭제 Repository 구현체 제공
+///
+/// Copied from [authRepository].
+@ProviderFor(authRepository)
+final authRepositoryProvider = AutoDisposeProvider<AuthRepository>.internal(
+  authRepository,
+  name: r'authRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$authRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AuthRepositoryRef = AutoDisposeProviderRef<AuthRepository>;
+String _$dioClientHash() => r'4b1ec2385cfda68a1e5fde15a563220bce171cd3';
 
 /// DioClient Provider
 /// 네트워크 통신을 위한 DioClient 인스턴스 제공
@@ -26,6 +46,26 @@ final dioClientProvider = AutoDisposeProvider<DioClient>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DioClientRef = AutoDisposeProviderRef<DioClient>;
+String _$baseUrlHash() => r'0678def68d5409a9a974f607bf2eccb6659a8530';
+
+/// baseUrl Provider
+/// .env의 BASE_URL 제공
+///
+/// Copied from [baseUrl].
+@ProviderFor(baseUrl)
+final baseUrlProvider = AutoDisposeProvider<String>.internal(
+  baseUrl,
+  name: r'baseUrlProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$baseUrlHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BaseUrlRef = AutoDisposeProviderRef<String>;
 String _$annualLeaveRepositoryHash() =>
     r'c853c76be9de247327bf0af1ca1dd380621e29f3';
 
@@ -93,6 +133,27 @@ final appVersionRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppVersionRepositoryRef = AutoDisposeProviderRef<AppVersionRepository>;
+String _$holidayRepositoryHash() => r'e55d4225fd66e85a283983b2b0d3383e14185715';
+
+/// HolidayRepository Provider
+/// 공휴일 목록 조회 Repository 구현체 제공
+///
+/// Copied from [holidayRepository].
+@ProviderFor(holidayRepository)
+final holidayRepositoryProvider =
+    AutoDisposeProvider<HolidayRepository>.internal(
+      holidayRepository,
+      name: r'holidayRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$holidayRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef HolidayRepositoryRef = AutoDisposeProviderRef<HolidayRepository>;
 String _$calculateAnnualLeaveUseCaseHash() =>
     r'b8f17d7996bac3a788a250d5a3b68fe30b82be78';
 
