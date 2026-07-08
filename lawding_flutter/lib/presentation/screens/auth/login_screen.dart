@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/network/network_error.dart';
@@ -110,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               if (Platform.isIOS) ...[
                 _LoginButton(
                   icon: const _AppleIcon(),
-                  label: 'Apple로 시작하기',
+                  label: 'Apple로 계속하기',
                   backgroundColor: Colors.white,
                   textColor: Colors.black,
                   borderColor: const Color(0xFFE1E1E1),
@@ -124,7 +125,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
               _LoginButton(
                 icon: const _GoogleIcon(),
-                label: 'Google로 시작하기',
+                label: 'Google로 계속하기',
                 backgroundColor: Colors.white,
                 textColor: Colors.black,
                 borderColor: const Color(0xFFE1E1E1),
@@ -137,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 12),
               _LoginButton(
                 icon: const _KakaoIcon(),
-                label: '카카오로 시작하기',
+                label: '카카오로 계속하기',
                 backgroundColor: const Color(0xFFFEE500),
                 textColor: const Color(0xFF191919),
                 onTap: _isLoading
@@ -146,7 +147,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         OAuthUrls.kakao(ref.read(baseUrlProvider)),
                       ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(
+                    child: Text(
+                      '건너뛰기',
+                      style: TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF999999),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
             ],
           ),
         ),
@@ -192,7 +212,7 @@ class _LoginButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             icon,
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Text(
               label,
               style: TextStyle(
@@ -212,7 +232,6 @@ class _LoginButton extends StatelessWidget {
 
 // ============================================================================
 // 브랜드 아이콘
-// TODO: 실제 SVG 에셋으로 교체 필요
 // ============================================================================
 
 class _AppleIcon extends StatelessWidget {
@@ -220,49 +239,8 @@ class _AppleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 22,
-      height: 28,
-      child: CustomPaint(painter: _AppleIconPainter()),
-    );
+    return SvgPicture.asset('assets/icons/OAuth_apple.svg', width: 22, height: 22);
   }
-}
-
-class _AppleIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    final bodyPath = Path()
-      ..addOval(Rect.fromLTWH(w * 0.05, h * 0.22, w * 0.45, h * 0.7))
-      ..addOval(Rect.fromLTWH(w * 0.50, h * 0.22, w * 0.45, h * 0.7));
-
-    final bitePath = Path()
-      ..addOval(Rect.fromLTWH(w * 0.52, h * 0.12, w * 0.5, h * 0.44));
-
-    final applePath = Path.combine(
-      PathOperation.difference,
-      bodyPath,
-      bitePath,
-    );
-    canvas.drawPath(applePath, paint);
-
-    final stemPath = Path();
-    stemPath.moveTo(w * 0.52, h * 0.22);
-    stemPath.quadraticBezierTo(w * 0.60, h * 0.04, w * 0.72, h * 0.01);
-    stemPath.lineTo(w * 0.74, h * 0.07);
-    stemPath.quadraticBezierTo(w * 0.64, h * 0.10, w * 0.57, h * 0.24);
-    stemPath.close();
-    canvas.drawPath(stemPath, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _GoogleIcon extends StatelessWidget {
@@ -270,73 +248,8 @@ class _GoogleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 23,
-      height: 23,
-      child: CustomPaint(painter: _GoogleIconPainter()),
-    );
+    return SvgPicture.asset('assets/icons/OAuth_google.svg', width: 22, height: 22);
   }
-}
-
-class _GoogleIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    const strokeWidth = 3.5;
-
-    final arcPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.butt;
-
-    arcPaint.color = const Color(0xFFE94235);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
-      -1.57,
-      1.57,
-      false,
-      arcPaint,
-    );
-    arcPaint.color = const Color(0xFF34A853);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
-      0.0,
-      1.57,
-      false,
-      arcPaint,
-    );
-    arcPaint.color = const Color(0xFFFBBC04);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
-      1.57,
-      1.57,
-      false,
-      arcPaint,
-    );
-    arcPaint.color = const Color(0xFF4285F4);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
-      3.14,
-      1.57,
-      false,
-      arcPaint,
-    );
-
-    final barPaint = Paint()
-      ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.butt;
-    canvas.drawLine(
-      Offset(center.dx, center.dy),
-      Offset(center.dx + radius - strokeWidth / 2, center.dy),
-      barPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _KakaoIcon extends StatelessWidget {
@@ -344,52 +257,6 @@ class _KakaoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 25,
-      height: 22,
-      child: CustomPaint(painter: _KakaoIconPainter()),
-    );
+    return SvgPicture.asset('assets/icons/OAuth_kakao.svg', width: 22, height: 22);
   }
-}
-
-class _KakaoIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF191919)
-      ..style = PaintingStyle.fill;
-
-    final w = size.width;
-    final h = size.height;
-
-    final bodyPath = Path()..addOval(Rect.fromLTWH(0, 0, w, h * 0.82));
-
-    final tailPath = Path();
-    tailPath.moveTo(w * 0.35, h * 0.72);
-    tailPath.lineTo(w * 0.25, h * 1.0);
-    tailPath.lineTo(w * 0.55, h * 0.78);
-    tailPath.close();
-
-    canvas.drawPath(bodyPath, paint);
-    canvas.drawPath(tailPath, paint);
-
-    final eyePaint = Paint()
-      ..color = const Color(0xFFFEE500)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(w * 0.35, h * 0.38), w * 0.07, eyePaint);
-    canvas.drawCircle(Offset(w * 0.65, h * 0.38), w * 0.07, eyePaint);
-
-    final mouthPaint = Paint()
-      ..color = const Color(0xFFFEE500)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round;
-    final mouthPath = Path();
-    mouthPath.moveTo(w * 0.28, h * 0.52);
-    mouthPath.quadraticBezierTo(w * 0.50, h * 0.65, w * 0.72, h * 0.52);
-    canvas.drawPath(mouthPath, mouthPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
