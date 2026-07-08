@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
@@ -9,7 +10,12 @@ import '../../../infrastructure/services/app_version_service.dart';
 import '../../../infrastructure/services/crashlytics_service.dart';
 import '../../providers/providers.dart';
 import '../../widgets/force_update_dialog.dart';
+import '../auth/login_screen.dart';
+import '../basic_info/basic_info_screen.dart';
+import '../calendar/calendar_screen.dart';
+import '../calendar/calendar_tutorial_screen.dart';
 import '../calculator/calculator_screen.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../dictionary/dictionary_screen.dart';
 import '../main/main_tab_screen.dart';
 
@@ -26,6 +32,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   final _appVersionService = AppVersionService();
   final _startTime = DateTime.now();
   final _dictionaryScreenKey = GlobalKey();
+  final _calendarScreenKey = GlobalKey<_CalendarTabScreenState>();
 
   @override
   void initState() {
@@ -65,6 +72,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
+      // 저장된 토큰 확인
+      final authRepo = ref.read(authRepositoryProvider);
+      final accessToken = await authRepo.getAccessToken();
+      debugPrint('[Splash] accessToken: $accessToken');
+
       // 이전 세션에서 크래시가 발생했는지 확인
       final didCrash = await _crashlytics.didCrashOnPreviousExecution();
       if (didCrash) {
@@ -116,6 +128,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     return MainTabScreen(
       tabs: [
         TabItemInfo(
+          title: '나의 연차',
+          icon: Image.asset(
+            'assets/icons/dashboard_tabbar_black.png',
+            width: 24,
+            height: 24,
+          ),
+          activeIcon: Image.asset(
+            'assets/icons/dashboard_tabbar.png',
+            width: 24,
+            height: 24,
+          ),
+          screen: const DashboardScreen(),
+        ),
+        TabItemInfo(
           title: '연차 계산기',
           icon: Image.asset(
             'assets/icons/calculator_outlined.png',
@@ -150,6 +176,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             }
           },
         ),
+        TabItemInfo(
+          title: '연차 캘린더',
+          icon: Image.asset(
+            'assets/icons/calendar_tabbar_black.png',
+            width: 24,
+            height: 24,
+          ),
+          activeIcon: Image.asset(
+            'assets/icons/calendar_tabbar.png',
+            width: 24,
+            height: 24,
+          ),
+          screen: _CalendarTabScreen(key: _calendarScreenKey),
+          onTabActivated: () =>
+              _calendarScreenKey.currentState?.showTutorialIfNeeded(),
+        ),
       ],
     );
   }
@@ -167,5 +209,160 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         ),
       ),
     );
+  }
+}
+
+// 캘린더 탭 진입 시 로그인 여부를 확인하고 적절한 화면을 표시하는 래퍼
+class _CalendarTabScreen extends ConsumerStatefulWidget {
+  const _CalendarTabScreen({super.key});
+
+  @override
+  ConsumerState<_CalendarTabScreen> createState() => _CalendarTabScreenState();
+}
+
+class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
+  bool _tutorialShown = false;
+  bool _isLoading = false;
+
+  static const _tutorialKey = 'calendar_tutorial_shown';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTutorialShown();
+  }
+
+  Future<void> _loadTutorialShown() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) _tutorialShown = prefs.getBool(_tutorialKey) ?? false;
+  }
+
+  Future<void> showTutorialIfNeeded() async {
+    if (!mounted) return;
+    if (ref.read(calendarAuthStateProvider)) return;
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final hasToken = await ref.read(authRepositoryProvider).isLoggedIn();
+      if (!mounted) return;
+
+      if (hasToken) {
+        debugPrint('[Calendar] GET /users/me/profile 호출');
+        final result = await ref.read(getUserProfileUseCaseProvider).execute();
+        if (!mounted) return;
+
+        result.fold(
+          onSuccess: (profile) {
+            debugPrint('[Calendar] profile 응답:');
+            debugPrint('  id                  : ${profile.id}');
+            debugPrint('  nickname            : ${profile.nickname}');
+            debugPrint('  onboardingCompleted : ${profile.onboardingCompleted}');
+            if (profile.onboardingCompleted) {
+              ref.read(calendarAuthStateProvider.notifier).state = true;
+              setState(() => _isLoading = false);
+            } else {
+              setState(() => _isLoading = false);
+              _showBasicInfoScreen();
+            }
+          },
+          onFailure: (error) {
+            debugPrint('[Calendar] profile 실패: $error');
+            setState(() => _isLoading = false);
+            _showLoginScreen();
+          },
+        );
+        return;
+      }
+
+      // 비로그인: 튜토리얼(최초 1회) → 로그인 화면
+      setState(() => _isLoading = false);
+      if (!_tutorialShown) {
+        _tutorialShown = true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_tutorialKey, true);
+        if (!mounted) return;
+        await Navigator.of(context, rootNavigator: true).push(
+          PageRouteBuilder(
+            opaque: true,
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                CalendarTutorialScreen(onFinished: _showLoginScreen),
+            transitionDuration: const Duration(milliseconds: 400),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) =>
+                    FadeTransition(opacity: animation, child: child),
+          ),
+        );
+      } else {
+        _showLoginScreen();
+      }
+    } catch (e) {
+      debugPrint('[Calendar] showTutorialIfNeeded 에러: $e');
+      if (mounted) setState(() => _isLoading = false);
+    } finally {
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showBasicInfoScreen() {
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder(
+        opaque: true,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            BasicInfoScreen(onCompleted: _onUserInfoCompleted),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
+
+  void _showLoginScreen() {
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder(
+        opaque: true,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            LoginScreen(onLoginSuccess: _onLoginSuccess),
+        transitionDuration: const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
+
+  void _onLoginSuccess(bool onboardingCompleted) {
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (onboardingCompleted) {
+      ref.read(calendarAuthStateProvider.notifier).state = true;
+    } else {
+      Navigator.of(context, rootNavigator: true).push(
+        PageRouteBuilder(
+          opaque: true,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              BasicInfoScreen(onCompleted: _onUserInfoCompleted),
+          transitionDuration: const Duration(milliseconds: 300),
+          transitionsBuilder:
+              (context, animation, secondaryAnimation, child) =>
+                  FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    }
+  }
+
+  void _onUserInfoCompleted() {
+    Navigator.of(context, rootNavigator: true).pop();
+    ref.read(calendarAuthStateProvider.notifier).state = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoggedIn = ref.watch(calendarAuthStateProvider);
+    if (isLoggedIn) return const CalendarScreen();
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    return const SizedBox.shrink();
   }
 }
