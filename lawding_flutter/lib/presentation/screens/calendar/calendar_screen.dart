@@ -1,11 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
+import '../../../domain/entities/user_dashboard.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/logo_app_bar.dart';
+import 'add_calendar_event_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 데이터 모델 — 추후 VM / Repository 레이어로 이동
@@ -63,6 +67,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   // API 응답으로 교체됨. 실패 시 mock 유지
   List<CalendarHoliday> _holidays = _mockHolidays;
   final List<CalendarEvent> _events = _mockEvents;
+  UserDashboard? _dashboard;
+  UserDashboard? _leaveSummary;
 
   @override
   void initState() {
@@ -73,12 +79,38 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _displayedMonth = DateTime(now.year, now.month, 1);
     _pageController = PageController(initialPage: _initialPage);
     _fetchHolidays();
+    _fetchLeaveSummary();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  /// 소수점 3자리, 불필요한 trailing zero 제거 (예: 1.000 → 1, 1.500 → 1.5)
+  String _formatDays(double days) {
+    final s = days.toStringAsFixed(3);
+    final trimmed = s.replaceAll(RegExp(r'\.?0+$'), '');
+    return trimmed;
+  }
+
+  Future<void> _fetchLeaveSummary() async {
+    final useCase = ref.read(getLeaveSummaryUseCaseProvider);
+    final result = await useCase.execute();
+    switch (result) {
+      case Success(:final value):
+        debugPrint('--- [LeaveSummary] ---');
+        debugPrint('nickname              : ${value.nickname}');
+        debugPrint('remainingLeaveMinutes : ${value.remainingLeaveMinutes}');
+        debugPrint('remainingLeaveDays    : ${value.remainingLeaveDays}');
+        debugPrint('remainingLeaveHours   : ${value.remainingLeaveHours}');
+        debugPrint('----------------------');
+        if (!mounted) return;
+        setState(() => _leaveSummary = value);
+      case Failure(:final error):
+        debugPrint('[LeaveSummary] 실패: $error');
+    }
   }
 
   Future<void> _fetchHolidays() async {
@@ -235,15 +267,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Widget build(BuildContext context) {
     return CustomScaffold(
       backgroundColor: AppColors.background,
-      appBar: LogoAppBar(
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 20, top: 13, bottom: 13),
-            // setting 아이콘 - 추후 교체
-            child: Container(width: 30, height: 30, color: Colors.black),
-          ),
-        ],
-      ),
+      appBar: const LogoAppBar(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,6 +291,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildLeaveCard() {
+    final data = _leaveSummary ?? _dashboard;
     return Container(
       height: 83,
       decoration: BoxDecoration(
@@ -278,11 +303,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       child: Stack(
         children: [
+          // 닉네임 (top: 91-81=10, left: 37-20=17)
           Positioned(
-            top: 16,
+            top: 10,
             left: 17,
             child: Text(
-              'LAWDING님',
+              '${data?.nickname ?? ''}님',
               style: pretendard(
                 weight: 700,
                 size: 20,
@@ -290,9 +316,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ),
           ),
+          // 남은 연차 라벨 (top: 96-81=15, left: 163-20=143)
           Positioned(
-            top: 21,
-            left: 144,
+            top: 15,
+            left: 143,
             child: Text(
               '남은 연차',
               style: pretendard(
@@ -302,77 +329,85 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ),
           ),
+          // 회색 pill (top: 120-81=39, left: 30-20=10)
+          Positioned(
+            top: 39,
+            left: 10,
+            child: Container(
+              width: 186,
+              height: 34,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(17),
+              ),
+            ),
+          ),
+          // 남은 일수 (top: 125-81=44, left: 42-20=22)
           Positioned(
             top: 44,
-            left: 15,
+            left: 22,
             child: Text(
-              '00.000일',
+              data == null
+                  ? ''
+                  : '${_formatDays(data.remainingLeaveDays)}일',
               style: pretendard(
                 weight: 700,
-                size: 24,
+                size: 20,
                 color: AppColors.textGray11,
               ),
             ),
           ),
+          // 남은 시간 (top: 129-81=48, left: 132-20=112)
           Positioned(
-            top: 46,
-            left: 121,
-            child: Image.asset(
-              'assets/icons/calendar_remainTime.png',
-              width: 20,
-              height: 20,
-            ),
-          ),
-          Positioned(
-            top: 45,
-            left: 143,
+            top: 48,
+            left: 112,
             child: Text(
-              '000시간',
+              data == null
+                  ? ''
+                  : '${data.remainingLeaveHours.toStringAsFixed(0)}시간',
               style: pretendard(
                 weight: 700,
                 size: 13,
-                color: AppColors.brandColor,
+                color: AppColors.textGray55,
               ),
             ),
           ),
+          // 시간 편집 아이콘 (top: 130-81=49, left: 192-20=172)
           Positioned(
-            top: 49,
-            left: 198,
-            child: GestureDetector(
-              onTap: () {},
-              child: Image.asset(
-                'assets/icons/calendar_timeEdit.png',
+            top: 41,
+            left: 164,
+            child: CupertinoButton(
+              padding: const EdgeInsets.all(8),
+              minimumSize: Size.zero,
+              onPressed: () {
+                // TODO: 시간 편집
+              },
+              child: SvgPicture.asset(
+                'assets/icons/calendar_timeEdit.svg',
                 width: 14,
                 height: 14,
               ),
             ),
           ),
+          // 연차 추가 버튼 — SVG에 원 배경 포함
           Positioned(
             top: 19,
             right: 19,
-            child: GestureDetector(
-              onTap: () {},
-              child: Container(
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddCalendarEventScreen(),
+                  ),
+                );
+              },
+              child: SvgPicture.asset(
+                'assets/icons/calendar_add.svg',
                 width: 45,
                 height: 45,
-                decoration: const BoxDecoration(
-                  color: AppColors.brandColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x0A000000),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Image.asset(
-                    'assets/icons/calendar_add.png',
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
               ),
             ),
           ),
