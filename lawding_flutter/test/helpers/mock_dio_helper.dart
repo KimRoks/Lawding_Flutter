@@ -50,6 +50,20 @@ class MockDioHelper {
     );
   }
 
+  /// PUT 요청에 대한 Mock 응답 설정
+  void mockPut({
+    required String path,
+    required dynamic responseData,
+    int statusCode = 200,
+    dynamic requestData,
+  }) {
+    dioAdapter.onPut(
+      path,
+      (server) => server.reply(statusCode, responseData),
+      data: requestData ?? Matchers.any,
+    );
+  }
+
   /// PATCH 요청에 대한 Mock 응답 설정
   void mockPatch({
     required String path,
@@ -102,6 +116,13 @@ class MockDioHelper {
           data: Matchers.any,
         );
         break;
+      case 'PUT':
+        dioAdapter.onPut(
+          path,
+          (server) => server.reply(statusCode, errorData),
+          data: Matchers.any,
+        );
+        break;
       case 'PATCH':
         dioAdapter.onPatch(
           path,
@@ -147,6 +168,31 @@ class MockDioHelper {
             ),
           ),
           data: Matchers.any,
+        );
+        break;
+      case 'PUT':
+        dioAdapter.onPut(
+          path,
+          (server) => server.throws(
+            408,
+            DioException(
+              requestOptions: RequestOptions(path: path),
+              type: DioExceptionType.connectionTimeout,
+            ),
+          ),
+          data: Matchers.any,
+        );
+        break;
+      case 'DELETE':
+        dioAdapter.onDelete(
+          path,
+          (server) => server.throws(
+            408,
+            DioException(
+              requestOptions: RequestOptions(path: path),
+              type: DioExceptionType.connectionTimeout,
+            ),
+          ),
         );
         break;
     }
