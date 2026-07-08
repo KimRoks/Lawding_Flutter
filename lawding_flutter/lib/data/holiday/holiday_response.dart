@@ -18,7 +18,10 @@ class HolidayListApiResponse {
       status: json['status'] as String,
       message: json['message'] as String,
       data: (json['data'] as List<dynamic>)
-          .map((item) => HolidayItemResponse.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                HolidayItemResponse.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
       timestamp: json['timestamp'] as String,
     );
