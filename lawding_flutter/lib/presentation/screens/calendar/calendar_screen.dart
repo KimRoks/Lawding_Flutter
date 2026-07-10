@@ -116,15 +116,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Future<void> _fetchHolidays() async {
-    final repository = ref.read(holidayRepositoryProvider);
     final currentYear = _today.year;
-    final result = await repository.getHolidays(
+    final result = await ref.read(getHolidaysUseCaseProvider).execute(
       startYear: currentYear - 1,
       endYear: currentYear + 2,
     );
     switch (result) {
       case Success(:final value):
-        print(
+        debugPrint(
           '[Holiday API] 수신: ${value.length}건 ${value.map((h) => '${h.date.toIso8601String().substring(0, 10)} ${h.name}').toList()}',
         );
         if (!mounted) return;
@@ -134,7 +133,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               .toList();
         });
       case Failure(:final error):
-        print('[Holiday API] 실패: $error');
+        debugPrint('[Holiday API] 실패: $error');
     }
   }
 
