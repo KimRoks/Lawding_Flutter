@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
+import '../../../domain/entities/calendar_event.dart';
 import '../../../domain/entities/user_dashboard.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
@@ -46,7 +47,6 @@ class CalendarEvent {
 }
 
 final List<CalendarHoliday> _mockHolidays = [];
-final List<CalendarEvent> _mockEvents = [];
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -66,7 +66,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   // API 응답으로 교체됨. 실패 시 mock 유지
   List<CalendarHoliday> _holidays = _mockHolidays;
-  final List<CalendarEvent> _events = _mockEvents;
+  List<CalendarEvent> _events = [];
   UserDashboard? _dashboard;
   UserDashboard? _leaveSummary;
 
@@ -80,6 +80,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _pageController = PageController(initialPage: _initialPage);
     _fetchHolidays();
     _fetchLeaveSummary();
+    _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
   }
 
   @override
@@ -101,10 +102,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     switch (result) {
       case Success(:final value):
         debugPrint('--- [LeaveSummary] ---');
-        debugPrint('nickname              : ${value.nickname}');
-        debugPrint('remainingLeaveMinutes : ${value.remainingLeaveMinutes}');
-        debugPrint('remainingLeaveDays    : ${value.remainingLeaveDays}');
-        debugPrint('remainingLeaveHours   : ${value.remainingLeaveHours}');
+        debugPrint('nickname               : ${value.nickname}');
+        debugPrint('availableLeaveMinutes  : ${value.availableLeaveMinutes}');
+        debugPrint('avgDailyWorkHours      : ${value.avgDailyWorkHours}');
+        debugPrint('availableLeaveDays     : ${value.availableLeaveDays}');
+        debugPrint('availableLeaveHours    : ${value.availableLeaveHours}');
         debugPrint('----------------------');
         if (!mounted) return;
         setState(() => _leaveSummary = value);
@@ -134,6 +136,46 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       case Failure(:final error):
         print('[Holiday API] 실패: $error');
     }
+  }
+
+  Future<void> _fetchCalendarEvents(int year, int month) async {
+    final result = await ref
+        .read(getCalendarEventsUseCaseProvider)
+        .execute(year: year, month: month);
+    switch (result) {
+      case Success(:final value):
+        if (!mounted) return;
+        setState(() {
+          _events = value.map(_toCalendarEvent).toList();
+        });
+      case Failure(:final error):
+        debugPrint('[CalendarEvents] 실패: $error');
+    }
+  }
+
+  CalendarEvent _toCalendarEvent(CalendarEventEntity entity) {
+    final type = entity.isLeaveEvent
+        ? CalendarEventType.annualLeave
+        : CalendarEventType.otherLeave;
+
+    final String label;
+    if (entity.isAllDay) {
+      label = '종일';
+    } else {
+      final sh = entity.startDatetime.hour.toString().padLeft(2, '0');
+      final sm = entity.startDatetime.minute.toString().padLeft(2, '0');
+      final eh = entity.endDatetime.hour.toString().padLeft(2, '0');
+      final em = entity.endDatetime.minute.toString().padLeft(2, '0');
+      label = '$sh:$sm-$eh:$em';
+    }
+
+    return CalendarEvent(
+      date: entity.startDatetime,
+      type: type,
+      label: label,
+      name: entity.title,
+      detail: entity.description,
+    );
   }
 
   DateTime _monthFromPage(int page) {
@@ -265,6 +307,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(calendarRefreshProvider, (prev, next) {
+      if (prev != null && prev != next) {
+        _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
+        _fetchLeaveSummary();
+      }
+    });
     return CustomScaffold(
       backgroundColor: AppColors.background,
       appBar: const LogoAppBar(),
@@ -347,9 +395,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             top: 44,
             left: 22,
             child: Text(
-              data == null
-                  ? ''
-                  : '${_formatDays(data.remainingLeaveDays)}일',
+              data == null ? '' : '${_formatDays(data.availableLeaveDays)}일',
               style: pretendard(
                 weight: 700,
                 size: 20,
@@ -364,7 +410,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             child: Text(
               data == null
                   ? ''
-                  : '${data.remainingLeaveHours.toStringAsFixed(0)}시간',
+                  : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
               style: pretendard(
                 weight: 700,
                 size: 13,
@@ -390,24 +436,30 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           ),
           // 연차 추가 버튼 — SVG에 원 배경 포함
-          Positioned(
-            top: 19,
+          Positioned.fill(
             right: 19,
-            child: CupertinoButton(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AddCalendarEventScreen(),
-                  ),
-                );
-              },
-              child: SvgPicture.asset(
-                'assets/icons/calendar_add.svg',
-                width: 45,
-                height: 45,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AddCalendarEventScreen(),
+                    ),
+                  );
+                  if (mounted) {
+                    _fetchCalendarEvents(
+                      _displayedMonth.year,
+                      _displayedMonth.month,
+                    );
+                  }
+                },
+                child: SvgPicture.asset(
+                  'assets/icons/calendar_add.svg',
+                  width: 69,
+                  height: 69,
+                ),
               ),
             ),
           ),
@@ -442,9 +494,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (page) {
-                  setState(() {
-                    _displayedMonth = _monthFromPage(page);
-                  });
+                  final newMonth = _monthFromPage(page);
+                  setState(() => _displayedMonth = newMonth);
+                  _fetchCalendarEvents(newMonth.year, newMonth.month);
                 },
                 itemBuilder: (context, page) {
                   return OverflowBox(
