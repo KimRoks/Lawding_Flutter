@@ -20,4 +20,30 @@ class LeavePolicy {
     required this.workPattern,
     required this.breakTimePattern,
   });
+
+  /// 하루 평균 순 근무시간(분): (근무시간 - 휴게시간) 평균
+  int get dailyWorkMinutes {
+    if (workPattern.isEmpty) return 480; // fallback 8시간
+
+    int total = 0;
+    for (final day in workPattern.keys) {
+      final work = workPattern[day]!;
+      final breakSlot = breakTimePattern[day];
+      final workMin = _slotMinutes(work.start, work.end);
+      final breakMin = breakSlot != null
+          ? _slotMinutes(breakSlot.start, breakSlot.end)
+          : 0;
+      total += (workMin - breakMin).clamp(0, 1440);
+    }
+    return (total / workPattern.length).round();
+  }
+
+  /// "HH:mm" 또는 "HH:mm:ss" → 분 단위 변환
+  static int _slotMinutes(String start, String end) {
+    int parseTime(String t) {
+      final parts = t.split(':');
+      return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+    }
+    return (parseTime(end) - parseTime(start)).clamp(0, 1440);
+  }
 }

@@ -536,6 +536,52 @@ final submitLeavePolicyUseCaseProvider =
 // ignore: unused_element
 typedef SubmitLeavePolicyUseCaseRef =
     AutoDisposeProviderRef<SubmitLeavePolicyUseCase>;
+String _$updateLeavePolicyUseCaseHash() =>
+    r'8f455420b74858a946dd415939bbf869972f5e08';
+
+/// UpdateLeavePolicyUseCase Provider
+/// 연차 정책 수정 비즈니스 로직 제공
+///
+/// Copied from [updateLeavePolicyUseCase].
+@ProviderFor(updateLeavePolicyUseCase)
+final updateLeavePolicyUseCaseProvider =
+    AutoDisposeProvider<UpdateLeavePolicyUseCase>.internal(
+      updateLeavePolicyUseCase,
+      name: r'updateLeavePolicyUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$updateLeavePolicyUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef UpdateLeavePolicyUseCaseRef =
+    AutoDisposeProviderRef<UpdateLeavePolicyUseCase>;
+String _$getLeavePolicyUseCaseHash() =>
+    r'679d2676b3bac64e7c110ec4a0c1690e2345386d';
+
+/// GetLeavePolicyUseCase Provider
+/// 연차 정책 조회 비즈니스 로직 제공
+///
+/// Copied from [getLeavePolicyUseCase].
+@ProviderFor(getLeavePolicyUseCase)
+final getLeavePolicyUseCaseProvider =
+    AutoDisposeProvider<GetLeavePolicyUseCase>.internal(
+      getLeavePolicyUseCase,
+      name: r'getLeavePolicyUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getLeavePolicyUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetLeavePolicyUseCaseRef =
+    AutoDisposeProviderRef<GetLeavePolicyUseCase>;
 String _$getUserProfileUseCaseHash() =>
     r'e5555ef868f8662f5a68f54f37e12156038623af';
 

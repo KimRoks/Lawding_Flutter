@@ -189,8 +189,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             height: 24,
           ),
           screen: _CalendarTabScreen(key: _calendarScreenKey),
-          onTabActivated: () =>
-              _calendarScreenKey.currentState?.showTutorialIfNeeded(),
+          onTabActivated: () {
+            _calendarScreenKey.currentState?.showTutorialIfNeeded();
+            _calendarScreenKey.currentState?.refreshCalendar();
+          },
         ),
       ],
     );
@@ -260,6 +262,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
             debugPrint('  nickname            : ${profile.nickname}');
             debugPrint('  onboardingCompleted : ${profile.onboardingCompleted}');
             if (profile.onboardingCompleted) {
+              _fetchLeavePolicy();
               ref.read(calendarAuthStateProvider.notifier).state = true;
               setState(() => _isLoading = false);
             } else {
@@ -333,10 +336,39 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     );
   }
 
+  Future<void> _fetchLeavePolicy() async {
+    debugPrint('[LeavePolicy] GET /v1/users/leave-policy 호출');
+    final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
+    result.fold(
+      onSuccess: (policy) {
+        debugPrint('[LeavePolicy] 응답:');
+        debugPrint('  userId              : ${policy.userId}');
+        debugPrint('  acceptedAt          : ${policy.acceptedAt}');
+        debugPrint('  leaveAccrualBasis   : ${policy.leaveAccrualBasis}');
+        debugPrint('  hireDate            : ${policy.hireDate}');
+        debugPrint('  fiscalYearBaseMonth : ${policy.fiscalYearBaseMonth}');
+        debugPrint('  companySize         : ${policy.companySize}');
+        debugPrint('  workPattern:');
+        for (final e in policy.workPattern.entries) {
+          debugPrint('    ${e.key}: ${e.value.start} ~ ${e.value.end}');
+        }
+        debugPrint('  breakTimePattern:');
+        for (final e in policy.breakTimePattern.entries) {
+          debugPrint('    ${e.key}: ${e.value.start} ~ ${e.value.end}');
+        }
+        debugPrint('  dailyWorkMinutes    : ${policy.dailyWorkMinutes}');
+        ref.read(dailyWorkMinutesProvider.notifier).state =
+            policy.dailyWorkMinutes;
+      },
+      onFailure: (error) => debugPrint('[LeavePolicy] 실패: $error'),
+    );
+  }
+
   void _onLoginSuccess(bool onboardingCompleted) {
     Navigator.of(context, rootNavigator: true).pop();
 
     if (onboardingCompleted) {
+      _fetchLeavePolicy();
       ref.read(calendarAuthStateProvider.notifier).state = true;
     } else {
       Navigator.of(context, rootNavigator: true).push(
@@ -351,6 +383,10 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
         ),
       );
     }
+  }
+
+  void refreshCalendar() {
+    ref.read(calendarRefreshProvider.notifier).state++;
   }
 
   void _onUserInfoCompleted() {

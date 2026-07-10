@@ -32,7 +32,9 @@ import '../../domain/usecases/get_user_dashboard_usecase.dart';
 import '../../domain/usecases/get_user_profile_usecase.dart';
 import '../../domain/usecases/search_dictionary_usecase.dart';
 import '../../domain/usecases/submit_feedback_usecase.dart';
+import '../../domain/usecases/get_leave_policy_usecase.dart';
 import '../../domain/usecases/submit_leave_policy_usecase.dart';
+import '../../domain/usecases/update_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
 
 part 'providers.g.dart';
@@ -42,6 +44,9 @@ final activeTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// 캘린더 탭 로그인 상태 — 로그아웃 시 외부에서 false로 리셋 가능
 final calendarAuthStateProvider = StateProvider<bool>((ref) => false);
+
+/// 캘린더 refresh 신호 — increment 시 CalendarScreen이 이벤트 목록을 재조회
+final calendarRefreshProvider = StateProvider<int>((ref) => 0);
 
 // ============================================================================
 // Infrastructure Layer (Network)
@@ -243,6 +248,26 @@ SubmitLeavePolicyUseCase submitLeavePolicyUseCase(Ref ref) {
   final repository = ref.watch(leavePolicyRepositoryProvider);
   return SubmitLeavePolicyUseCase(repository);
 }
+
+/// UpdateLeavePolicyUseCase Provider
+/// 연차 정책 수정 비즈니스 로직 제공
+@riverpod
+UpdateLeavePolicyUseCase updateLeavePolicyUseCase(Ref ref) {
+  final repository = ref.watch(leavePolicyRepositoryProvider);
+  return UpdateLeavePolicyUseCase(repository);
+}
+
+/// GetLeavePolicyUseCase Provider
+/// 연차 정책 조회 비즈니스 로직 제공
+@riverpod
+GetLeavePolicyUseCase getLeavePolicyUseCase(Ref ref) {
+  final repository = ref.watch(leavePolicyRepositoryProvider);
+  return GetLeavePolicyUseCase(repository);
+}
+
+/// dailyWorkMinutesProvider — 하루 평균 순 근무시간(분)
+/// 로그인 후 fetch된 LeavePolicy에서 계산. 미조회 시 기본값 480(8시간)
+final dailyWorkMinutesProvider = StateProvider<int>((ref) => 480);
 
 /// GetUserProfileUseCase Provider
 /// 유저 프로필 조회 비즈니스 로직 제공
