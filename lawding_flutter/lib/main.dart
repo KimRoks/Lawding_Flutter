@@ -46,7 +46,9 @@ class MyApp extends StatelessWidget {
         // 라이트 모드 → 다크 아이콘 / 다크 모드 → 라이트 아이콘
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+          value: isDark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark,
           child: child!,
         );
       },

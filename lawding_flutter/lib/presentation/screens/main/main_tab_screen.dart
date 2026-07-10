@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design_system.dart';
+import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
 
 /// 탭 아이템 정보를 담는 클래스
@@ -55,69 +57,71 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      backgroundColor: Colors.white,
-      useDefaultAppBar: false,
-      dismissKeyboardOnTap: false,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: widget.tabs.map((tab) => tab.screen).toList(),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: const Border(
-            top: BorderSide(color: AppColors.border, width: 0.5),
+    return Consumer(
+      builder: (context, ref, _) {
+        ref.listen(activeTabIndexProvider, (_, next) => _onTabChanged(next));
+        return CustomScaffold(
+          backgroundColor: Colors.white,
+          useDefaultAppBar: false,
+          dismissKeyboardOnTap: false,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: widget.tabs.map((tab) => tab.screen).toList(),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 13),
-            child: Theme(
-              data: ThemeData(
-                splashColor: Colors.transparent, // 터치 시 퍼지는 색상 제거
-                highlightColor: Colors.transparent, // 터치 시 유지되는 하이라이트 제거
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: const Border(
+                top: BorderSide(color: AppColors.border, width: 0.5),
               ),
-              child: BottomNavigationBar(
-                currentIndex: _currentIndex,
-                onTap: _onTabChanged,
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.white,
-                elevation: 0,
-                selectedItemColor: AppColors.brandColor,
-                unselectedItemColor: AppColors.textGray99,
-
-                selectedFontSize: 10,
-                unselectedFontSize: 10,
-
-                selectedLabelStyle: pretendard(weight: 600, size: 10),
-                unselectedLabelStyle: pretendard(weight: 600, size: 10),
-
-                items: widget.tabs.map((tab) {
-                  return BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: tab.icon,
-                    ),
-                    activeIcon: Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: tab.activeIcon ?? tab.icon,
-                    ),
-                    label: tab.title,
-                  );
-                }).toList(),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 13),
+                child: Theme(
+                  data: ThemeData(
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                  ),
+                  child: BottomNavigationBar(
+                    currentIndex: _currentIndex,
+                    onTap: _onTabChanged,
+                    type: BottomNavigationBarType.fixed,
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    selectedItemColor: AppColors.brandColor,
+                    unselectedItemColor: AppColors.textGray99,
+                    selectedFontSize: 10,
+                    unselectedFontSize: 10,
+                    selectedLabelStyle: pretendard(weight: 600, size: 10),
+                    unselectedLabelStyle: pretendard(weight: 600, size: 10),
+                    items: widget.tabs.map((tab) {
+                      return BottomNavigationBarItem(
+                        icon: Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: tab.icon,
+                        ),
+                        activeIcon: Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: tab.activeIcon ?? tab.icon,
+                        ),
+                        label: tab.title,
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

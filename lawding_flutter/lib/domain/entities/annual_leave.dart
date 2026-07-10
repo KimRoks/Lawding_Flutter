@@ -146,10 +146,7 @@ class RecordEntity {
   final PeriodEntity period;
   final double monthlyLeave;
 
-  const RecordEntity({
-    required this.period,
-    required this.monthlyLeave,
-  });
+  const RecordEntity({required this.period, required this.monthlyLeave});
 }
 
 /// 연차 상세 정보 엔티티 (월차 또는 비례연차)

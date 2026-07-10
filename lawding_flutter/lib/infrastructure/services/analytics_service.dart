@@ -286,10 +286,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'dictionary_search_performed',
-      parameters: {
-        'query_length': query.length,
-        'result_count': resultCount,
-      },
+      parameters: {'query_length': query.length, 'result_count': resultCount},
     );
   }
 
@@ -305,10 +302,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'dictionary_category_selected',
-      parameters: {
-        'category': categoryName,
-        'result_count': resultCount,
-      },
+      parameters: {'category': categoryName, 'result_count': resultCount},
     );
   }
 
@@ -343,10 +337,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'dictionary_data_loaded',
-      parameters: {
-        'total_count': totalCount,
-        'category_count': categoryCount,
-      },
+      parameters: {'total_count': totalCount, 'category_count': categoryCount},
     );
   }
 
