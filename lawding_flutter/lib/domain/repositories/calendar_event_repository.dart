@@ -1,6 +1,6 @@
 import '../core/result.dart';
 import '../entities/calendar_event.dart';
-import '../../data/calendar_event/calendar_event_request.dart';
+import '../entities/calendar_event_request.dart';
 import '../../data/network/network_error.dart';
 
 abstract interface class CalendarEventRepository {

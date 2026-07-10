@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lawding_flutter/data/calendar_event/calendar_event_repository_impl.dart';
-import 'package:lawding_flutter/data/calendar_event/calendar_event_request.dart';
+import 'package:lawding_flutter/domain/entities/calendar_event_request.dart';
 import 'package:lawding_flutter/data/network/dio_client.dart';
 import 'package:lawding_flutter/data/network/network_error.dart';
 import 'package:lawding_flutter/domain/core/result.dart';

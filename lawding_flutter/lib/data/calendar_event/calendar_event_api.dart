@@ -1,7 +1,7 @@
+import '../../domain/entities/calendar_event_request.dart';
 import '../network/api_endpoints.dart';
 import '../network/api_request.dart';
 import '../network/http_methods.dart';
-import 'calendar_event_request.dart';
 
 class CalendarEventApi {
   CalendarEventApi._();
