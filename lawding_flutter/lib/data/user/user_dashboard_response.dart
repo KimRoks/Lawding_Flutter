@@ -2,30 +2,28 @@ import '../../domain/entities/user_dashboard.dart';
 
 class UserDashboardResponse {
   final String nickname;
-  final int remainingLeaveMinutes;
-  final double remainingLeaveDays;
-  final double remainingLeaveHours;
+  final int availableLeaveMinutes;
+  final double avgDailyWorkHours;
 
   const UserDashboardResponse({
     required this.nickname,
-    required this.remainingLeaveMinutes,
-    required this.remainingLeaveDays,
-    required this.remainingLeaveHours,
+    required this.availableLeaveMinutes,
+    required this.avgDailyWorkHours,
   });
 
   factory UserDashboardResponse.fromJson(Map<String, dynamic> json) {
     return UserDashboardResponse(
       nickname: json['nickname'] as String,
-      remainingLeaveMinutes: (json['remainingLeaveMinutes'] as num?)?.toInt() ?? 0,
-      remainingLeaveDays: (json['remainingLeaveDays'] as num?)?.toDouble() ?? 0.0,
-      remainingLeaveHours: (json['remainingLeaveHours'] as num?)?.toDouble() ?? 0.0,
+      availableLeaveMinutes:
+          (json['availableLeaveMinutes'] as num?)?.toInt() ?? 0,
+      avgDailyWorkHours:
+          (json['avgDailyWorkHours'] as num?)?.toDouble() ?? 8.0,
     );
   }
 
   UserDashboard toDomain() => UserDashboard(
     nickname: nickname,
-    remainingLeaveMinutes: remainingLeaveMinutes,
-    remainingLeaveDays: remainingLeaveDays,
-    remainingLeaveHours: remainingLeaveHours,
+    availableLeaveMinutes: availableLeaveMinutes,
+    avgDailyWorkHours: avgDailyWorkHours,
   );
 }

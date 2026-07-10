@@ -15,11 +15,10 @@ Map<String, dynamic> _mockSuccess() {
     'message': 'success',
     'data': {
       'nickname': '홍길동',
-      'remainingLeaveMinutes': 6240,
-      'remainingLeaveDays': 13.0,
-      'remainingLeaveHours': 104.0,
+      'availableLeaveMinutes': 2400,
+      'avgDailyWorkHours': 8.0,
     },
-    'timestamp': '2026-07-05T16:10:25.707425711+09:00',
+    'timestamp': '2026-07-10T18:17:20.292063369+09:00',
   };
 }
 
@@ -52,9 +51,10 @@ void main() {
       result.fold(
         onSuccess: (summary) {
           expect(summary.nickname, '홍길동');
-          expect(summary.remainingLeaveMinutes, 6240);
-          expect(summary.remainingLeaveDays, 13.0);
-          expect(summary.remainingLeaveHours, 104.0);
+          expect(summary.availableLeaveMinutes, 2400);
+          expect(summary.avgDailyWorkHours, 8.0);
+          expect(summary.availableLeaveHours, 40.0);
+          expect(summary.availableLeaveDays, 5.0);
         },
         onFailure: (error) => fail('Should not fail: $error'),
       );

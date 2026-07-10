@@ -1,13 +1,16 @@
 class UserDashboard {
   final String nickname;
-  final int remainingLeaveMinutes;
-  final double remainingLeaveDays;
-  final double remainingLeaveHours;
+  final int availableLeaveMinutes;
+  final double avgDailyWorkHours;
 
   const UserDashboard({
     required this.nickname,
-    required this.remainingLeaveMinutes,
-    required this.remainingLeaveDays,
-    required this.remainingLeaveHours,
+    required this.availableLeaveMinutes,
+    required this.avgDailyWorkHours,
   });
+
+  double get availableLeaveHours => availableLeaveMinutes / 60;
+
+  double get availableLeaveDays =>
+      avgDailyWorkHours > 0 ? availableLeaveHours / avgDailyWorkHours : 0;
 }
