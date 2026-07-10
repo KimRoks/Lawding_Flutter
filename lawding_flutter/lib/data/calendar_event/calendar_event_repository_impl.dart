@@ -3,9 +3,9 @@ import '../../domain/entities/calendar_event.dart';
 import '../../domain/repositories/calendar_event_repository.dart';
 import '../network/dio_client.dart';
 import '../network/network_error.dart';
+import '../../domain/entities/calendar_event_request.dart';
 import 'calendar_event_api.dart';
 import 'calendar_event_mapper.dart';
-import 'calendar_event_request.dart';
 import 'calendar_event_response.dart';
 
 class CalendarEventRepositoryImpl implements CalendarEventRepository {

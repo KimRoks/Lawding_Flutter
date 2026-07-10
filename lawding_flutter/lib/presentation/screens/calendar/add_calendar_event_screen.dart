@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/calendar_event/calendar_event_request.dart';
+import '../../../domain/entities/calendar_event_request.dart';
 import '../../../data/network/network_error.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/holiday.dart';
@@ -29,6 +29,7 @@ class _AddCalendarEventScreenState
   DateTime? _startDate;
   DateTime? _endDate;
   late DateTime _calendarMonth;
+  late List<List<DateTime>> _weeks;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
 
@@ -41,6 +42,7 @@ class _AddCalendarEventScreenState
     super.initState();
     final now = DateTime.now();
     _calendarMonth = DateTime(now.year, now.month, 1);
+    _weeks = _buildWeeks(_calendarMonth);
     _fetchHolidays();
   }
 
@@ -52,9 +54,8 @@ class _AddCalendarEventScreenState
   }
 
   Future<void> _fetchHolidays() async {
-    final repo = ref.read(holidayRepositoryProvider);
     final year = _calendarMonth.year;
-    final result = await repo.getHolidays(
+    final result = await ref.read(getHolidaysUseCaseProvider).execute(
       startYear: year - 1,
       endYear: year + 2,
     );
@@ -223,6 +224,68 @@ class _AddCalendarEventScreenState
     });
   }
 
+  /// 선택된 기간의 날짜 목록 반환
+  List<DateTime> _selectedDates() {
+    final start = _startDate!;
+    final end = _endDate ?? start;
+    final dates = <DateTime>[];
+    var cursor = start;
+    while (!cursor.isAfter(end)) {
+      dates.add(cursor);
+      cursor = cursor.add(const Duration(days: 1));
+    }
+    return dates;
+  }
+
+  /// 날짜별 API 요청 객체 생성
+  List<CalendarEventRequest> _buildRequests(List<DateTime> dates) {
+    final title = _titleController.text.isEmpty ? null : _titleController.text;
+    final description = _descriptionController.text.isEmpty
+        ? null
+        : _descriptionController.text;
+    final usedLeaveMinutes = _isLeaveEvent ? _calcUsedMinutes() : null;
+
+    return dates.map((date) {
+      final startDt = _isAllDay
+          ? DateTime(date.year, date.month, date.day, 0, 0)
+          : DateTime(
+              date.year, date.month, date.day,
+              _startTime?.hour ?? 0, _startTime?.minute ?? 0,
+            );
+      final endDt = _isAllDay
+          ? DateTime(date.year, date.month, date.day, 23, 59)
+          : DateTime(
+              date.year, date.month, date.day,
+              _endTime?.hour ?? 0, _endTime?.minute ?? 0,
+            );
+      return CalendarEventRequest(
+        title: title,
+        description: description,
+        startDatetime: startDt,
+        endDatetime: endDt,
+        usedLeaveMinutes: usedLeaveMinutes,
+        isAllDay: _isAllDay,
+        isLeaveEvent: _isLeaveEvent,
+      );
+    }).toList();
+  }
+
+  void _showErrorDialog(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('등록 실패'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (_isSubmitting) return;
 
@@ -245,53 +308,7 @@ class _AddCalendarEventScreenState
 
     setState(() => _isSubmitting = true);
 
-    // 선택된 기간의 모든 날짜를 구함
-    final startDate = _startDate!;
-    final endDate = _endDate ?? startDate;
-    final dates = <DateTime>[];
-    var cursor = startDate;
-    while (!cursor.isAfter(endDate)) {
-      dates.add(cursor);
-      cursor = cursor.add(const Duration(days: 1));
-    }
-
-    // 날짜별로 각각 1건씩 요청 생성
-    final title = _titleController.text.isEmpty ? null : _titleController.text;
-    final description = _descriptionController.text.isEmpty
-        ? null
-        : _descriptionController.text;
-    final usedLeaveMinutes = _isLeaveEvent ? _calcUsedMinutes() : null;
-
-    final requests = dates.map((date) {
-      final startDt = _isAllDay
-          ? DateTime(date.year, date.month, date.day, 0, 0)
-          : DateTime(
-              date.year,
-              date.month,
-              date.day,
-              _startTime?.hour ?? 0,
-              _startTime?.minute ?? 0,
-            );
-      final endDt = _isAllDay
-          ? DateTime(date.year, date.month, date.day, 23, 59)
-          : DateTime(
-              date.year,
-              date.month,
-              date.day,
-              _endTime?.hour ?? 0,
-              _endTime?.minute ?? 0,
-            );
-      return CalendarEventRequest(
-        title: title,
-        description: description,
-        startDatetime: startDt,
-        endDatetime: endDt,
-        usedLeaveMinutes: usedLeaveMinutes,
-        isAllDay: _isAllDay,
-        isLeaveEvent: _isLeaveEvent,
-      );
-    }).toList();
-
+    final requests = _buildRequests(_selectedDates());
     final useCase = ref.read(createCalendarEventUseCaseProvider);
     final results = await Future.wait(
       requests.map((r) => useCase.execute(request: r)),
@@ -300,10 +317,7 @@ class _AddCalendarEventScreenState
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    final failure = results
-        .whereType<Failure<void, NetworkError>>()
-        .firstOrNull;
-
+    final failure = results.whereType<Failure<void, NetworkError>>().firstOrNull;
     if (failure == null) {
       Navigator.pop(context);
       return;
@@ -316,19 +330,7 @@ class _AddCalendarEventScreenState
       NetworkConnectionError() => '네트워크 연결을 확인해주세요.',
       _ => '일정 등록에 실패했습니다.',
     };
-    showCupertinoDialog(
-      context: context,
-      builder: (_) => CupertinoAlertDialog(
-        title: const Text('등록 실패'),
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('확인'),
-          ),
-        ],
-      ),
-    );
+    _showErrorDialog(message);
   }
 
   // ── 빌드 ────────────────────────────────────────────────────────────────
@@ -569,6 +571,7 @@ class _AddCalendarEventScreenState
                 _calendarMonth.month - 1,
                 1,
               );
+              _weeks = _buildWeeks(_calendarMonth);
             }),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -598,6 +601,7 @@ class _AddCalendarEventScreenState
                 _calendarMonth.month + 1,
                 1,
               );
+              _weeks = _buildWeeks(_calendarMonth);
             }),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -637,9 +641,8 @@ class _AddCalendarEventScreenState
   }
 
   Widget _buildCalendarGrid() {
-    final weeks = _buildWeeks(_calendarMonth);
     return Column(
-      children: weeks
+      children: _weeks
           .map(
             (week) => Row(
               children: List.generate(

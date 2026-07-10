@@ -172,6 +172,28 @@ final holidayRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HolidayRepositoryRef = AutoDisposeProviderRef<HolidayRepository>;
+String _$getHolidaysUseCaseHash() =>
+    r'6626d0fe577e286e8067131d6645ad71edecdbfb';
+
+/// GetHolidaysUseCase Provider
+/// 공휴일 목록 조회 비즈니스 로직 제공
+///
+/// Copied from [getHolidaysUseCase].
+@ProviderFor(getHolidaysUseCase)
+final getHolidaysUseCaseProvider =
+    AutoDisposeProvider<GetHolidaysUseCase>.internal(
+      getHolidaysUseCase,
+      name: r'getHolidaysUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getHolidaysUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetHolidaysUseCaseRef = AutoDisposeProviderRef<GetHolidaysUseCase>;
 String _$calendarEventRepositoryHash() =>
     r'55fa27aa34832343edd28e4aae92f1446aa00384';
 

@@ -27,6 +27,7 @@ import '../../domain/usecases/delete_calendar_event_usecase.dart';
 import '../../domain/usecases/get_calendar_event_usecase.dart';
 import '../../domain/usecases/get_calendar_events_usecase.dart';
 import '../../domain/usecases/get_dictionaries_usecase.dart';
+import '../../domain/usecases/get_holidays_usecase.dart';
 import '../../domain/usecases/get_leave_summary_usecase.dart';
 import '../../domain/usecases/get_user_dashboard_usecase.dart';
 import '../../domain/usecases/get_user_profile_usecase.dart';
@@ -115,6 +116,14 @@ AppVersionRepository appVersionRepository(Ref ref) {
 HolidayRepository holidayRepository(Ref ref) {
   final dioClient = ref.watch(dioClientProvider);
   return HolidayRepositoryImpl(dioClient);
+}
+
+/// GetHolidaysUseCase Provider
+/// 공휴일 목록 조회 비즈니스 로직 제공
+@riverpod
+GetHolidaysUseCase getHolidaysUseCase(Ref ref) {
+  final repository = ref.watch(holidayRepositoryProvider);
+  return GetHolidaysUseCase(repository);
 }
 
 /// CalendarEventRepository Provider
