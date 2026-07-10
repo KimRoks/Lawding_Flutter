@@ -169,17 +169,23 @@ class _AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    debugPrint('[Auth] 401 감지 → path: ${err.requestOptions.path}');
+
     // reissue 요청 자체가 401을 반환한 경우: 무한 재시도 방지
     if (err.requestOptions.path == ApiEndpoints.reissue) {
+      debugPrint('[Auth] reissue 자체 401 → 무한재시도 방지, 토큰 삭제 → 로그아웃');
       await _authRepository.clearTokens();
       return handler.next(err);
     }
 
     final refreshToken = await _authRepository.getRefreshToken();
     if (refreshToken == null) {
+      debugPrint('[Auth] refreshToken 없음 → 토큰 삭제 → 로그아웃');
       await _authRepository.clearTokens();
       return handler.next(err);
     }
+
+    debugPrint('[Auth] refreshToken 존재 → reissue 시도');
 
     try {
       final response = await _dio.post(
@@ -196,13 +202,26 @@ class _AuthInterceptor extends Interceptor {
         refreshToken: newRefreshToken,
       );
 
+      debugPrint('[Auth] 토큰 갱신 성공 → 원본 요청 재시도: ${err.requestOptions.path}');
+
       // 원본 요청 헤더에 새 토큰 적용 후 재시도
       err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
       final retryResponse = await _dio.fetch(err.requestOptions);
       return handler.resolve(retryResponse);
-    } catch (_) {
-      // 갱신 실패 시 토큰 삭제 (강제 로그아웃)
-      await _authRepository.clearTokens();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 403) {
+        // refreshToken 만료 → 강제 로그아웃
+        debugPrint('[Auth] reissue $status → refreshToken 만료 → 토큰 삭제 → 로그아웃');
+        await _authRepository.clearTokens();
+      } else {
+        // 네트워크 순단·타임아웃 등 일시적 오류 → 토큰 유지
+        debugPrint('[Auth] reissue 일시적 실패 (status: $status, type: ${e.type}) → 토큰 유지');
+      }
+      return handler.next(err);
+    } catch (e) {
+      // 파싱 에러 등 예상치 못한 예외 → 토큰 유지
+      debugPrint('[Auth] reissue 예외 (${e.runtimeType}: $e) → 토큰 유지');
       return handler.next(err);
     }
   }
