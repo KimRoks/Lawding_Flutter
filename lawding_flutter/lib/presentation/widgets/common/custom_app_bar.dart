@@ -6,12 +6,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Color? backgroundColor;
   final List<Widget>? actions;
+  final VoidCallback? onBack;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.backgroundColor,
     this.actions,
+    this.onBack,
   });
 
   @override
@@ -31,7 +33,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       leadingWidth: shouldShowBackButton ? 90 : null,
       leading: shouldShowBackButton
           ? GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: onBack ?? () => Navigator.pop(context),
               behavior: HitTestBehavior.opaque,
               child: Row(
                 children: [

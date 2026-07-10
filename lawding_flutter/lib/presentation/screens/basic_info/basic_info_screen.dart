@@ -7,6 +7,7 @@ import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_policy_request.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import 'steps/step1_name_terms.dart';
 import 'steps/step2_leave_standard.dart';
 import 'steps/step3_work_schedule.dart';
@@ -16,8 +17,13 @@ import 'steps/step6_used_leave.dart';
 
 class BasicInfoScreen extends ConsumerStatefulWidget {
   final VoidCallback onCompleted;
+  final bool isEditMode; // true: PUT(수정), false: POST(최초 등록)
 
-  const BasicInfoScreen({super.key, required this.onCompleted});
+  const BasicInfoScreen({
+    super.key,
+    required this.onCompleted,
+    this.isEditMode = false,
+  });
 
   @override
   ConsumerState<BasicInfoScreen> createState() => _BasicInfoScreenState();
@@ -83,9 +89,9 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final result = await ref
-        .read(submitLeavePolicyUseCaseProvider)
-        .execute(request);
+    final result = widget.isEditMode
+        ? await ref.read(updateLeavePolicyUseCaseProvider).execute(request)
+        : await ref.read(submitLeavePolicyUseCaseProvider).execute(request);
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -183,12 +189,11 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildHeader(),
-              _buildProgressBar(),
+        appBar: CustomAppBar(title: '기본 정보 입력', onBack: _onBack),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildProgressBar(),
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -233,53 +238,10 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
               ),
             ],
           ),
-        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 63,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 20,
-            child: GestureDetector(
-              onTap: _onBack,
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.chevron_left,
-                    size: 24,
-                    color: AppColors.brandColor,
-                  ),
-                  Text(
-                    '뒤로',
-                    style: pretendard(
-                      weight: 700,
-                      size: 20,
-                      color: AppColors.brandColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Text(
-            '기본 정보 입력',
-            style: pretendard(
-              weight: 700,
-              size: 20,
-              color: AppColors.brandColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildProgressBar() {
     const segmentWidth = 29.42;

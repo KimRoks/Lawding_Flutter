@@ -6,29 +6,43 @@ import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/toast_message.dart';
+import '../basic_info/basic_info_screen.dart';
 
 class SettingScreen extends StatelessWidget {
   const SettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFFBFBFB),
-      appBar: CustomAppBar(title: '설정', backgroundColor: Color(0xFFFBFBFB)),
+    return Scaffold(
+      backgroundColor: const Color(0xFFFBFBFB),
+      appBar: const CustomAppBar(
+        title: '설정',
+        backgroundColor: Color(0xFFFBFBFB),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 35),
-            _SettingRow(title: '계정 센터'),
-            _SettingRow(title: '연차 정보 수정'),
-            // _SettingRow(title: '알림설정(Beta)'),
-            // _SettingRow(title: '캘린더 설정'),
-            // _SettingRow(title: '데이터 설정'),
-            // _SettingRow(title: '기타'),
-            SizedBox(height: 40),
-            _LogoutButton(),
-            SizedBox(height: 32),
+            const SizedBox(height: 35),
+            const _SettingRow(title: '계정 센터'),
+            _SettingRow(
+              title: '연차 정보 수정',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => BasicInfoScreen(
+                    isEditMode: true,
+                    onCompleted: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+            // const _SettingRow(title: '알림설정(Beta)'),
+            // const _SettingRow(title: '캘린더 설정'),
+            // const _SettingRow(title: '데이터 설정'),
+            // const _SettingRow(title: '기타'),
+            const SizedBox(height: 40),
+            const _LogoutButton(),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -42,15 +56,14 @@ class SettingScreen extends StatelessWidget {
 
 class _SettingRow extends StatelessWidget {
   final String title;
+  final VoidCallback? onTap;
 
-  const _SettingRow({required this.title});
+  const _SettingRow({required this.title, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // TODO: $title 화면으로 이동
-      },
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Column(
         children: [
