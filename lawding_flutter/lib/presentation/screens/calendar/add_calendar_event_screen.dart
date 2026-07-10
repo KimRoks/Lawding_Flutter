@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/calendar_event/calendar_event_request.dart';
+import '../../../data/network/network_error.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/holiday.dart';
 import '../../core/design_system.dart';
@@ -24,6 +25,7 @@ class _AddCalendarEventScreenState
 
   bool _isLeaveEvent = true;
   bool _isAllDay = false;
+  bool _isSubmitting = false;
   DateTime? _startDate;
   DateTime? _endDate;
   late DateTime _calendarMonth;
@@ -128,8 +130,14 @@ class _AddCalendarEventScreenState
     return '${h.toString().padLeft(2, '0')}시간${m.toString().padLeft(2, '0')}분';
   }
 
+  String _formatMinutes(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '${h.toString().padLeft(2, '0')}시간${m.toString().padLeft(2, '0')}분';
+  }
+
   int _calcUsedMinutes() {
-    if (_isAllDay) return 480; // 종일: 8시간 기본값
+    if (_isAllDay) return ref.read(dailyWorkMinutesProvider);
     if (_startTime == null || _endTime == null) return 0;
     final s = _startTime!.hour * 60 + _startTime!.minute;
     final e = _endTime!.hour * 60 + _endTime!.minute;
@@ -215,8 +223,9 @@ class _AddCalendarEventScreenState
     });
   }
 
-  void _submit() {
-    // 시작일 미선택 시 alert
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
+
     if (_startDate == null) {
       showCupertinoDialog(
         context: context,
@@ -234,52 +243,92 @@ class _AddCalendarEventScreenState
       return;
     }
 
+    setState(() => _isSubmitting = true);
+
+    // 선택된 기간의 모든 날짜를 구함
     final startDate = _startDate!;
     final endDate = _endDate ?? startDate;
-    final startDt = _isAllDay
-        ? DateTime(startDate.year, startDate.month, startDate.day, 0, 0)
-        : DateTime(
-            startDate.year,
-            startDate.month,
-            startDate.day,
-            _startTime?.hour ?? 0,
-            _startTime?.minute ?? 0,
-          );
-    final endDt = _isAllDay
-        ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59)
-        : DateTime(
-            endDate.year,
-            endDate.month,
-            endDate.day,
-            _endTime?.hour ?? 0,
-            _endTime?.minute ?? 0,
-          );
+    final dates = <DateTime>[];
+    var cursor = startDate;
+    while (!cursor.isAfter(endDate)) {
+      dates.add(cursor);
+      cursor = cursor.add(const Duration(days: 1));
+    }
 
-    final request = CalendarEventRequest(
-      title: _titleController.text.isEmpty ? null : _titleController.text,
-      description: _descriptionController.text.isEmpty
-          ? null
-          : _descriptionController.text,
-      startDatetime: startDt,
-      endDatetime: endDt,
-      usedLeaveMinutes: _isLeaveEvent ? _calcUsedMinutes() : null,
-      isAllDay: _isAllDay,
-      isLeaveEvent: _isLeaveEvent,
-    );
+    // 날짜별로 각각 1건씩 요청 생성
+    final title = _titleController.text.isEmpty ? null : _titleController.text;
+    final description = _descriptionController.text.isEmpty
+        ? null
+        : _descriptionController.text;
+    final usedLeaveMinutes = _isLeaveEvent ? _calcUsedMinutes() : null;
 
-    debugPrint('[AddCalendarEvent] request: ${request.toJson()}');
+    final requests = dates.map((date) {
+      final startDt = _isAllDay
+          ? DateTime(date.year, date.month, date.day, 0, 0)
+          : DateTime(
+              date.year,
+              date.month,
+              date.day,
+              _startTime?.hour ?? 0,
+              _startTime?.minute ?? 0,
+            );
+      final endDt = _isAllDay
+          ? DateTime(date.year, date.month, date.day, 23, 59)
+          : DateTime(
+              date.year,
+              date.month,
+              date.day,
+              _endTime?.hour ?? 0,
+              _endTime?.minute ?? 0,
+            );
+      return CalendarEventRequest(
+        title: title,
+        description: description,
+        startDatetime: startDt,
+        endDatetime: endDt,
+        usedLeaveMinutes: usedLeaveMinutes,
+        isAllDay: _isAllDay,
+        isLeaveEvent: _isLeaveEvent,
+      );
+    }).toList();
 
     final useCase = ref.read(createCalendarEventUseCaseProvider);
-    useCase.execute(request: request).then((result) {
-      switch (result) {
-        case Success(:final value):
-          debugPrint(
-            '[AddCalendarEvent] 성공: id=${value.id} title=${value.title} start=${value.startDatetime} end=${value.endDatetime}',
-          );
-        case Failure(:final error):
-          debugPrint('[AddCalendarEvent] 실패: $error');
-      }
-    });
+    final results = await Future.wait(
+      requests.map((r) => useCase.execute(request: r)),
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    final failure = results
+        .whereType<Failure<void, NetworkError>>()
+        .firstOrNull;
+
+    if (failure == null) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final message = switch (failure.error) {
+      ServerError(:final message) => message,
+      TimeoutError() => '요청 시간이 초과되었습니다.',
+      UnauthorizedError() => '로그인이 필요합니다.',
+      NetworkConnectionError() => '네트워크 연결을 확인해주세요.',
+      _ => '일정 등록에 실패했습니다.',
+    };
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('등록 실패'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── 빌드 ────────────────────────────────────────────────────────────────
@@ -849,7 +898,9 @@ class _AddCalendarEventScreenState
               ),
               const Spacer(),
               Text(
-                _isAllDay ? '08시간00분' : _calcUsedTime(),
+                _isAllDay
+                    ? _formatMinutes(ref.read(dailyWorkMinutesProvider))
+                    : _calcUsedTime(),
                 style: pretendard(
                   weight: 700,
                   size: 14,
@@ -969,20 +1020,30 @@ class _AddCalendarEventScreenState
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _submit,
+        onPressed: _isSubmitting ? null : _submit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandColor,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.brandColor.withValues(alpha: 0.5),
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        child: Text(
-          '등록하기',
-          style: pretendard(weight: 700, size: 15, color: Colors.white),
-        ),
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                '등록하기',
+                style: pretendard(weight: 700, size: 15, color: Colors.white),
+              ),
       ),
     );
   }

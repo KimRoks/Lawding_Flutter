@@ -18,7 +18,11 @@ class CalendarEventListApiResponse {
       status: json['status'] as String,
       message: json['message'] as String,
       data: (json['data'] as List<dynamic>)
-          .map((item) => CalendarEventItemResponse.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => CalendarEventItemResponse.fromJson(
+              item as Map<String, dynamic>,
+            ),
+          )
           .toList(),
       timestamp: json['timestamp'] as String,
     );
@@ -44,7 +48,9 @@ class CalendarEventSingleApiResponse {
     return CalendarEventSingleApiResponse(
       status: json['status'] as String,
       message: json['message'] as String,
-      data: CalendarEventItemResponse.fromJson(json['data'] as Map<String, dynamic>),
+      data: CalendarEventItemResponse.fromJson(
+        json['data'] as Map<String, dynamic>,
+      ),
       timestamp: json['timestamp'] as String,
     );
   }
@@ -56,7 +62,7 @@ class CalendarEventItemResponse {
   final String title;
   final String description;
   final String startDatetime; // "2026-06-22T10:00:00"
-  final String endDatetime;   // "2026-06-22T11:00:00"
+  final String endDatetime; // "2026-06-22T11:00:00"
   final int usedLeaveMinutes;
   final bool isAllDay;
   final bool isLeaveEvent;

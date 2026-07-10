@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../domain/core/result.dart';
 import '../../domain/entities/calendar_event.dart';
 import '../../domain/repositories/calendar_event_repository.dart';
@@ -51,18 +49,14 @@ class CalendarEventRepositoryImpl implements CalendarEventRepository {
   }
 
   @override
-  Future<Result<CalendarEventEntity, NetworkError>> createCalendarEvent({
+  Future<Result<void, NetworkError>> createCalendarEvent({
     required CalendarEventRequest request,
   }) async {
     try {
-      final response = await _client.request(
+      await _client.request(
         CalendarEventApi.createCalendarEvent(request: request),
       );
-      debugPrint('[CalendarEvent] create response: ${response.data}');
-      final apiResponse = CalendarEventSingleApiResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-      return Success(apiResponse.toDomain());
+      return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
     }

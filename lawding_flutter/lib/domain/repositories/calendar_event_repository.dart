@@ -19,7 +19,7 @@ abstract interface class CalendarEventRepository {
 
   /// 캘린더 이벤트 생성
   /// POST /v1/calendar-events
-  Future<Result<CalendarEventEntity, NetworkError>> createCalendarEvent({
+  Future<Result<void, NetworkError>> createCalendarEvent({
     required CalendarEventRequest request,
   });
 
