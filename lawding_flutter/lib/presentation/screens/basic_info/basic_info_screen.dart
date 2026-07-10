@@ -194,49 +194,49 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildProgressBar(),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  onPageChanged: (i) => setState(() {
-                    _currentStep = i;
-                    _canProceed = _stepValidity[i] ?? false;
-                  }),
-                  children: [
-                    Step1NameTerms(
-                      onValidChanged: (v) => _setStepValid(0, v),
-                      onDataChanged: (d) => setState(() => _step1Data = d),
-                    ),
-                    Step2LeaveStandard(
-                      onValidChanged: (v) => _setStepValid(1, v),
-                      onDataChanged: _onStep2DataChanged,
-                    ),
-                    Step3WorkSchedule(
-                      onValidChanged: (v) => _setStepValid(2, v),
-                      onDataChanged: (d) => setState(() => _step3Data = d),
-                    ),
-                    Step4WorkerCount(
-                      onValidChanged: (v) => _setStepValid(3, v),
-                      onDataChanged: (v) => setState(() => _companySize = v),
-                    ),
-                    Step5AnnualLeaveResult(
-                      onValidChanged: (v) => _setStepValid(4, v),
-                      step2Data: _step2Data,
-                      onResultChanged: _onTotalDaysChanged,
-                    ),
-                    Step6UsedLeave(
-                      onValidChanged: (v) => _setStepValid(5, v),
-                      onDataChanged: (v) => setState(() => _usedLeave = v),
-                      totalDays: _totalDays,
-                    ),
-                  ],
-                ),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (i) => setState(() {
+                  _currentStep = i;
+                  _canProceed = _stepValidity[i] ?? false;
+                }),
+                children: [
+                  Step1NameTerms(
+                    onValidChanged: (v) => _setStepValid(0, v),
+                    onDataChanged: (d) => setState(() => _step1Data = d),
+                  ),
+                  Step2LeaveStandard(
+                    onValidChanged: (v) => _setStepValid(1, v),
+                    onDataChanged: _onStep2DataChanged,
+                  ),
+                  Step3WorkSchedule(
+                    onValidChanged: (v) => _setStepValid(2, v),
+                    onDataChanged: (d) => setState(() => _step3Data = d),
+                  ),
+                  Step4WorkerCount(
+                    onValidChanged: (v) => _setStepValid(3, v),
+                    onDataChanged: (v) => setState(() => _companySize = v),
+                  ),
+                  Step5AnnualLeaveResult(
+                    onValidChanged: (v) => _setStepValid(4, v),
+                    step2Data: _step2Data,
+                    onResultChanged: _onTotalDaysChanged,
+                  ),
+                  Step6UsedLeave(
+                    onValidChanged: (v) => _setStepValid(5, v),
+                    onDataChanged: (v) => setState(() => _usedLeave = v),
+                    totalDays: _totalDays,
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-                child: _buildNextButton(),
-              ),
-            ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+              child: _buildNextButton(),
+            ),
+          ],
           ),
       ),
     );
