@@ -239,7 +239,11 @@ class _AppleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('assets/icons/OAuth_apple.svg', width: 22, height: 22);
+    return SvgPicture.asset(
+      'assets/icons/OAuth_apple.svg',
+      width: 22,
+      height: 22,
+    );
   }
 }
 
@@ -248,7 +252,11 @@ class _GoogleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('assets/icons/OAuth_google.svg', width: 22, height: 22);
+    return SvgPicture.asset(
+      'assets/icons/OAuth_google.svg',
+      width: 22,
+      height: 22,
+    );
   }
 }
 
@@ -257,6 +265,10 @@ class _KakaoIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('assets/icons/OAuth_kakao.svg', width: 22, height: 22);
+    return SvgPicture.asset(
+      'assets/icons/OAuth_kakao.svg',
+      width: 22,
+      height: 22,
+    );
   }
 }
