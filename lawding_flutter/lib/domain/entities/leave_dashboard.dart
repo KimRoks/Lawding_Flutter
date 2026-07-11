@@ -1,25 +1,33 @@
+class RecentLeaveUsage {
+  final String startDatetime; // "YYYY-MM-DDTHH:MM:SS"
+  final String endDatetime;
+  final int usedLeaveMinutes;
+
+  const RecentLeaveUsage({
+    required this.startDatetime,
+    required this.endDatetime,
+    required this.usedLeaveMinutes,
+  });
+}
+
 class LeaveDashboard {
-  final int id;
-  final int userId;
-  final String startDate; // "YYYY-MM-DD"
-  final String endDate; // "YYYY-MM-DD"
-  final int weeklyWorkingDays;
+  final int availableLeaveMinutes;
   final double avgDailyWorkHours;
   final int totalLeaveMinutes;
-  final int usedLeaveMinutes;
-  final int remainingLeaveMinutes;
-  final bool isFinalized;
+  final String nextLeaveAccrualDate; // "YYYY-MM-DD"
+  final int expiringLeaveMinutes;
+  final String leavePeriodStartDate; // "YYYY-MM-DD"
+  final String leavePeriodEndDate; // "YYYY-MM-DD"
+  final List<RecentLeaveUsage> recentLeaveUsages;
 
   const LeaveDashboard({
-    required this.id,
-    required this.userId,
-    required this.startDate,
-    required this.endDate,
-    required this.weeklyWorkingDays,
+    required this.availableLeaveMinutes,
     required this.avgDailyWorkHours,
     required this.totalLeaveMinutes,
-    required this.usedLeaveMinutes,
-    required this.remainingLeaveMinutes,
-    required this.isFinalized,
+    required this.nextLeaveAccrualDate,
+    required this.expiringLeaveMinutes,
+    required this.leavePeriodStartDate,
+    required this.leavePeriodEndDate,
+    required this.recentLeaveUsages,
   });
 }
