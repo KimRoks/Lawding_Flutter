@@ -9,23 +9,27 @@ import '../../helpers/mock_dio_helper.dart';
 
 const path = '/v1/dashboard/leave';
 
-Map<String, dynamic> _mockSuccess({bool isFinalized = false}) {
+Map<String, dynamic> _mockSuccess({List<Map<String, dynamic>>? recentLeaveUsages}) {
   return {
     'status': 'success',
     'message': 'success',
     'data': {
-      'id': 2,
-      'userId': 2,
-      'startDate': '2026-05-08',
-      'endDate': '2027-05-07',
-      'weeklyWorkingDays': 5,
+      'availableLeaveMinutes': 2400,
       'avgDailyWorkHours': 8.00,
-      'totalLeaveMinutes': 7200,
-      'usedLeaveMinutes': 960,
-      'remainingLeaveMinutes': 6240,
-      'isFinalized': isFinalized,
+      'totalLeaveMinutes': 2400,
+      'nextLeaveAccrualDate': '2027-07-10',
+      'expiringLeaveMinutes': 2400,
+      'leavePeriodStartDate': '2026-07-10',
+      'leavePeriodEndDate': '2027-07-09',
+      'recentLeaveUsages': recentLeaveUsages ?? [
+        {
+          'startDatetime': '2026-07-25T09:00:00',
+          'endDatetime': '2026-07-25T13:00:00',
+          'usedLeaveMinutes': 240,
+        }
+      ],
     },
-    'timestamp': '2026-07-05T16:18:34.032293578+09:00',
+    'timestamp': '2026-07-10T19:28:41.816417842+09:00',
   };
 }
 
@@ -46,7 +50,7 @@ void main() {
 
     // ─── 성공 케이스 ─────────────────────────────────────────────────────────
 
-    test('조회 성공 - 연차 사용 기간 진행 중 (isFinalized: false)', () async {
+    test('조회 성공 - 모든 필드 정상 파싱', () async {
       mockDioHelper.mockGet(
         path: path,
         responseData: _mockSuccess(),
@@ -57,32 +61,33 @@ void main() {
       expect(result, isA<Success<LeaveDashboard, NetworkError>>());
       result.fold(
         onSuccess: (dashboard) {
-          expect(dashboard.id, 2);
-          expect(dashboard.userId, 2);
-          expect(dashboard.startDate, '2026-05-08');
-          expect(dashboard.endDate, '2027-05-07');
-          expect(dashboard.weeklyWorkingDays, 5);
+          expect(dashboard.availableLeaveMinutes, 2400);
           expect(dashboard.avgDailyWorkHours, 8.0);
-          expect(dashboard.totalLeaveMinutes, 7200);
-          expect(dashboard.usedLeaveMinutes, 960);
-          expect(dashboard.remainingLeaveMinutes, 6240);
-          expect(dashboard.isFinalized, false);
+          expect(dashboard.totalLeaveMinutes, 2400);
+          expect(dashboard.nextLeaveAccrualDate, '2027-07-10');
+          expect(dashboard.expiringLeaveMinutes, 2400);
+          expect(dashboard.leavePeriodStartDate, '2026-07-10');
+          expect(dashboard.leavePeriodEndDate, '2027-07-09');
+          expect(dashboard.recentLeaveUsages.length, 1);
+          expect(dashboard.recentLeaveUsages.first.startDatetime, '2026-07-25T09:00:00');
+          expect(dashboard.recentLeaveUsages.first.endDatetime, '2026-07-25T13:00:00');
+          expect(dashboard.recentLeaveUsages.first.usedLeaveMinutes, 240);
         },
         onFailure: (error) => fail('Should not fail: $error'),
       );
     });
 
-    test('조회 성공 - 연차 사용 기간 종료 (isFinalized: true)', () async {
+    test('조회 성공 - recentLeaveUsages 빈 배열', () async {
       mockDioHelper.mockGet(
         path: path,
-        responseData: _mockSuccess(isFinalized: true),
+        responseData: _mockSuccess(recentLeaveUsages: []),
       );
 
       final result = await repository.get();
 
       expect(result, isA<Success<LeaveDashboard, NetworkError>>());
       result.fold(
-        onSuccess: (dashboard) => expect(dashboard.isFinalized, true),
+        onSuccess: (dashboard) => expect(dashboard.recentLeaveUsages, isEmpty),
         onFailure: (error) => fail('Should not fail: $error'),
       );
     });
