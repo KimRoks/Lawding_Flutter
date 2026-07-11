@@ -9,6 +9,7 @@ import '../../data/feedback/feedback_repository_impl.dart';
 import '../../data/holiday/holiday_repository_impl.dart';
 import '../../data/auth/auth_repository_impl.dart';
 import '../../data/calendar_event/calendar_event_repository_impl.dart';
+import '../../data/leave_dashboard/leave_dashboard_repository_impl.dart';
 import '../../data/leave_policy/leave_policy_repository_impl.dart';
 import '../../data/network/dio_client.dart';
 import '../../data/user/user_repository_impl.dart';
@@ -20,6 +21,7 @@ import '../../domain/repositories/calendar_event_repository.dart';
 import '../../domain/repositories/dictionary_repository.dart';
 import '../../domain/repositories/feedback_repository.dart';
 import '../../domain/repositories/holiday_repository.dart';
+import '../../domain/repositories/leave_dashboard_repository.dart';
 import '../../domain/repositories/leave_policy_repository.dart';
 import '../../domain/usecases/calculate_annual_leave_usecase.dart';
 import '../../domain/usecases/create_calendar_event_usecase.dart';
@@ -37,6 +39,7 @@ import '../../domain/usecases/get_leave_policy_usecase.dart';
 import '../../domain/usecases/submit_leave_policy_usecase.dart';
 import '../../domain/usecases/update_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
+import '../../domain/usecases/get_leave_dashboard_usecase.dart';
 
 part 'providers.g.dart';
 
@@ -284,4 +287,20 @@ final dailyWorkMinutesProvider = StateProvider<int>((ref) => 480);
 GetUserProfileUseCase getUserProfileUseCase(Ref ref) {
   final repository = ref.watch(userRepositoryProvider);
   return GetUserProfileUseCase(repository);
+}
+
+/// LeaveDashboardRepository Provider
+/// 연차 대시보드 조회 Repository 구현체 제공 (로그인 필요)
+@riverpod
+LeaveDashboardRepository leaveDashboardRepository(Ref ref) {
+  final dioClient = ref.watch(authDioClientProvider);
+  return LeaveDashboardRepositoryImpl(dioClient);
+}
+
+/// GetLeaveDashboardUseCase Provider
+/// 연차 대시보드 조회 비즈니스 로직 제공
+@riverpod
+GetLeaveDashboardUseCase getLeaveDashboardUseCase(Ref ref) {
+  final repository = ref.watch(leaveDashboardRepositoryProvider);
+  return GetLeaveDashboardUseCase(repository);
 }

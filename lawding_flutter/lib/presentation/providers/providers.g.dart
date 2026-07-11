@@ -627,5 +627,51 @@ final getUserProfileUseCaseProvider =
 // ignore: unused_element
 typedef GetUserProfileUseCaseRef =
     AutoDisposeProviderRef<GetUserProfileUseCase>;
+String _$leaveDashboardRepositoryHash() =>
+    r'7f3589ee3c95e79e19f6f674e94b0e8336e54fc5';
+
+/// LeaveDashboardRepository Provider
+/// 연차 대시보드 조회 Repository 구현체 제공 (로그인 필요)
+///
+/// Copied from [leaveDashboardRepository].
+@ProviderFor(leaveDashboardRepository)
+final leaveDashboardRepositoryProvider =
+    AutoDisposeProvider<LeaveDashboardRepository>.internal(
+      leaveDashboardRepository,
+      name: r'leaveDashboardRepositoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$leaveDashboardRepositoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef LeaveDashboardRepositoryRef =
+    AutoDisposeProviderRef<LeaveDashboardRepository>;
+String _$getLeaveDashboardUseCaseHash() =>
+    r'80629f7eef10dc3331eb8fdea3a5e03bf0cb8709';
+
+/// GetLeaveDashboardUseCase Provider
+/// 연차 대시보드 조회 비즈니스 로직 제공
+///
+/// Copied from [getLeaveDashboardUseCase].
+@ProviderFor(getLeaveDashboardUseCase)
+final getLeaveDashboardUseCaseProvider =
+    AutoDisposeProvider<GetLeaveDashboardUseCase>.internal(
+      getLeaveDashboardUseCase,
+      name: r'getLeaveDashboardUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$getLeaveDashboardUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GetLeaveDashboardUseCaseRef =
+    AutoDisposeProviderRef<GetLeaveDashboardUseCase>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
