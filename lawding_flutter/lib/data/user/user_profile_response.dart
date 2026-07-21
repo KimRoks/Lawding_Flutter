@@ -22,12 +22,12 @@ class UserProfileResponse {
   factory UserProfileResponse.fromJson(Map<String, dynamic> json) {
     return UserProfileResponse(
       id: json['id'] as int,
-      username: json['username'] as String,
-      email: json['email'] as String,
-      provider: json['provider'] as String,
-      nickname: json['nickname'] as String,
-      onboardingCompleted: json['onboardingCompleted'] as bool,
-      deleted: json['deleted'] as bool,
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      provider: json['provider'] as String? ?? '',
+      nickname: json['nickname'] as String? ?? '',
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+      deleted: json['deleted'] as bool? ?? false,
     );
   }
 

@@ -18,6 +18,7 @@ class DioClient {
     AuthRepository? authRepository,
     bool isTestMode = kDebugMode,
     Dio? dio,
+    Dio? reissueDio, // 테스트 시 주입 가능
   }) : _dio =
            dio ??
            Dio(
@@ -42,7 +43,9 @@ class DioClient {
     }
 
     if (authRepository != null) {
-      _dio.interceptors.add(_AuthInterceptor(_dio, authRepository));
+      _dio.interceptors.add(
+        _AuthInterceptor(_dio, authRepository, reissueDio: reissueDio),
+      );
     }
   }
 
@@ -143,8 +146,22 @@ class DioClient {
 class _AuthInterceptor extends Interceptor {
   final Dio _dio;
   final AuthRepository _authRepository;
+  // reissue 전용 Dio — 인터셉터 없이 직접 호출해 무한루프 방지
+  late final Dio _reissueDio;
 
-  _AuthInterceptor(this._dio, this._authRepository);
+  _AuthInterceptor(this._dio, this._authRepository, {Dio? reissueDio})
+      : _reissueDio = reissueDio ??
+            Dio(
+              BaseOptions(
+                baseUrl: _dio.options.baseUrl,
+                connectTimeout: const Duration(seconds: 30),
+                receiveTimeout: const Duration(seconds: 30),
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+              ),
+            );
 
   /// 모든 요청에 accessToken 주입
   @override
@@ -171,13 +188,6 @@ class _AuthInterceptor extends Interceptor {
 
     debugPrint('[Auth] 401 감지 → path: ${err.requestOptions.path}');
 
-    // reissue 요청 자체가 401을 반환한 경우: 무한 재시도 방지
-    if (err.requestOptions.path == ApiEndpoints.reissue) {
-      debugPrint('[Auth] reissue 자체 401 → 무한재시도 방지, 토큰 삭제 → 로그아웃');
-      await _authRepository.clearTokens();
-      return handler.next(err);
-    }
-
     final refreshToken = await _authRepository.getRefreshToken();
     if (refreshToken == null) {
       debugPrint('[Auth] refreshToken 없음 → 토큰 삭제 → 로그아웃');
@@ -188,14 +198,20 @@ class _AuthInterceptor extends Interceptor {
     debugPrint('[Auth] refreshToken 존재 → reissue 시도');
 
     try {
-      final response = await _dio.post(
+      // 인터셉터 없는 별도 Dio로 reissue 호출 → 무한루프 방지
+      final response = await _reissueDio.post(
         ApiEndpoints.reissue,
         data: {'refreshToken': refreshToken},
-        options: Options(headers: {'Authorization': null}),
       );
 
-      final newAccessToken = response.data['accessToken'] as String;
-      final newRefreshToken = response.data['refreshToken'] as String;
+      final body = response.data;
+      // 응답 구조: { data: { accessToken, refreshToken } } 또는 flat
+      final payload = body is Map && body['data'] is Map
+          ? body['data'] as Map
+          : body as Map;
+
+      final newAccessToken = payload['accessToken'] as String;
+      final newRefreshToken = payload['refreshToken'] as String;
 
       await _authRepository.saveTokens(
         accessToken: newAccessToken,
@@ -211,7 +227,6 @@ class _AuthInterceptor extends Interceptor {
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 401 || status == 403) {
-        // refreshToken 만료 → 강제 로그아웃
         debugPrint('[Auth] reissue $status → refreshToken 만료 → 토큰 삭제 → 로그아웃');
         await _authRepository.clearTokens();
       } else {
@@ -220,7 +235,6 @@ class _AuthInterceptor extends Interceptor {
       }
       return handler.next(err);
     } catch (e) {
-      // 파싱 에러 등 예상치 못한 예외 → 토큰 유지
       debugPrint('[Auth] reissue 예외 (${e.runtimeType}: $e) → 토큰 유지');
       return handler.next(err);
     }

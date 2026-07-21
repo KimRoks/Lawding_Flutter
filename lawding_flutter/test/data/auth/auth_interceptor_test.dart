@@ -11,6 +11,7 @@ import '../../helpers/mock_dio_helper.dart';
 void main() {
   group('AuthInterceptor Tests', () {
     late MockDioHelper mockDioHelper;
+    late MockDioHelper reissueMockHelper; // reissue 전용 mock
     late AuthRepositoryImpl authRepository;
     // authDioClient — 로그인 필요 API용 (Bearer 토큰 주입 + 401 재시도)
     late DioClient authDioClient;
@@ -18,11 +19,13 @@ void main() {
     setUp(() {
       FlutterSecureStorage.setMockInitialValues({});
       mockDioHelper = MockDioHelper(baseUrl: 'https://api.test.com');
+      reissueMockHelper = MockDioHelper(baseUrl: 'https://api.test.com');
       authRepository = AuthRepositoryImpl();
       authDioClient = DioClient(
         baseUrl: 'https://api.test.com',
         authRepository: authRepository,
         dio: mockDioHelper.dio,
+        reissueDio: reissueMockHelper.dio,
       );
     });
 
@@ -150,6 +153,133 @@ void main() {
 
       // Then: 타임아웃은 토큰에 영향 없음
       expect(await authRepository.getAccessToken(), 'valid_access_token');
+    });
+
+    // ========================================================================
+    // 401 → reissue 성공 → 원본 요청 재시도
+    // ========================================================================
+
+    test('401 응답 시 reissue 성공하면 토큰 갱신 후 원본 요청 재시도', () async {
+      // Given: 만료된 accessToken + 유효한 refreshToken 저장
+      await authRepository.saveTokens(
+        accessToken: 'expired_access_token',
+        refreshToken: 'valid_refresh_token',
+      );
+
+      // Given: 원본 API 첫 요청 → 401
+      mockDioHelper.mockError(
+        path: '/v1/test',
+        method: 'GET',
+        statusCode: 401,
+        errorMessage: 'Unauthorized',
+      );
+      // Given: 재시도 요청 → 200
+      mockDioHelper.mockGet(
+        path: '/v1/test',
+        responseData: {'result': 'ok'},
+        statusCode: 200,
+      );
+
+      // Given: reissue → 새 토큰 발급
+      reissueMockHelper.mockPost(
+        path: '/v1/auth/reissue',
+        responseData: {
+          'data': {
+            'accessToken': 'new_access_token',
+            'refreshToken': 'new_refresh_token',
+          },
+        },
+        statusCode: 200,
+      );
+
+      // When
+      final response = await authDioClient.request(
+        const ApiRequest(path: '/v1/test', method: HttpMethod.get),
+      );
+
+      // Then: 재시도 성공
+      expect(response.statusCode, 200);
+      // Then: 새 토큰 저장 확인
+      expect(await authRepository.getAccessToken(), 'new_access_token');
+      expect(await authRepository.getRefreshToken(), 'new_refresh_token');
+    });
+
+    // ========================================================================
+    // 401 → reissue 실패 (401) → 토큰 삭제 → 로그아웃
+    // ========================================================================
+
+    test('401 응답 시 reissue도 401 반환하면 토큰 삭제', () async {
+      // Given: 만료된 토큰
+      await authRepository.saveTokens(
+        accessToken: 'expired_access_token',
+        refreshToken: 'expired_refresh_token',
+      );
+
+      // Given: 원본 API → 401
+      mockDioHelper.mockError(
+        path: '/v1/test',
+        method: 'GET',
+        statusCode: 401,
+        errorMessage: 'Unauthorized',
+      );
+
+      // Given: reissue → 401 (refreshToken도 만료)
+      reissueMockHelper.mockError(
+        path: '/v1/auth/reissue',
+        method: 'POST',
+        statusCode: 401,
+        errorMessage: 'Refresh token expired',
+      );
+
+      // When / Then: UnauthorizedError throw
+      await expectLater(
+        () => authDioClient.request(
+          const ApiRequest(path: '/v1/test', method: HttpMethod.get),
+        ),
+        throwsA(isA<UnauthorizedError>()),
+      );
+
+      // Then: 토큰 삭제됨
+      expect(await authRepository.getAccessToken(), isNull);
+      expect(await authRepository.getRefreshToken(), isNull);
+    });
+
+    // ========================================================================
+    // 401 → reissue 네트워크 오류 → 토큰 유지
+    // ========================================================================
+
+    test('401 응답 시 reissue 타임아웃이면 토큰 유지', () async {
+      // Given: 유효한 토큰
+      await authRepository.saveTokens(
+        accessToken: 'valid_access_token',
+        refreshToken: 'valid_refresh_token',
+      );
+
+      // Given: 원본 API → 401
+      mockDioHelper.mockError(
+        path: '/v1/test',
+        method: 'GET',
+        statusCode: 401,
+        errorMessage: 'Unauthorized',
+      );
+
+      // Given: reissue → 타임아웃
+      reissueMockHelper.mockTimeout(
+        path: '/v1/auth/reissue',
+        method: 'POST',
+      );
+
+      // When / Then: UnauthorizedError throw
+      await expectLater(
+        () => authDioClient.request(
+          const ApiRequest(path: '/v1/test', method: HttpMethod.get),
+        ),
+        throwsA(isA<UnauthorizedError>()),
+      );
+
+      // Then: 일시적 오류이므로 토큰 유지
+      expect(await authRepository.getAccessToken(), 'valid_access_token');
+      expect(await authRepository.getRefreshToken(), 'valid_refresh_token');
     });
   });
 }
