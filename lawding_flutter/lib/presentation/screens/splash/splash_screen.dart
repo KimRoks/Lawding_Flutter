@@ -8,6 +8,7 @@ import '../../../domain/core/result.dart';
 import '../../../infrastructure/services/analytics_service.dart';
 import '../../../infrastructure/services/app_version_service.dart';
 import '../../../infrastructure/services/crashlytics_service.dart';
+import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/force_update_dialog.dart';
 import '../auth/login_screen.dart';
@@ -70,12 +71,53 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     }
   }
 
+  Future<void> _restoreAuthState() async {
+    final hasToken = await ref.read(authRepositoryProvider).isLoggedIn();
+    if (!hasToken) return;
+
+    final result = await ref.read(getUserProfileUseCaseProvider).execute();
+    result.fold(
+      onSuccess: (profile) {
+        if (profile.onboardingCompleted) {
+          ref.read(calendarAuthStateProvider.notifier).state = true;
+          _fetchLeavePolicy();
+          _fetchLeaveSummary();
+        }
+      },
+      onFailure: (_) {},
+    );
+  }
+
+  Future<void> _fetchLeavePolicy() async {
+    final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
+    result.fold(
+      onSuccess: (policy) {
+        ref.read(dailyWorkMinutesProvider.notifier).state =
+            policy.dailyWorkMinutes;
+      },
+      onFailure: (_) {},
+    );
+  }
+
+  Future<void> _fetchLeaveSummary() async {
+    final result = await ref.read(getLeaveSummaryUseCaseProvider).execute();
+    result.fold(
+      onSuccess: (summary) {
+        ref.read(avgDailyWorkHoursProvider.notifier).state =
+            summary.avgDailyWorkHours;
+      },
+      onFailure: (_) {},
+    );
+  }
+
   Future<void> _initializeApp() async {
     try {
-      // 저장된 토큰 확인
+      // 저장된 토큰 확인 및 로그인 상태 복원
       final authRepo = ref.read(authRepositoryProvider);
       final accessToken = await authRepo.getAccessToken();
       debugPrint('[Splash] accessToken: $accessToken');
+
+      await _restoreAuthState();
 
       // 이전 세션에서 크래시가 발생했는지 확인
       final didCrash = await _crashlytics.didCrashOnPreviousExecution();
@@ -139,7 +181,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             width: 24,
             height: 24,
           ),
-          screen: const DashboardScreen(),
+          screen: DashboardScreen(
+            onAuthRequired: () =>
+                _calendarScreenKey.currentState?.showTutorialIfNeeded(),
+          ),
         ),
         TabItemInfo(
           title: '연차 계산기',
@@ -286,17 +331,25 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_tutorialKey, true);
         if (!mounted) return;
+        bool proceeded = false;
         await Navigator.of(context, rootNavigator: true).push(
           PageRouteBuilder(
             opaque: true,
             pageBuilder: (context, animation, secondaryAnimation) =>
-                CalendarTutorialScreen(onFinished: _showLoginScreen),
+                CalendarTutorialScreen(
+                  onFinished: () {
+                    proceeded = true;
+                    Navigator.of(context, rootNavigator: true).pop();
+                  },
+                ),
             transitionDuration: const Duration(milliseconds: 400),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) =>
                     FadeTransition(opacity: animation, child: child),
           ),
         );
+        if (!mounted) return;
+        if (proceeded) _showLoginScreen();
       } else {
         _showLoginScreen();
       }
@@ -336,6 +389,17 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     );
   }
 
+  Future<void> _fetchLeaveSummary() async {
+    final result = await ref.read(getLeaveSummaryUseCaseProvider).execute();
+    result.fold(
+      onSuccess: (summary) {
+        ref.read(avgDailyWorkHoursProvider.notifier).state =
+            summary.avgDailyWorkHours;
+      },
+      onFailure: (error) => debugPrint('[LeaveSummary] 실패: $error'),
+    );
+  }
+
   Future<void> _fetchLeavePolicy() async {
     debugPrint('[LeavePolicy] GET /v1/users/leave-policy 호출');
     final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
@@ -369,6 +433,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
 
     if (onboardingCompleted) {
       _fetchLeavePolicy();
+      _fetchLeaveSummary();
       ref.read(calendarAuthStateProvider.notifier).state = true;
     } else {
       Navigator.of(context, rootNavigator: true).push(
@@ -391,6 +456,8 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
 
   void _onUserInfoCompleted() {
     Navigator.of(context, rootNavigator: true).pop();
+    _fetchLeavePolicy();
+    _fetchLeaveSummary();
     ref.read(calendarAuthStateProvider.notifier).state = true;
   }
 
@@ -399,6 +466,43 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     final isLoggedIn = ref.watch(calendarAuthStateProvider);
     if (isLoggedIn) return const CalendarScreen();
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return const SizedBox.shrink();
+    return _buildLoginPrompt();
+  }
+
+  Widget _buildLoginPrompt() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '로그인이 필요한 서비스입니다.',
+            style: pretendard(
+              weight: 600,
+              size: 16,
+              color: AppColors.textGray55,
+            ),
+          ),
+          const SizedBox(height: 20),
+          GestureDetector(
+            onTap: showTutorialIfNeeded,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.brandColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '로그인하기',
+                style: pretendard(
+                  weight: 700,
+                  size: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
