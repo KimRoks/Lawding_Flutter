@@ -214,16 +214,20 @@ class _CalendarTutorialScreenState extends State<CalendarTutorialScreen>
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // 이전 버튼
-                      _NavButton(
-                        label: '이전',
-                        enabled: _currentPage > 0,
-                        onTap: _goToPrevious,
+                      // 이전 버튼 — 오른쪽 버튼과 동일 너비 확보
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: _NavButton(
+                            label: '이전',
+                            enabled: _currentPage > 0,
+                            onTap: _goToPrevious,
+                          ),
+                        ),
                       ),
 
-                      // 페이지 인디케이터
+                      // 페이지 인디케이터 — 항상 정가운데 고정
                       Row(
                         children: List.generate(_pages.length, (index) {
                           final isActive = index == _currentPage;
@@ -242,13 +246,18 @@ class _CalendarTutorialScreenState extends State<CalendarTutorialScreen>
                         }),
                       ),
 
-                      // 다음 / 시작하기 버튼
-                      _NavButton(
-                        label: _currentPage == _pages.length - 1
-                            ? '시작하기'
-                            : '다음',
-                        enabled: true,
-                        onTap: _goToNext,
+                      // 다음 / 시작하기 버튼 — 왼쪽 버튼과 동일 너비 확보
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: _NavButton(
+                            label: _currentPage == _pages.length - 1
+                                ? '시작하기'
+                                : '다음',
+                            enabled: true,
+                            onTap: _goToNext,
+                          ),
+                        ),
                       ),
                     ],
                   ),
