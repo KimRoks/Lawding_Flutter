@@ -9,10 +9,10 @@ import '../../../domain/entities/leave_dashboard.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/logo_app_bar.dart';
-import '../auth/login_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback? onAuthRequired;
+  const DashboardScreen({super.key, this.onAuthRequired});
 
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
@@ -59,6 +59,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isCalendarLinked = ref.watch(calendarAuthStateProvider);
+
+    ref.listen(calendarAuthStateProvider, (prev, next) {
+      if (prev == next) return;
+      if (next) {
+        // 로그인 완료 → 대시보드 재조회
+        setState(() => _isLoading = true);
+        _fetchDashboard();
+      } else {
+        // 로그아웃 → 데이터 초기화
+        setState(() {
+          _dashboard = null;
+          _isLoading = false;
+        });
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -540,13 +555,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
               child: GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => LoginScreen(
-                      onLoginSuccess: (_) => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ),
+                onTap: () => widget.onAuthRequired?.call(),
                 child: Container(
                   color: const Color(0xB3000000),
                   alignment: Alignment.center,

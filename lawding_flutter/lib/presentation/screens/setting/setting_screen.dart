@@ -2,17 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../domain/core/result.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/toast_message.dart';
 import '../basic_info/basic_info_screen.dart';
 
-class SettingScreen extends StatelessWidget {
+class SettingScreen extends ConsumerWidget {
   const SettingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFFBFBFB),
       appBar: const CustomAppBar(
@@ -31,7 +32,17 @@ class SettingScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => BasicInfoScreen(
                     isEditMode: true,
-                    onCompleted: () => Navigator.of(context).pop(),
+                    onCompleted: () async {
+                      Navigator.of(context).pop();
+                      final result = await ref
+                          .read(getLeaveSummaryUseCaseProvider)
+                          .execute();
+                      if (result case Success(:final value)) {
+                        ref
+                            .read(avgDailyWorkHoursProvider.notifier)
+                            .state = value.avgDailyWorkHours;
+                      }
+                    },
                   ),
                 ),
               ),

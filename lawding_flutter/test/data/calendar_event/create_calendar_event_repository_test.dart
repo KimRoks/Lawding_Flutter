@@ -92,7 +92,7 @@ void main() {
       expect(result, isA<Success<void, NetworkError>>());
     });
 
-    test('생성 성공 - title/description 없이 최소 필드만', () async {
+    test('생성 성공 - title/description 빈 문자열, usedLeaveMinutes 0 (기본값)', () async {
       mockDioHelper.mockPost(
         path: _path,
         responseData: {'status': 'SUCCESS'},

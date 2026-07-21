@@ -34,23 +34,24 @@ class CalendarEventListApiResponse {
 class CalendarEventSingleApiResponse {
   final String status;
   final String message;
-  final CalendarEventItemResponse data;
+  final CalendarEventItemResponse? data; // POST/PUT 시 null일 수 있음
   final String timestamp;
 
   const CalendarEventSingleApiResponse({
     required this.status,
     required this.message,
-    required this.data,
+    this.data,
     required this.timestamp,
   });
 
   factory CalendarEventSingleApiResponse.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'];
     return CalendarEventSingleApiResponse(
       status: json['status'] as String,
       message: json['message'] as String,
-      data: CalendarEventItemResponse.fromJson(
-        json['data'] as Map<String, dynamic>,
-      ),
+      data: rawData is Map<String, dynamic>
+          ? CalendarEventItemResponse.fromJson(rawData)
+          : null,
       timestamp: json['timestamp'] as String,
     );
   }

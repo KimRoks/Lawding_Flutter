@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -25,12 +26,16 @@ class _Step6UsedLeaveState extends State<Step6UsedLeave>
   bool get wantKeepAlive => true;
 
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
 
   double? get _usedDays => double.tryParse(_controller.text);
 
   bool get _isValid {
     final u = _usedDays;
-    return u != null && u >= 0;
+    if (u == null || u < 0) return false;
+    final total = widget.totalDays;
+    if (total != null && u > total) return false;
+    return true;
   }
 
   double? get _remainingDays {
@@ -40,16 +45,49 @@ class _Step6UsedLeaveState extends State<Step6UsedLeave>
     return total - used;
   }
 
-  void _notify() {
-    setState(() {});
-    widget.onValidChanged(_isValid);
-    if (_isValid) widget.onDataChanged?.call(_usedDays!);
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusLost);
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusLost);
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onFocusLost() {
+    if (_focusNode.hasFocus) return;
+    if (!mounted) return;
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    final total = widget.totalDays;
+    final used = _usedDays;
+    if (total == null || used == null || used <= total) return;
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('입력 오류'),
+        content: Text(
+          '사용한 연차가 총 발생 연차(${_fmt(total)})를 초과할 수 없습니다',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _notify() {
+    setState(() {});
+    widget.onValidChanged(_isValid);
+    if (_isValid) widget.onDataChanged?.call(_usedDays!);
   }
 
   static String _fmt(double? days) {
@@ -135,6 +173,7 @@ class _Step6UsedLeaveState extends State<Step6UsedLeave>
             child: Center(
               child: TextField(
                 controller: _controller,
+                focusNode: _focusNode,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),

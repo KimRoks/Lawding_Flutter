@@ -42,6 +42,9 @@ class CalendarEventRepositoryImpl implements CalendarEventRepository {
       final apiResponse = CalendarEventSingleApiResponse.fromJson(
         response.data as Map<String, dynamic>,
       );
+      if (apiResponse.data == null) {
+        return const Failure(ServerError(message: '잘못된 응답 형식입니다.'));
+      }
       return Success(apiResponse.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
@@ -63,18 +66,15 @@ class CalendarEventRepositoryImpl implements CalendarEventRepository {
   }
 
   @override
-  Future<Result<CalendarEventEntity, NetworkError>> updateCalendarEvent({
+  Future<Result<void, NetworkError>> updateCalendarEvent({
     required int id,
     required CalendarEventRequest request,
   }) async {
     try {
-      final response = await _client.request(
+      await _client.request(
         CalendarEventApi.updateCalendarEvent(id: id, request: request),
       );
-      final apiResponse = CalendarEventSingleApiResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-      return Success(apiResponse.toDomain());
+      return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
     }

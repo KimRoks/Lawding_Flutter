@@ -281,6 +281,10 @@ GetLeavePolicyUseCase getLeavePolicyUseCase(Ref ref) {
 /// 로그인 후 fetch된 LeavePolicy에서 계산. 미조회 시 기본값 480(8시간)
 final dailyWorkMinutesProvider = StateProvider<int>((ref) => 480);
 
+/// avgDailyWorkHoursProvider — 하루 평균 근무시간(시간 단위)
+/// 로그인/정보변경 후 fetch된 LeaveSummary의 avgDailyWorkHours. 미조회 시 기본값 8.0
+final avgDailyWorkHoursProvider = StateProvider<double>((ref) => 8.0);
+
 /// GetUserProfileUseCase Provider
 /// 유저 프로필 조회 비즈니스 로직 제공
 @riverpod

@@ -19,10 +19,12 @@ extension CalendarEventItemResponseMapper on CalendarEventItemResponse {
 
 /// CalendarEventListApiResponse → `List<CalendarEventEntity>` 변환
 extension CalendarEventListApiResponseMapper on CalendarEventListApiResponse {
-  List<CalendarEventEntity> toDomain() => data.map((item) => item.toDomain()).toList();
+  List<CalendarEventEntity> toDomain() =>
+      data.map((item) => item.toDomain()).toList();
 }
 
 /// CalendarEventSingleApiResponse → CalendarEventEntity 변환
-extension CalendarEventSingleApiResponseMapper on CalendarEventSingleApiResponse {
-  CalendarEventEntity toDomain() => data.toDomain();
+extension CalendarEventSingleApiResponseMapper
+    on CalendarEventSingleApiResponse {
+  CalendarEventEntity toDomain() => data!.toDomain();
 }

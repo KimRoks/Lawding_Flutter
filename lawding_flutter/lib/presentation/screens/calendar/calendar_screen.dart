@@ -32,12 +32,14 @@ enum CalendarEventType {
 }
 
 class CalendarEvent {
+  final int? id; // 공휴일은 null
   final DateTime date;
   final CalendarEventType type;
   final String label; // 셀 배지: 공휴일명 또는 "HH:MM-HH:MM" 또는 "종일"
   final String name; // 카드 제목 (비공휴일), 미입력 시 label 표시
   final String detail; // 카드 하단 메모 (isFocused 확장 카드)
   const CalendarEvent({
+    this.id,
     required this.date,
     required this.type,
     required this.label,
@@ -89,12 +91,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     super.dispose();
   }
 
-  /// 소수점 3자리, 불필요한 trailing zero 제거 (예: 1.000 → 1, 1.500 → 1.5)
-  String _formatDays(double days) {
-    final s = days.toStringAsFixed(3);
-    final trimmed = s.replaceAll(RegExp(r'\.?0+$'), '');
-    return trimmed;
-  }
+  String _formatDays(double days) => days.toStringAsFixed(3);
 
   Future<void> _fetchLeaveSummary() async {
     final useCase = ref.read(getLeaveSummaryUseCaseProvider);
@@ -117,10 +114,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   Future<void> _fetchHolidays() async {
     final currentYear = _today.year;
-    final result = await ref.read(getHolidaysUseCaseProvider).execute(
-      startYear: currentYear - 1,
-      endYear: currentYear + 2,
-    );
+    final result = await ref
+        .read(getHolidaysUseCaseProvider)
+        .execute(startYear: currentYear - 1, endYear: currentYear + 2);
     switch (result) {
       case Success(:final value):
         debugPrint(
@@ -169,6 +165,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
 
     return CalendarEvent(
+      id: entity.id,
       date: entity.startDatetime,
       type: type,
       label: label,
@@ -350,30 +347,32 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ),
       child: Stack(
         children: [
-          // 닉네임 (top: 91-81=10, left: 37-20=17)
+          // 닉네임 + 남은 연차 라벨 (5px 간격, baseline 정렬)
           Positioned(
             top: 10,
             left: 17,
-            child: Text(
-              '${data?.nickname ?? ''}님',
-              style: pretendard(
-                weight: 700,
-                size: 20,
-                color: AppColors.brandColor,
-              ),
-            ),
-          ),
-          // 남은 연차 라벨 (top: 96-81=15, left: 163-20=143)
-          Positioned(
-            top: 15,
-            left: 143,
-            child: Text(
-              '남은 연차',
-              style: pretendard(
-                weight: 700,
-                size: 13,
-                color: AppColors.brandColor,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '${data?.nickname ?? ''}님',
+                  style: pretendard(
+                    weight: 700,
+                    size: 20,
+                    color: AppColors.brandColor,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '남은 연차',
+                  style: pretendard(
+                    weight: 700,
+                    size: 13,
+                    color: AppColors.brandColor,
+                  ),
+                ),
+              ],
             ),
           ),
           // 회색 pill (top: 120-81=39, left: 30-20=10)
@@ -389,32 +388,36 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ),
           ),
-          // 남은 일수 (top: 125-81=44, left: 42-20=22)
+          // 남은 일수 + 남은 시간 (baseline 정렬로 bottom 맞춤)
           Positioned(
             top: 44,
             left: 22,
-            child: Text(
-              data == null ? '' : '${_formatDays(data.availableLeaveDays)}일',
-              style: pretendard(
-                weight: 700,
-                size: 20,
-                color: AppColors.textGray11,
-              ),
-            ),
-          ),
-          // 남은 시간 (top: 129-81=48, left: 132-20=112)
-          Positioned(
-            top: 48,
-            left: 112,
-            child: Text(
-              data == null
-                  ? ''
-                  : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
-              style: pretendard(
-                weight: 700,
-                size: 13,
-                color: AppColors.textGray55,
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  data == null
+                      ? ''
+                      : '${_formatDays(data.availableLeaveDays)}일',
+                  style: pretendard(
+                    weight: 700,
+                    size: 20,
+                    color: AppColors.textGray11,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  data == null
+                      ? ''
+                      : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
+                  style: pretendard(
+                    weight: 700,
+                    size: 13,
+                    color: AppColors.textGray55,
+                  ),
+                ),
+              ],
             ),
           ),
           // 시간 편집 아이콘 (top: 130-81=49, left: 192-20=172)
@@ -452,6 +455,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       _displayedMonth.year,
                       _displayedMonth.month,
                     );
+                    _fetchLeaveSummary();
                   }
                 },
                 child: SvgPicture.asset(
@@ -970,6 +974,91 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   /// isFocused=true: 내용에 따라 높이가 변하는 확장 카드
+  Future<void> _showEventOptions(CalendarEvent event) async {
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              final entity = CalendarEventEntity(
+                id: event.id!,
+                title: event.name,
+                description: event.detail,
+                startDatetime: event.date,
+                endDatetime: event.date,
+                usedLeaveMinutes: 0,
+                isAllDay: event.label == '종일',
+                isLeaveEvent: event.type == CalendarEventType.annualLeave,
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddCalendarEventScreen(editEvent: entity),
+                ),
+              ).then((_) {
+                if (mounted) {
+                  _fetchCalendarEvents(
+                    _displayedMonth.year,
+                    _displayedMonth.month,
+                  );
+                  _fetchLeaveSummary();
+                }
+              });
+            },
+            child: const Text('수정하기'),
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(ctx);
+              showCupertinoDialog<void>(
+                context: context,
+                builder: (dialogCtx) => CupertinoAlertDialog(
+                  title: const Text('일정 삭제'),
+                  content: const Text('이 일정을 삭제하시겠습니까?'),
+                  actions: [
+                    CupertinoDialogAction(
+                      onPressed: () => Navigator.pop(dialogCtx),
+                      child: const Text('취소'),
+                    ),
+                    CupertinoDialogAction(
+                      isDestructiveAction: true,
+                      onPressed: () {
+                        Navigator.pop(dialogCtx);
+                        _deleteEvent(event);
+                      },
+                      child: const Text('삭제'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: const Text('삭제하기'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('취소'),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteEvent(CalendarEvent event) async {
+    final id = event.id;
+    if (id == null) return;
+    final result = await ref
+        .read(deleteCalendarEventUseCaseProvider)
+        .execute(id: id);
+    if (!mounted) return;
+    if (result case Success()) {
+      _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
+      _fetchLeaveSummary();
+    }
+  }
+
   Widget _buildExpandedEventCard(CalendarEvent event) {
     final isHoliday = event.type == CalendarEventType.holiday;
     final hasDetail = event.detail.isNotEmpty;
@@ -1038,21 +1127,29 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: List.generate(
-                    3,
-                    (i) => Container(
-                      width: 4,
-                      height: 4,
-                      margin: EdgeInsets.only(left: i == 0 ? 0 : 3),
-                      decoration: const BoxDecoration(
-                        color: AppColors.textGray99,
-                        shape: BoxShape.circle,
+                if (!isHoliday)
+                  GestureDetector(
+                    onTap: () => _showEventOptions(event),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: List.generate(
+                          3,
+                          (i) => Container(
+                            width: 4,
+                            height: 4,
+                            margin: EdgeInsets.only(left: i == 0 ? 0 : 3),
+                            decoration: const BoxDecoration(
+                              color: AppColors.textGray99,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if (event.type == CalendarEventType.annualLeave) ...[
                   const Spacer(),
                   _buildAnnualLeaveBadge(event.label),
