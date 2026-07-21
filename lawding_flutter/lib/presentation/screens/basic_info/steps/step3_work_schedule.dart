@@ -96,12 +96,14 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
           breakEnds[day] = _getTime(day: day, isStart: false, isWork: false);
         }
       }
-      widget.onDataChanged?.call(Step3Data(
-        workStarts: starts,
-        workEnds: ends,
-        breakStarts: breakStarts,
-        breakEnds: breakEnds,
-      ));
+      widget.onDataChanged?.call(
+        Step3Data(
+          workStarts: starts,
+          workEnds: ends,
+          breakStarts: breakStarts,
+          breakEnds: breakEnds,
+        ),
+      );
     }
   }
 
@@ -168,15 +170,84 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
     _notify();
   }
 
+  /// 상대방 시간이 이미 설정되어 있는지 여부 (per-day 모드에서 미설정이면 검사 스킵)
+  bool _isCounterpartSet({
+    required int day,
+    required bool isStart,
+    required bool isWork,
+  }) {
+    if (isWork) {
+      if (_unifyWorkTime) return true;
+      return isStart
+          ? _perWorkEnd.containsKey(day)
+          : _perWorkStart.containsKey(day);
+    } else {
+      if (_daysWithoutBreak.contains(day)) return false;
+      if (_unifyBreakTime) return true;
+      return isStart
+          ? _perBreakEnd.containsKey(day)
+          : _perBreakStart.containsKey(day);
+    }
+  }
+
+  void _showTimeError(String message) {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('시간 설정 오류'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onTimeTap({
     required int day,
     required bool isStart,
     required bool isWork,
   }) async {
+    TimeOfDay? minTime;
+    TimeOfDay? maxTime;
+
+    if (_isCounterpartSet(day: day, isStart: isStart, isWork: isWork)) {
+      final counterpart = _getTime(day: day, isStart: !isStart, isWork: isWork);
+      if (isStart) {
+        maxTime = counterpart; // 시작 시간 < 마감 시간
+      } else {
+        minTime = counterpart; // 마감 시간 > 시작 시간
+      }
+    }
+
     final picked = await _showTimePicker(
       _getTime(day: day, isStart: isStart, isWork: isWork),
+      minTime: minTime,
+      maxTime: maxTime,
     );
     if (picked == null || !mounted) return;
+
+    // 혹시라도 통과된 경우 최종 방어
+    if (minTime != null) {
+      final pickedMin = picked.hour * 60 + picked.minute;
+      final minMin = minTime.hour * 60 + minTime.minute;
+      if (pickedMin <= minMin) {
+        _showTimeError('마감 시간은 시작 시간보다 늦은 시간이어야 합니다.');
+        return;
+      }
+    }
+    if (maxTime != null) {
+      final pickedMin = picked.hour * 60 + picked.minute;
+      final maxMin = maxTime.hour * 60 + maxTime.minute;
+      if (pickedMin >= maxMin) {
+        _showTimeError('시작 시간은 마감 시간보다 이른 시간이어야 합니다.');
+        return;
+      }
+    }
+
     setState(() {
       final unified = isWork ? _unifyWorkTime : _unifyBreakTime;
       if (unified) {
@@ -212,9 +283,23 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
     _notify();
   }
 
-  Future<TimeOfDay?> _showTimePicker(TimeOfDay initial) async {
-    var tempHour = initial.hour;
-    var tempMinute = (initial.minute / 5).round() * 5 % 60;
+  Future<TimeOfDay?> _showTimePicker(
+    TimeOfDay initial, {
+    TimeOfDay? minTime,
+    TimeOfDay? maxTime,
+  }) async {
+    // 초기값을 범위 안으로 클램핑
+    int clampedTotalMin = initial.hour * 60 + initial.minute;
+    if (minTime != null) {
+      final minMin = minTime.hour * 60 + minTime.minute + 5;
+      if (clampedTotalMin <= minMin - 5) clampedTotalMin = minMin;
+    }
+    if (maxTime != null) {
+      final maxMin = maxTime.hour * 60 + maxTime.minute - 5;
+      if (clampedTotalMin >= maxMin + 5) clampedTotalMin = maxMin;
+    }
+    var tempHour = clampedTotalMin ~/ 60;
+    var tempMinute = (clampedTotalMin % 60 ~/ 5) * 5;
 
     return showModalBottomSheet<TimeOfDay>(
       context: context,
@@ -303,8 +388,10 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
   }
 
   static String _formatTime(TimeOfDay t) {
-    final prefix = t.hour < 12 ? '오전' : '오후';
-    return '$prefix ${t.hour.toString().padLeft(2, '0')} : ${t.minute.toString().padLeft(2, '0')}';
+    final isAm = t.hour < 12;
+    final prefix = isAm ? '오전' : '오후';
+    final hour = t.hour == 0 ? 12 : (t.hour > 12 ? t.hour - 12 : t.hour);
+    return '$prefix ${hour.toString().padLeft(2, '0')} : ${t.minute.toString().padLeft(2, '0')}';
   }
 
   @override
