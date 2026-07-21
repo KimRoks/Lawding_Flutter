@@ -255,6 +255,25 @@ class _AddCalendarEventScreenState
     return _leavePolicy!.workPattern[_weekdayNames[d.weekday]!] == null;
   }
 
+  /// 근로일인데 입력 시간이 근무 시간과 전혀 겹치지 않는 날이 하나라도 있는지 확인
+  bool _hasWorkDayWithNoOverlap(List<DateTime> dates) {
+    if (_startTime == null || _endTime == null) return false;
+    final policy = _leavePolicy;
+    if (policy == null) return false;
+    final inputStart = _startTime!.hour * 60 + _startTime!.minute;
+    final inputEnd = _endTime!.hour * 60 + _endTime!.minute;
+    return dates.any((d) {
+      if (_isHolidayDate(d)) return false;
+      final workSlot = policy.workPattern[_weekdayNames[d.weekday]!];
+      if (workSlot == null) return false;
+      final workStart = _parseTimeStr(workSlot.start);
+      final workEnd = _parseTimeStr(workSlot.end);
+      final effStart = inputStart > workStart ? inputStart : workStart;
+      final effEnd = inputEnd < workEnd ? inputEnd : workEnd;
+      return effStart >= effEnd; // 교집합 없음
+    });
+  }
+
   /// 입력 시간이 근무 시간 외(시작 전 또는 종료 후)에 걸치는 근로일이 하나라도 있는지 확인
   bool _hasOutsideWorkHours(List<DateTime> dates) {
     if (_startTime == null || _endTime == null) return false;
@@ -459,6 +478,25 @@ class _AddCalendarEventScreenState
           builder: (ctx) => CupertinoAlertDialog(
             title: const Text('연차 사용 불가'),
             content: const Text('근무일이 아닌 경우 연차 사용이 불가합니다'),
+            actions: [
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('닫기'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // 근로일이지만 입력 시간이 근무시간과 전혀 겹치지 않는 경우 → 제출 차단
+      if (!_isAllDay && _hasWorkDayWithNoOverlap(dates)) {
+        await showCupertinoDialog<void>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('입력 오류'),
+            content: const Text('연차를 사용할 근로시간을 확인해주세요'),
             actions: [
               CupertinoDialogAction(
                 isDestructiveAction: true,
