@@ -25,7 +25,7 @@ abstract interface class CalendarEventRepository {
 
   /// 캘린더 이벤트 수정
   /// PUT /v1/calendar-events/{id}
-  Future<Result<CalendarEventEntity, NetworkError>> updateCalendarEvent({
+  Future<Result<void, NetworkError>> updateCalendarEvent({
     required int id,
     required CalendarEventRequest request,
   });

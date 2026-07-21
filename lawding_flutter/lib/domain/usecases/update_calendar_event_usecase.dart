@@ -1,5 +1,4 @@
 import '../core/result.dart';
-import '../entities/calendar_event.dart';
 import '../repositories/calendar_event_repository.dart';
 import '../entities/calendar_event_request.dart';
 import '../../data/network/network_error.dart';
@@ -10,7 +9,7 @@ class UpdateCalendarEventUseCase {
 
   UpdateCalendarEventUseCase(this._repository);
 
-  Future<Result<CalendarEventEntity, NetworkError>> execute({
+  Future<Result<void, NetworkError>> execute({
     required int id,
     required CalendarEventRequest request,
   }) {
