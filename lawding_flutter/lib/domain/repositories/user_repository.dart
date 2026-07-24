@@ -16,4 +16,8 @@ abstract interface class UserRepository {
   /// 남은 연차 요약 조회
   /// GET /v1/users/me/leave-summary
   Future<Result<UserDashboard, NetworkError>> getLeaveSummary();
+
+  /// 회원 탈퇴
+  /// DELETE /v1/users/me/profile
+  Future<Result<void, NetworkError>> deleteAccount();
 }

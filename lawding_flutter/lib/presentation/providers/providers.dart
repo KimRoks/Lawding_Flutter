@@ -40,6 +40,7 @@ import '../../domain/usecases/get_leave_policy_usecase.dart';
 import '../../domain/usecases/submit_leave_policy_usecase.dart';
 import '../../domain/usecases/update_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
+import '../../domain/usecases/delete_account_usecase.dart';
 import '../../domain/usecases/get_leave_dashboard_usecase.dart';
 
 part 'providers.g.dart';
@@ -308,6 +309,14 @@ LeaveDashboardRepository leaveDashboardRepository(Ref ref) {
 GetLeaveDashboardUseCase getLeaveDashboardUseCase(Ref ref) {
   final repository = ref.watch(leaveDashboardRepositoryProvider);
   return GetLeaveDashboardUseCase(repository);
+}
+
+/// DeleteAccountUseCase Provider
+/// 회원 탈퇴 비즈니스 로직 제공
+@riverpod
+DeleteAccountUseCase deleteAccountUseCase(Ref ref) {
+  final repository = ref.watch(userRepositoryProvider);
+  return DeleteAccountUseCase(repository);
 }
 
 /// 다음 예정 연차 이벤트 — splash/로그인 시 fetch, 대시보드 카드에서 소비

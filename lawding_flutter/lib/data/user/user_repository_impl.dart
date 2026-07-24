@@ -54,6 +54,20 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<void, NetworkError>> deleteAccount() async {
+    try {
+      const request = ApiRequest(
+        method: HttpMethod.delete,
+        path: ApiEndpoints.userProfile,
+      );
+      await _client.request(request);
+      return const Success(null);
+    } on NetworkError catch (error) {
+      return Failure(error);
+    }
+  }
+
+  @override
   Future<Result<UserDashboard, NetworkError>> getDashboard() async {
     try {
       const request = ApiRequest(
