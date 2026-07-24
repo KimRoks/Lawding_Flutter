@@ -375,68 +375,63 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ],
             ),
           ),
-          // 회색 pill (top: 120-81=39, left: 30-20=10)
+          // 회색 pill — 텍스트 너비에 맞게 자동 크기
           Positioned(
             top: 39,
             left: 10,
             child: Container(
-              width: 186,
               height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(17),
               ),
-            ),
-          ),
-          // 남은 일수 + 남은 시간 (baseline 정렬로 bottom 맞춤)
-          Positioned(
-            top: 44,
-            left: 22,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  data == null
-                      ? ''
-                      : '${_formatDays(data.availableLeaveDays)}일',
-                  style: pretendard(
-                    weight: 700,
-                    size: 20,
-                    color: AppColors.textGray11,
+              alignment: Alignment.center,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    data == null
+                        ? ''
+                        : '${_formatDays(data.availableLeaveDays)}일',
+                    style: pretendard(
+                      weight: 700,
+                      size: 20,
+                      color: AppColors.textGray11,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  data == null
-                      ? ''
-                      : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
-                  style: pretendard(
-                    weight: 700,
-                    size: 13,
-                    color: AppColors.textGray55,
+                  const SizedBox(width: 5),
+                  Text(
+                    data == null
+                        ? ''
+                        : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
+                    style: pretendard(
+                      weight: 700,
+                      size: 13,
+                      color: AppColors.textGray55,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // 시간 편집 아이콘 (top: 130-81=49, left: 192-20=172)
-          Positioned(
-            top: 41,
-            left: 164,
-            child: CupertinoButton(
-              padding: const EdgeInsets.all(8),
-              minimumSize: Size.zero,
-              onPressed: () {
-                // TODO: 시간 편집
-              },
-              child: SvgPicture.asset(
-                'assets/icons/calendar_timeEdit.svg',
-                width: 14,
-                height: 14,
+                ],
               ),
             ),
           ),
+          // TODO: 시간 편집 메서드 확정 시 재작업
+          // Positioned(
+          //   top: 41,
+          //   left: 164,
+          //   child: CupertinoButton(
+          //     padding: const EdgeInsets.all(8),
+          //     minimumSize: Size.zero,
+          //     onPressed: () {},
+          //     child: SvgPicture.asset(
+          //       'assets/icons/calendar_timeEdit.svg',
+          //       width: 14,
+          //       height: 14,
+          //     ),
+          //   ),
+          // ),
           // 연차 추가 버튼 — SVG에 원 배경 포함
           Positioned.fill(
             right: 19,
