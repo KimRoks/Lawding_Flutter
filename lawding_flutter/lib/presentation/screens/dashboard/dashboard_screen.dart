@@ -9,6 +9,7 @@ import '../../../domain/entities/leave_dashboard.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/logo_app_bar.dart';
+import 'recent_leave_history_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final VoidCallback? onAuthRequired;
@@ -92,8 +93,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   _buildInfoCardsRow(isCalendarLinked),
                   const SizedBox(height: 16),
                   _buildRecentHistoryCard(isCalendarLinked),
-                  const SizedBox(height: 13),
-                  _buildRecommendCard(),
+                  // TODO: 추천 일정 API 준비 후 활성화
+                  // const SizedBox(height: 13),
+                  // _buildRecommendCard(),
                 ],
               ),
             ),
@@ -308,6 +310,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildNextLeaveCard() {
+    final nextEvent = ref.watch(nextLeaveEventProvider);
+
+    String mainText;
+    String subText;
+
+    if (nextEvent != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final eventDay = DateTime(
+        nextEvent.startDatetime.year,
+        nextEvent.startDatetime.month,
+        nextEvent.startDatetime.day,
+      );
+      final daysUntil = eventDay.difference(today).inDays;
+      final hours = (nextEvent.usedLeaveMinutes / 60).round();
+      final datePart =
+          '${nextEvent.startDatetime.month}월 ${nextEvent.startDatetime.day}일';
+
+      mainText = 'D-$daysUntil';
+      subText = hours > 0 ? '$datePart $hours시간 사용 예정' : '$datePart 사용 예정';
+    } else {
+      mainText = '-';
+      subText = '예정된 연차가 없습니다';
+    }
+
     return Container(
       height: 120,
       decoration: BoxDecoration(
@@ -330,7 +357,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           const SizedBox(height: 9),
           Text(
-            'D-—',
+            mainText,
             style: pretendard(
               weight: 700,
               size: 26,
@@ -339,10 +366,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '예정된 연차가 없습니다',
+            subText,
             style: pretendard(
-              weight: 600,
-              size: 11,
+              weight: 500,
+              size: 13,
               color: AppColors.textGray55,
             ),
             textAlign: TextAlign.center,
@@ -431,12 +458,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     color: AppColors.textGray11,
                   ),
                 ),
-                Text(
-                  '전체보기',
-                  style: pretendard(
-                    weight: 700,
-                    size: 14,
-                    color: AppColors.textGray99,
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RecentLeaveHistoryScreen(
+                        usages: _dashboard?.recentLeaveUsages ?? [],
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '상세보기',
+                        style: pretendard(
+                          weight: 700,
+                          size: 14,
+                          color: AppColors.textGray99,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: AppColors.textGray99,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -457,9 +503,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildRecentUsageRows() {
     final usages = _dashboard?.recentLeaveUsages;
     if (usages == null || usages.isEmpty) {
-      return Text(
-        '최근 사용 내역이 없습니다',
-        style: pretendard(weight: 600, size: 14, color: AppColors.textGray99),
+      return Center(
+        child: Text(
+          '최근 사용된 연차가 없습니다',
+          style: pretendard(weight: 500, size: 13, color: AppColors.textGray55),
+          textAlign: TextAlign.center,
+        ),
       );
     }
     return Column(
@@ -501,45 +550,37 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   // ────────────────────────────────────────────────────────────────
-  // 추천 일정
+  // 추천 일정 (API 준비 전 비활성화)
   // ────────────────────────────────────────────────────────────────
-  Widget _buildRecommendCard() {
-    return Container(
-      height: 67,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: AppColors.shadow, blurRadius: 10, spreadRadius: 2),
-        ],
-      ),
-      child: Row(
-        children: [
-          Text(
-            '추천 일정',
-            style: pretendard(
-              weight: 700,
-              size: 18,
-              color: AppColors.brandColor,
-            ),
-          ),
-          const SizedBox(width: 22),
-          Expanded(
-            child: Text(
-              '8월 15일(토) - 8월 17일(월) 황금연휴',
-              style: pretendard(
-                weight: 700,
-                size: 13,
-                color: AppColors.textGray55,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildRecommendCard() {
+  //   return Container(
+  //     height: 67,
+  //     padding: const EdgeInsets.symmetric(horizontal: 20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(10),
+  //       boxShadow: const [
+  //         BoxShadow(color: AppColors.shadow, blurRadius: 10, spreadRadius: 2),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         Text(
+  //           '추천 일정',
+  //           style: pretendard(weight: 700, size: 18, color: AppColors.brandColor),
+  //         ),
+  //         const SizedBox(width: 22),
+  //         Expanded(
+  //           child: Text(
+  //             '8월 15일(토) - 8월 17일(월) 황금연휴',
+  //             style: pretendard(weight: 700, size: 13, color: AppColors.textGray55),
+  //             textAlign: TextAlign.right,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // ────────────────────────────────────────────────────────────────
   // 딤 처리 래퍼
