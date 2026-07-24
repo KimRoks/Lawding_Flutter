@@ -2,16 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/design_system.dart';
-import '../../widgets/common/date_picker_sheet.dart';
-
 class ManualEntryResult {
   final double totalLeave;
-  final DateTime lastAccrualDate;
 
-  const ManualEntryResult({
-    required this.totalLeave,
-    required this.lastAccrualDate,
-  });
+  const ManualEntryResult({required this.totalLeave});
 }
 
 class ManualEntryScreen extends StatefulWidget {
@@ -23,11 +17,10 @@ class ManualEntryScreen extends StatefulWidget {
 
 class _ManualEntryScreenState extends State<ManualEntryScreen> {
   final _controller = TextEditingController();
-  DateTime? _lastAccrualDate;
 
   bool get _isValid {
     final v = double.tryParse(_controller.text);
-    return v != null && v >= 0 && _lastAccrualDate != null;
+    return v != null && v >= 0;
   }
 
   @override
@@ -36,28 +29,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
     super.dispose();
   }
 
-  Future<void> _pickDate() async {
-    final picked = await showModalBottomSheet<DateTime>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) =>
-          DatePickerSheet(initialDate: _lastAccrualDate ?? DateTime.now()),
-    );
-    if (picked != null && mounted) {
-      setState(() => _lastAccrualDate = picked);
-    }
-  }
-
   void _onConfirm() {
     if (!_isValid) return;
-    Navigator.of(context).pop(ManualEntryResult(
-      totalLeave: double.parse(_controller.text),
-      lastAccrualDate: _lastAccrualDate!,
-    ));
+    Navigator.of(context).pop(
+      ManualEntryResult(totalLeave: double.parse(_controller.text)),
+    );
   }
-
-  static String _fmtDate(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -79,11 +56,6 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: _buildTotalLeaveCard(),
-                      ),
-                      const SizedBox(height: 18),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: _buildDateCard(),
                       ),
                     ],
                   ),
@@ -200,67 +172,6 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                     size: 15,
                     color: AppColors.textGray99,
                   ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateCard() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: AppColors.shadow, blurRadius: 10, spreadRadius: 2),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '최근 연차발생 일자',
-            style: pretendard(
-              weight: 600,
-              size: 20,
-              color: const Color(0xFF333333),
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            '가장 최근에 연차가 발생한 일자를 등록 하세요',
-            style: pretendard(
-              weight: 600,
-              size: 11,
-              color: AppColors.textGray99,
-            ),
-          ),
-          const SizedBox(height: 4),
-          GestureDetector(
-            onTap: _pickDate,
-            child: Container(
-              height: 35,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: AppColors.border),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _lastAccrualDate != null
-                    ? _fmtDate(_lastAccrualDate!)
-                    : 'YYYY.MM.DD',
-                style: pretendard(
-                  weight: 500,
-                  size: 15,
-                  color: _lastAccrualDate != null
-                      ? const Color(0xFF555555)
-                      : AppColors.textGray99,
                 ),
               ),
             ),
