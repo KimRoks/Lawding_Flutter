@@ -21,6 +21,7 @@ class LeaveDashboard {
   final String leavePeriodStartDate; // "YYYY-MM-DD"
   final String leavePeriodEndDate; // "YYYY-MM-DD"
   final List<RecentLeaveUsage> recentLeaveUsages;
+  final int leaveAccrualBasis; // 1: 입사일 기준, 2: 회계연도 기준
 
   const LeaveDashboard({
     required this.availableLeaveMinutes,
@@ -31,5 +32,6 @@ class LeaveDashboard {
     required this.leavePeriodStartDate,
     required this.leavePeriodEndDate,
     required this.recentLeaveUsages,
+    required this.leaveAccrualBasis,
   });
 }

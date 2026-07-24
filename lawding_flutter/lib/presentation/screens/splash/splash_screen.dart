@@ -509,7 +509,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
   }
 
   void refreshCalendar() {
-    ref.read(calendarRefreshProvider.notifier).state++;
+    ref.read(leaveDataRefreshProvider.notifier).state++;
   }
 
   void _onUserInfoCompleted() {

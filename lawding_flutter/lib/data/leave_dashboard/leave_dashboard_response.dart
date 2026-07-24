@@ -39,6 +39,7 @@ class LeaveDashboardResponse {
   final String leavePeriodStartDate;
   final String leavePeriodEndDate;
   final List<RecentLeaveUsageResponse> recentLeaveUsages;
+  final int leaveAccrualBasis;
 
   const LeaveDashboardResponse({
     required this.availableLeaveMinutes,
@@ -49,6 +50,7 @@ class LeaveDashboardResponse {
     required this.leavePeriodStartDate,
     required this.leavePeriodEndDate,
     required this.recentLeaveUsages,
+    required this.leaveAccrualBasis,
   });
 
   factory LeaveDashboardResponse.fromJson(Map<String, dynamic> json) {
@@ -63,6 +65,7 @@ class LeaveDashboardResponse {
       recentLeaveUsages: (json['recentLeaveUsages'] as List<dynamic>)
           .map((e) => RecentLeaveUsageResponse.fromJson(e as Map<String, dynamic>))
           .toList(),
+      leaveAccrualBasis: json['leaveAccrualBasis'] as int,
     );
   }
 
@@ -75,5 +78,6 @@ class LeaveDashboardResponse {
     leavePeriodStartDate: leavePeriodStartDate,
     leavePeriodEndDate: leavePeriodEndDate,
     recentLeaveUsages: recentLeaveUsages.map((e) => e.toDomain()).toList(),
+    leaveAccrualBasis: leaveAccrualBasis,
   );
 }

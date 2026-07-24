@@ -52,8 +52,8 @@ final activeTabIndexProvider = StateProvider<int>((ref) => 0);
 /// 캘린더 탭 로그인 상태 — 로그아웃 시 외부에서 false로 리셋 가능
 final calendarAuthStateProvider = StateProvider<bool>((ref) => false);
 
-/// 캘린더 refresh 신호 — increment 시 CalendarScreen이 이벤트 목록을 재조회
-final calendarRefreshProvider = StateProvider<int>((ref) => 0);
+/// 연차 데이터 refresh 신호 — increment 시 캘린더/대시보드가 데이터를 재조회
+final leaveDataRefreshProvider = StateProvider<int>((ref) => 0);
 
 // ============================================================================
 // Infrastructure Layer (Network)

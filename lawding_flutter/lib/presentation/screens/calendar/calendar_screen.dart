@@ -303,7 +303,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(calendarRefreshProvider, (prev, next) {
+    ref.listen(leaveDataRefreshProvider, (prev, next) {
       if (prev != null && prev != next) {
         _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
         _fetchLeaveSummary();

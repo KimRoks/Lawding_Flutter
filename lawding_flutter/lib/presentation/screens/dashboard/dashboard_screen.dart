@@ -64,16 +64,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ref.listen(calendarAuthStateProvider, (prev, next) {
       if (prev == next) return;
       if (next) {
-        // 로그인 완료 → 대시보드 재조회
         setState(() => _isLoading = true);
         _fetchDashboard();
       } else {
-        // 로그아웃 → 데이터 초기화
         setState(() {
           _dashboard = null;
           _isLoading = false;
         });
       }
+    });
+
+    ref.listen(leaveDataRefreshProvider, (prev, next) {
+      if (prev == next) return;
+      setState(() => _isLoading = true);
+      _fetchDashboard();
     });
 
     return Scaffold(
@@ -144,7 +148,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   borderRadius: BorderRadius.circular(12.5),
                 ),
                 child: Text(
-                  '입사일 기준',
+                  d?.leaveAccrualBasis == 2 ? '회계연도 기준' : '입사일 기준',
                   style: pretendard(
                     weight: 700,
                     size: 11,

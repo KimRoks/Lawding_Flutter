@@ -42,6 +42,7 @@ class SettingScreen extends ConsumerWidget {
                         ref.read(avgDailyWorkHoursProvider.notifier).state =
                             value.avgDailyWorkHours;
                       }
+                      ref.read(leaveDataRefreshProvider.notifier).state++;
                     },
                   ),
                 ),
@@ -56,7 +57,7 @@ class SettingScreen extends ConsumerWidget {
                   ),
                 );
                 if (changed == true) {
-                  ref.read(calendarRefreshProvider.notifier).state++;
+                  ref.read(leaveDataRefreshProvider.notifier).state++;
                 }
               },
             ),
