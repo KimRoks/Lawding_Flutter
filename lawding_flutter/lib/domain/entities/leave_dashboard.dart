@@ -1,9 +1,11 @@
 class RecentLeaveUsage {
+  final String? title;
   final String startDatetime; // "YYYY-MM-DDTHH:MM:SS"
   final String endDatetime;
   final int usedLeaveMinutes;
 
   const RecentLeaveUsage({
+    this.title,
     required this.startDatetime,
     required this.endDatetime,
     required this.usedLeaveMinutes,
