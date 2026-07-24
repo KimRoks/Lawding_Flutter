@@ -25,6 +25,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final routeDepth = ModalRoute.of(context)?.settings.name != null ? 2 : 1;
     final shouldShowBackButton = canPop || routeDepth >= 2;
 
+    final titleStyle = pretendard(
+      weight: 700,
+      size: 20,
+      color: AppColors.brandColor,
+    );
+
     return AppBar(
       backgroundColor: backgroundColor ?? AppColors.background,
       surfaceTintColor: backgroundColor ?? AppColors.background,
@@ -45,22 +51,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: AppColors.brandColor,
                   ),
                   const SizedBox(width: 3),
-                  Text(
-                    '뒤로',
-                    style: pretendard(
-                      weight: 700,
-                      size: 20,
-                      color: AppColors.brandColor,
-                    ),
-                  ),
+                  Text('뒤로', style: titleStyle),
                 ],
               ),
             )
           : null,
-      title: Text(
-        title,
-        style: pretendard(weight: 700, size: 20, color: AppColors.brandColor),
-      ),
+      titleTextStyle: titleStyle,
+      title: Text(title),
       centerTitle: true,
       actions: actions,
     );
