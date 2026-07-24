@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
+import '../../../domain/entities/calendar_event.dart';
 import '../../../infrastructure/services/analytics_service.dart';
 import '../../../infrastructure/services/app_version_service.dart';
 import '../../../infrastructure/services/crashlytics_service.dart';
@@ -82,6 +83,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           ref.read(calendarAuthStateProvider.notifier).state = true;
           _fetchLeavePolicy();
           _fetchLeaveSummary();
+          _fetchNextLeaveEvent();
         }
       },
       onFailure: (_) {},
@@ -108,6 +110,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       },
       onFailure: (_) {},
     );
+  }
+
+  Future<void> _fetchNextLeaveEvent() async {
+    final now = DateTime.now();
+    final useCase = ref.read(getCalendarEventsUseCaseProvider);
+    final nextMonth = now.month == 12 ? 1 : now.month + 1;
+    final nextYear = now.month == 12 ? now.year + 1 : now.year;
+
+    final results = await Future.wait([
+      useCase.execute(year: now.year, month: now.month),
+      useCase.execute(year: nextYear, month: nextMonth),
+    ]);
+
+    final events = <CalendarEventEntity>[];
+    for (final r in results) {
+      if (r case Success(:final value)) events.addAll(value);
+    }
+
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = events
+        .where((e) => e.isLeaveEvent && !e.startDatetime.isBefore(today))
+        .toList()
+      ..sort((a, b) => a.startDatetime.compareTo(b.startDatetime));
+
+    if (!mounted) return;
+    ref.read(nextLeaveEventProvider.notifier).state =
+        upcoming.isEmpty ? null : upcoming.first;
   }
 
   Future<void> _initializeApp() async {
@@ -308,6 +337,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
             debugPrint('  onboardingCompleted : ${profile.onboardingCompleted}');
             if (profile.onboardingCompleted) {
               _fetchLeavePolicy();
+              _fetchNextLeaveEvent();
               ref.read(calendarAuthStateProvider.notifier).state = true;
               setState(() => _isLoading = false);
             } else {
@@ -400,6 +430,33 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     );
   }
 
+  Future<void> _fetchNextLeaveEvent() async {
+    final now = DateTime.now();
+    final useCase = ref.read(getCalendarEventsUseCaseProvider);
+    final nextMonth = now.month == 12 ? 1 : now.month + 1;
+    final nextYear = now.month == 12 ? now.year + 1 : now.year;
+
+    final results = await Future.wait([
+      useCase.execute(year: now.year, month: now.month),
+      useCase.execute(year: nextYear, month: nextMonth),
+    ]);
+
+    final events = <CalendarEventEntity>[];
+    for (final r in results) {
+      if (r case Success(:final value)) events.addAll(value);
+    }
+
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = events
+        .where((e) => e.isLeaveEvent && !e.startDatetime.isBefore(today))
+        .toList()
+      ..sort((a, b) => a.startDatetime.compareTo(b.startDatetime));
+
+    if (!mounted) return;
+    ref.read(nextLeaveEventProvider.notifier).state =
+        upcoming.isEmpty ? null : upcoming.first;
+  }
+
   Future<void> _fetchLeavePolicy() async {
     debugPrint('[LeavePolicy] GET /v1/users/leave-policy 호출');
     final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
@@ -434,6 +491,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     if (onboardingCompleted) {
       _fetchLeavePolicy();
       _fetchLeaveSummary();
+      _fetchNextLeaveEvent();
       ref.read(calendarAuthStateProvider.notifier).state = true;
     } else {
       Navigator.of(context, rootNavigator: true).push(
@@ -458,6 +516,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     Navigator.of(context, rootNavigator: true).pop();
     _fetchLeavePolicy();
     _fetchLeaveSummary();
+    _fetchNextLeaveEvent();
     ref.read(calendarAuthStateProvider.notifier).state = true;
   }
 
