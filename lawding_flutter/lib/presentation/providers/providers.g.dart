@@ -673,6 +673,28 @@ final getLeaveDashboardUseCaseProvider =
 // ignore: unused_element
 typedef GetLeaveDashboardUseCaseRef =
     AutoDisposeProviderRef<GetLeaveDashboardUseCase>;
+String _$updateProfileUseCaseHash() =>
+    r'f5f8888e86413364ee3c386db3e5a0aa52f32216';
+
+/// UpdateProfileUseCase Provider
+/// 닉네임 수정 비즈니스 로직 제공
+///
+/// Copied from [updateProfileUseCase].
+@ProviderFor(updateProfileUseCase)
+final updateProfileUseCaseProvider =
+    AutoDisposeProvider<UpdateProfileUseCase>.internal(
+      updateProfileUseCase,
+      name: r'updateProfileUseCaseProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$updateProfileUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef UpdateProfileUseCaseRef = AutoDisposeProviderRef<UpdateProfileUseCase>;
 String _$deleteAccountUseCaseHash() =>
     r'37a78dd0febb734ab3d4057ec3993f4557c034f1';
 

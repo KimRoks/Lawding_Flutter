@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/toast_message.dart';
 import '../basic_info/basic_info_screen.dart';
+import 'change_nickname_screen.dart';
 
 class SettingScreen extends ConsumerWidget {
   const SettingScreen({super.key});
@@ -25,6 +26,7 @@ class SettingScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 35),
+
             _SettingRow(
               title: '연차 정보 수정',
               onTap: () => Navigator.of(context).push(
@@ -37,14 +39,26 @@ class SettingScreen extends ConsumerWidget {
                           .read(getLeaveSummaryUseCaseProvider)
                           .execute();
                       if (result case Success(:final value)) {
-                        ref
-                            .read(avgDailyWorkHoursProvider.notifier)
-                            .state = value.avgDailyWorkHours;
+                        ref.read(avgDailyWorkHoursProvider.notifier).state =
+                            value.avgDailyWorkHours;
                       }
                     },
                   ),
                 ),
               ),
+            ),
+            _SettingRow(
+              title: '닉네임 변경',
+              onTap: () async {
+                final changed = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => const ChangeNicknameScreen(),
+                  ),
+                );
+                if (changed == true) {
+                  ref.read(calendarRefreshProvider.notifier).state++;
+                }
+              },
             ),
             _SettingRow(
               title: '계정 탈퇴',
@@ -54,7 +68,9 @@ class SettingScreen extends ConsumerWidget {
                   context: context,
                   builder: (_) => CupertinoAlertDialog(
                     title: const Text('계정 탈퇴'),
-                    content: const Text('탈퇴하시면 모든 데이터가 삭제되며\n복구할 수 없습니다.\n정말 탈퇴하시겠습니까?'),
+                    content: const Text(
+                      '탈퇴하시면 모든 데이터가 삭제되며\n복구할 수 없습니다.\n정말 탈퇴하시겠습니까?',
+                    ),
                     actions: [
                       CupertinoDialogAction(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -74,7 +90,10 @@ class SettingScreen extends ConsumerWidget {
                     .execute();
                 if (!context.mounted) return;
                 if (result case Failure()) {
-                  ToastManager().show(context, '탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+                  ToastManager().show(
+                    context,
+                    '탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+                  );
                   return;
                 }
                 await ref.read(authRepositoryProvider).clearTokens();

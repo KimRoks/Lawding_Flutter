@@ -54,6 +54,23 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<Result<void, NetworkError>> updateProfile({
+    required String nickname,
+  }) async {
+    try {
+      final request = ApiRequest(
+        method: HttpMethod.patch,
+        path: ApiEndpoints.userProfile,
+        body: {'nickname': nickname},
+      );
+      await _client.request(request);
+      return const Success(null);
+    } on NetworkError catch (error) {
+      return Failure(error);
+    }
+  }
+
+  @override
   Future<Result<void, NetworkError>> deleteAccount() async {
     try {
       const request = ApiRequest(

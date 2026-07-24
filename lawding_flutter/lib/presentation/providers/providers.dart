@@ -41,6 +41,7 @@ import '../../domain/usecases/submit_leave_policy_usecase.dart';
 import '../../domain/usecases/update_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
+import '../../domain/usecases/update_profile_usecase.dart';
 import '../../domain/usecases/get_leave_dashboard_usecase.dart';
 
 part 'providers.g.dart';
@@ -309,6 +310,14 @@ LeaveDashboardRepository leaveDashboardRepository(Ref ref) {
 GetLeaveDashboardUseCase getLeaveDashboardUseCase(Ref ref) {
   final repository = ref.watch(leaveDashboardRepositoryProvider);
   return GetLeaveDashboardUseCase(repository);
+}
+
+/// UpdateProfileUseCase Provider
+/// 닉네임 수정 비즈니스 로직 제공
+@riverpod
+UpdateProfileUseCase updateProfileUseCase(Ref ref) {
+  final repository = ref.watch(userRepositoryProvider);
+  return UpdateProfileUseCase(repository);
 }
 
 /// DeleteAccountUseCase Provider
