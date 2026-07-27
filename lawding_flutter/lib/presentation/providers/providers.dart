@@ -13,7 +13,6 @@ import '../../data/leave_dashboard/leave_dashboard_repository_impl.dart';
 import '../../data/leave_policy/leave_policy_repository_impl.dart';
 import '../../data/network/dio_client.dart';
 import '../../data/user/user_repository_impl.dart';
-import '../../domain/entities/calendar_event.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/annual_leave_repository.dart';
 import '../../domain/repositories/app_version_repository.dart';
@@ -328,5 +327,3 @@ DeleteAccountUseCase deleteAccountUseCase(Ref ref) {
   return DeleteAccountUseCase(repository);
 }
 
-/// 다음 예정 연차 이벤트 — splash/로그인 시 fetch, 대시보드 카드에서 소비
-final nextLeaveEventProvider = StateProvider<CalendarEventEntity?>((ref) => null);

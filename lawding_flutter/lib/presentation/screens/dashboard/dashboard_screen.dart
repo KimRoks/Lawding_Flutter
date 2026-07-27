@@ -159,6 +159,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 6),
+          // TODO: dashBoard API가 '연차 정보 수정'을 반영하지 못하고 있는듯 함
           Text(
             d != null ? _formatDays(availableDays) : '--일',
             style: pretendard(
@@ -313,24 +314,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return _wrapWithDim(isLinked: isLinked, child: row);
   }
 
+  RecentLeaveUsage? _nextLeave() {
+    final usages = _dashboard?.recentLeaveUsages;
+    if (usages == null || usages.isEmpty) return null;
+    final todayDate = DateTime.now();
+    final today = DateTime(todayDate.year, todayDate.month, todayDate.day);
+    final upcoming = usages.where((u) {
+      final dt = DateTime.parse(u.startDatetime);
+      return !DateTime(dt.year, dt.month, dt.day).isBefore(today);
+    }).toList()..sort((a, b) => a.startDatetime.compareTo(b.startDatetime));
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
+
   Widget _buildNextLeaveCard() {
-    final nextEvent = ref.watch(nextLeaveEventProvider);
+    final nextUsage = _nextLeave();
 
     String mainText;
     String subText;
 
-    if (nextEvent != null) {
+    if (nextUsage != null) {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final eventDay = DateTime(
-        nextEvent.startDatetime.year,
-        nextEvent.startDatetime.month,
-        nextEvent.startDatetime.day,
-      );
+      final startDt = DateTime.parse(nextUsage.startDatetime);
+      final eventDay = DateTime(startDt.year, startDt.month, startDt.day);
       final daysUntil = eventDay.difference(today).inDays;
-      final hours = (nextEvent.usedLeaveMinutes / 60).round();
-      final datePart =
-          '${nextEvent.startDatetime.month}월 ${nextEvent.startDatetime.day}일';
+      final hours = (nextUsage.usedLeaveMinutes / 60).round();
+      final datePart = '${startDt.month}월 ${startDt.day}일';
 
       mainText = 'D-$daysUntil';
       subText = hours > 0 ? '$datePart $hours시간 사용 예정' : '$datePart 사용 예정';
