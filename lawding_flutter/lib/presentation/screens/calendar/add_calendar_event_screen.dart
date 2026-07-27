@@ -10,6 +10,7 @@ import '../../../domain/entities/holiday.dart';
 import '../../../domain/entities/leave_policy.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
+import 'leave_time_calculator.dart';
 
 class AddCalendarEventScreen extends ConsumerStatefulWidget {
   /// null이면 등록 모드, non-null이면 수정 모드
@@ -188,63 +189,44 @@ class _AddCalendarEventScreenState
     7: 'SUNDAY',
   };
 
-  static int _parseTimeStr(String t) {
-    final p = t.split(':');
-    return int.parse(p[0]) * 60 + int.parse(p[1]);
-  }
 
-  /// 해당 날짜에 실제 차감될 연차 시간(분) — 공휴일·비근로일·비근무시간 제외, 하루 최대 avgDailyWorkHours
-  int _calcUsedMinutesForDate(DateTime date) {
-    if (_isHolidayDate(date)) return 0;
+  LeaveTimeCalculator get _calculator => LeaveTimeCalculator(
+        workPattern: _leavePolicy?.workPattern ?? const {},
+        breakTimePattern: _leavePolicy?.breakTimePattern ?? const {},
+        avgDailyWorkHours: _avgDailyWorkHours,
+        holidays: _holidays,
+      );
 
-    final maxMin = (_avgDailyWorkHours * 60).round();
-    final policy = _leavePolicy;
-
-    // 근무 정책이 있으면 비근로일 여부를 먼저 확인
-    if (policy != null) {
-      final dayName = _weekdayNames[date.weekday]!;
-      final workSlot = policy.workPattern[dayName];
-      if (workSlot == null) return 0; // 비근로일 (예: 월~금 근무자의 토·일)
-
-      if (_isAllDay) return maxMin;
-      if (_startTime == null || _endTime == null) return 0;
-
-      final workStart = _parseTimeStr(workSlot.start);
-      final workEnd = _parseTimeStr(workSlot.end);
-      final inputStart = _startTime!.hour * 60 + _startTime!.minute;
-      final inputEnd = _endTime!.hour * 60 + _endTime!.minute;
-
-      final effStart = inputStart > workStart ? inputStart : workStart;
-      final effEnd = inputEnd < workEnd ? inputEnd : workEnd;
-      if (effStart >= effEnd) return 0;
-
-      int breakDed = 0;
-      final breakSlot = policy.breakTimePattern[dayName];
-      if (breakSlot != null) {
-        final bStart = _parseTimeStr(breakSlot.start);
-        final bEnd = _parseTimeStr(breakSlot.end);
-        final oStart = effStart > bStart ? effStart : bStart;
-        final oEnd = effEnd < bEnd ? effEnd : bEnd;
-        if (oEnd > oStart) breakDed = oEnd - oStart;
-      }
-
-      return (effEnd - effStart - breakDed).clamp(0, maxMin);
+  int _calcUsedMinutesForDate(DateTime date, {int? inputStartOverride, int? inputEndOverride}) {
+    if (_leavePolicy != null) {
+      if (!_isAllDay && (_startTime == null || _endTime == null)) return 0;
+      return _calculator.calcUsedMinutesForDate(
+        date,
+        inputStartMin: inputStartOverride ?? (_startTime!.hour * 60 + _startTime!.minute),
+        inputEndMin: inputEndOverride ?? (_endTime!.hour * 60 + _endTime!.minute),
+        isAllDay: _isAllDay,
+      );
     }
-
-    // 정책 미로드 시 fallback
+    // fallback: 정책 미로드
+    if (_isHolidayDate(date)) return 0;
+    final maxMin = (_avgDailyWorkHours * 60).round();
     if (_isAllDay) return maxMin;
     if (_startTime == null || _endTime == null) return 0;
-    final s = _startTime!.hour * 60 + _startTime!.minute;
-    final e = _endTime!.hour * 60 + _endTime!.minute;
+    final s = inputStartOverride ?? (_startTime!.hour * 60 + _startTime!.minute);
+    final e = inputEndOverride ?? (_endTime!.hour * 60 + _endTime!.minute);
     return (e - s).clamp(0, maxMin);
   }
 
-  /// 선택된 전체 날짜의 합산 차감 시간(분)
   int _calcTotalUsedMinutes() {
     if (_startDate == null) return _calcUsedMinutes();
-    return _selectedDates().fold(
-      0,
-      (sum, d) => sum + _calcUsedMinutesForDate(d),
+    if (!_isAllDay && (_startTime == null || _endTime == null)) return 0;
+    final startMin = _isAllDay ? 0 : (_startTime!.hour * 60 + _startTime!.minute);
+    final endMin = _isAllDay ? 0 : (_endTime!.hour * 60 + _endTime!.minute);
+    return _calculator.calcTotalUsedMinutes(
+      _selectedDates(),
+      startMin: startMin,
+      endMin: endMin,
+      isAllDay: _isAllDay,
     );
   }
 
@@ -255,40 +237,22 @@ class _AddCalendarEventScreenState
     return _leavePolicy!.workPattern[_weekdayNames[d.weekday]!] == null;
   }
 
-  /// 근로일인데 입력 시간이 근무 시간과 전혀 겹치지 않는 날이 하나라도 있는지 확인
   bool _hasWorkDayWithNoOverlap(List<DateTime> dates) {
     if (_startTime == null || _endTime == null) return false;
-    final policy = _leavePolicy;
-    if (policy == null) return false;
-    final inputStart = _startTime!.hour * 60 + _startTime!.minute;
-    final inputEnd = _endTime!.hour * 60 + _endTime!.minute;
-    return dates.any((d) {
-      if (_isHolidayDate(d)) return false;
-      final workSlot = policy.workPattern[_weekdayNames[d.weekday]!];
-      if (workSlot == null) return false;
-      final workStart = _parseTimeStr(workSlot.start);
-      final workEnd = _parseTimeStr(workSlot.end);
-      final effStart = inputStart > workStart ? inputStart : workStart;
-      final effEnd = inputEnd < workEnd ? inputEnd : workEnd;
-      return effStart >= effEnd; // 교집합 없음
-    });
+    return _calculator.hasWorkDayWithNoOverlap(
+      dates,
+      startMin: _startTime!.hour * 60 + _startTime!.minute,
+      endMin: _endTime!.hour * 60 + _endTime!.minute,
+    );
   }
 
-  /// 입력 시간이 근무 시간 외(시작 전 또는 종료 후)에 걸치는 근로일이 하나라도 있는지 확인
   bool _hasOutsideWorkHours(List<DateTime> dates) {
     if (_startTime == null || _endTime == null) return false;
-    final policy = _leavePolicy;
-    if (policy == null) return false;
-    final inputStart = _startTime!.hour * 60 + _startTime!.minute;
-    final inputEnd = _endTime!.hour * 60 + _endTime!.minute;
-    return dates.any((d) {
-      if (_isHolidayDate(d)) return false;
-      final workSlot = policy.workPattern[_weekdayNames[d.weekday]!];
-      if (workSlot == null) return false;
-      final workStart = _parseTimeStr(workSlot.start);
-      final workEnd = _parseTimeStr(workSlot.end);
-      return inputStart < workStart || inputEnd > workEnd;
-    });
+    return _calculator.hasOutsideWorkHours(
+      dates,
+      startMin: _startTime!.hour * 60 + _startTime!.minute,
+      endMin: _endTime!.hour * 60 + _endTime!.minute,
+    );
   }
 
   int _calcUsedMinutes() {
@@ -301,7 +265,10 @@ class _AddCalendarEventScreenState
   }
 
   Future<TimeOfDay?> _showTimePicker(TimeOfDay? initial) async {
-    TimeOfDay picked = initial ?? const TimeOfDay(hour: 9, minute: 0);
+    // 5분 단위로 반올림 (initialDateTime이 5의 배수여야 picker가 올바른 위치에서 시작)
+    final raw = initial ?? const TimeOfDay(hour: 9, minute: 0);
+    final roundedMinute = (raw.minute ~/ 5) * 5;
+    TimeOfDay picked = TimeOfDay(hour: raw.hour, minute: roundedMinute);
     return await showCupertinoModalPopup<TimeOfDay>(
       context: context,
       builder: (ctx) {
@@ -334,6 +301,7 @@ class _AddCalendarEventScreenState
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.time,
                   use24hFormat: false,
+                  minuteInterval: 5,
                   initialDateTime: DateTime(
                     2000,
                     1,
@@ -393,42 +361,26 @@ class _AddCalendarEventScreenState
   }
 
   /// 날짜별 API 요청 객체 생성
-  List<CalendarEventRequest> _buildRequests(List<DateTime> dates) {
-    final title = _titleController.text;
-    final description = _descriptionController.text;
-
-    return dates.map((date) {
-      final usedLeaveMinutes = _isLeaveEvent
-          ? _calcUsedMinutesForDate(date)
-          : 0;
-      final startDt = _isAllDay
-          ? DateTime(date.year, date.month, date.day, 0, 0)
-          : DateTime(
-              date.year,
-              date.month,
-              date.day,
-              _startTime?.hour ?? 0,
-              _startTime?.minute ?? 0,
-            );
-      final endDt = _isAllDay
-          ? DateTime(date.year, date.month, date.day, 23, 59)
-          : DateTime(
-              date.year,
-              date.month,
-              date.day,
-              _endTime?.hour ?? 0,
-              _endTime?.minute ?? 0,
-            );
-      return CalendarEventRequest(
-        title: title,
-        description: description,
-        startDatetime: startDt,
-        endDatetime: endDt,
-        usedLeaveMinutes: usedLeaveMinutes,
-        isAllDay: _isAllDay,
-        isLeaveEvent: _isLeaveEvent,
-      );
-    }).toList();
+  CalendarEventRequest _buildSingleRequest() {
+    final startDate = _startDate!;
+    final endDate = _endDate ?? _startDate!;
+    final startDt = _isAllDay
+        ? DateTime(startDate.year, startDate.month, startDate.day, 0, 0)
+        : DateTime(startDate.year, startDate.month, startDate.day,
+            _startTime?.hour ?? 0, _startTime?.minute ?? 0);
+    final endDt = _isAllDay
+        ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59)
+        : DateTime(endDate.year, endDate.month, endDate.day,
+            _endTime?.hour ?? 0, _endTime?.minute ?? 0);
+    return CalendarEventRequest(
+      title: _titleController.text,
+      description: _descriptionController.text,
+      startDatetime: startDt,
+      endDatetime: endDt,
+      usedLeaveMinutes: _isLeaveEvent ? _calcTotalUsedMinutes() : 0,
+      isAllDay: _isAllDay,
+      isLeaveEvent: _isLeaveEvent,
+    );
   }
 
   void _showErrorDialog(String message) {
@@ -509,6 +461,25 @@ class _AddCalendarEventScreenState
         return;
       }
 
+      // 입력 시간이 모두 휴게시간 안에 포함 → 제출 차단
+      if (!_isAllDay && _calcTotalUsedMinutes() == 0) {
+        await showCupertinoDialog<void>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('입력 오류'),
+            content: const Text('선택한 시간이 모두 휴게시간에 포함되어 있어 연차 사용이 불가합니다'),
+            actions: [
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('닫기'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
       // Condition 2: 이틀 이상 기간에 비근로일/공휴일이 하나라도 포함 → 안내 후 제출
       if (dates.length >= 2 && dates.any(_isNonWorkOrHoliday)) {
         final ok = await showCupertinoDialog<bool>(
@@ -549,9 +520,10 @@ class _AddCalendarEventScreenState
     final editId = widget.editEvent?.id;
     NetworkError? error;
 
+    final request = _buildSingleRequest();
+
     if (editId != null) {
       // 수정 모드: 단건 PUT
-      final request = _buildRequests([_startDate!]).first;
       final result = await ref
           .read(updateCalendarEventUseCaseProvider)
           .execute(id: editId, request: request);
@@ -559,18 +531,13 @@ class _AddCalendarEventScreenState
         error = (result as Failure<void, NetworkError>).error;
       }
     } else {
-      // 등록 모드: 날짜별 POST
-      final requests = _buildRequests(_selectedDates());
-      final results = await Future.wait(
-        requests.map(
-          (r) =>
-              ref.read(createCalendarEventUseCaseProvider).execute(request: r),
-        ),
-      );
-      error = results
-          .whereType<Failure<void, NetworkError>>()
-          .firstOrNull
-          ?.error;
+      // 등록 모드: 단건 POST (기간형 포함)
+      final result = await ref
+          .read(createCalendarEventUseCaseProvider)
+          .execute(request: request);
+      if (result is Failure) {
+        error = (result as Failure<void, NetworkError>).error;
+      }
     }
 
     if (!mounted) return;
