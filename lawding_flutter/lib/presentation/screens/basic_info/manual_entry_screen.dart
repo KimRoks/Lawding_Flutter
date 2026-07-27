@@ -221,7 +221,14 @@ class _DecimalInputFormatter extends TextInputFormatter {
   ) {
     final text = newValue.text;
     if (text.isEmpty) return newValue;
-    if (!RegExp(r'^\d*\.?\d*$').hasMatch(text)) return oldValue;
+    // 소수점 최대 3자리
+    if (!RegExp(r'^\d*\.?\d{0,3}$').hasMatch(text)) return oldValue;
+    // 정수 부분 365 이하
+    final intPart = text.split('.').first;
+    if (intPart.isNotEmpty) {
+      final intValue = int.tryParse(intPart);
+      if (intValue != null && intValue >= 365) return oldValue;
+    }
     return newValue;
   }
 }

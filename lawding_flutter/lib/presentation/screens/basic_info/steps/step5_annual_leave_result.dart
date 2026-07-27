@@ -106,7 +106,9 @@ class _Step5AnnualLeaveResultState extends ConsumerState<Step5AnnualLeaveResult>
   }
 
   static String _formatDays(double days) {
-    return days % 1 == 0 ? '${days.toInt()}일' : '${days.toStringAsFixed(1)}일';
+    if (days % 1 == 0) return '${days.toInt()}일';
+    final s = days.toStringAsFixed(3).replaceAll(RegExp(r'0+$'), '');
+    return '$s일';
   }
 
   @override
@@ -176,9 +178,15 @@ class _Step5AnnualLeaveResultState extends ConsumerState<Step5AnnualLeaveResult>
 
   Widget _buildCircleContent() {
     if (_manualResult != null) {
-      return Text(
-        _formatDays(_manualResult!.totalLeave),
-        style: pretendard(weight: 700, size: 46, color: AppColors.brandColor),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            _formatDays(_manualResult!.totalLeave),
+            style: pretendard(weight: 700, size: 46, color: AppColors.brandColor),
+          ),
+        ),
       );
     }
     if (_isLoading) {
