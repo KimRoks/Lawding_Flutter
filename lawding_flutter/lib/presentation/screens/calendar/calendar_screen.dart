@@ -33,7 +33,8 @@ enum CalendarEventType {
 
 class CalendarEvent {
   final int? id; // 공휴일은 null
-  final DateTime date;
+  final DateTime date; // = startDatetime
+  final DateTime endDatetime; // 단일 이벤트는 같은 날, 기간 이벤트는 마지막 날 포함
   final CalendarEventType type;
   final String label; // 셀 배지: 공휴일명 또는 "HH:MM-HH:MM" 또는 "종일"
   final String name; // 카드 제목 (비공휴일), 미입력 시 label 표시
@@ -41,6 +42,7 @@ class CalendarEvent {
   const CalendarEvent({
     this.id,
     required this.date,
+    required this.endDatetime,
     required this.type,
     required this.label,
     this.name = '',
@@ -167,6 +169,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return CalendarEvent(
       id: entity.id,
       date: entity.startDatetime,
+      endDatetime: entity.endDatetime,
       type: type,
       label: label,
       name: entity.title,
@@ -256,6 +259,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final (label, detail) = _parseHolidayName(h.name);
       return CalendarEvent(
         date: date,
+        endDatetime: date,
         type: CalendarEventType.holiday,
         label: label,
         name: label,
@@ -265,7 +269,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final otherEvents = _events
         .where(
           (e) =>
-              _isSameDay(e.date, date) && e.type != CalendarEventType.holiday,
+              e.type != CalendarEventType.holiday &&
+              !date.isBefore(DateTime(e.date.year, e.date.month, e.date.day)) &&
+              !date.isAfter(
+                DateTime(
+                  e.endDatetime.year,
+                  e.endDatetime.month,
+                  e.endDatetime.day,
+                ),
+              ),
         )
         .toList();
 
@@ -722,6 +734,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             .add(
               CalendarEvent(
                 date: d,
+                endDatetime: d,
                 type: CalendarEventType.holiday,
                 label: label,
                 name: label,
@@ -732,10 +745,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
 
     for (final e in _events) {
-      final d = DateTime(e.date.year, e.date.month, e.date.day);
-      if (!d.isBefore(_today) && d.isBefore(end)) {
-        grouped.putIfAbsent(d, () => []).add(e);
-      }
+      final eStart = DateTime(e.date.year, e.date.month, e.date.day);
+      final eEnd = DateTime(
+        e.endDatetime.year,
+        e.endDatetime.month,
+        e.endDatetime.day,
+      );
+      // 이벤트 기간이 오늘~14일 윈도우와 겹치면 포함
+      if (eEnd.isBefore(_today) || !eStart.isBefore(end)) continue;
+      // 진행 중인 이벤트(시작일 < 오늘)는 오늘 날짜 그룹에 표시
+      final d = eStart.isBefore(_today) ? _today : eStart;
+      grouped.putIfAbsent(d, () => []).add(e);
     }
 
     // 날짜별로 정렬(type→time)하여 최대 3개씩 취합
@@ -982,7 +1002,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 title: event.name,
                 description: event.detail,
                 startDatetime: event.date,
-                endDatetime: event.date,
+                endDatetime: event.endDatetime,
                 usedLeaveMinutes: 0,
                 isAllDay: event.label == '종일',
                 isLeaveEvent: event.type == CalendarEventType.annualLeave,
