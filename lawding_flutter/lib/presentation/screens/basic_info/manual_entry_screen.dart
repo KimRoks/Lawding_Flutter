@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/design_system.dart';
+
 class ManualEntryResult {
   final double totalLeave;
 
@@ -31,9 +32,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   void _onConfirm() {
     if (!_isValid) return;
-    Navigator.of(context).pop(
-      ManualEntryResult(totalLeave: double.parse(_controller.text)),
-    );
+    Navigator.of(
+      context,
+    ).pop(ManualEntryResult(totalLeave: double.parse(_controller.text)));
   }
 
   @override
@@ -85,7 +86,11 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
               behavior: HitTestBehavior.opaque,
               child: Row(
                 children: [
-                  Icon(Icons.chevron_left, size: 24, color: AppColors.brandColor),
+                  Icon(
+                    Icons.chevron_left,
+                    size: 24,
+                    color: AppColors.brandColor,
+                  ),
                   Text(
                     '뒤로',
                     style: pretendard(
@@ -153,8 +158,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
             child: Center(
               child: TextField(
                 controller: _controller,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 inputFormatters: [_DecimalInputFormatter()],
                 onChanged: (_) => setState(() {}),
                 style: pretendard(
@@ -203,8 +209,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           style: pretendard(
             weight: 700,
             size: 15,
-            color:
-                Colors.white.withValues(alpha: canProceed ? 1.0 : 0.7),
+            color: Colors.white.withValues(alpha: canProceed ? 1.0 : 0.7),
           ),
           child: const Text('다음'),
         ),
@@ -223,11 +228,11 @@ class _DecimalInputFormatter extends TextInputFormatter {
     if (text.isEmpty) return newValue;
     // 소수점 최대 3자리
     if (!RegExp(r'^\d*\.?\d{0,3}$').hasMatch(text)) return oldValue;
-    // 정수 부분 365 이하
+    // 정수 부분 50 이하
     final intPart = text.split('.').first;
     if (intPart.isNotEmpty) {
       final intValue = int.tryParse(intPart);
-      if (intValue != null && intValue >= 365) return oldValue;
+      if (intValue != null && intValue >= 50) return oldValue;
     }
     return newValue;
   }
