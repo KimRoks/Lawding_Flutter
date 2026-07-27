@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../domain/core/result.dart';
 import '../../domain/entities/leave_dashboard.dart';
 import '../../domain/repositories/leave_dashboard_repository.dart';
@@ -25,6 +27,19 @@ class LeaveDashboardRepositoryImpl implements LeaveDashboardRepository {
       final dto = LeaveDashboardResponse.fromJson(
         body['data'] as Map<String, dynamic>,
       );
+      debugPrint('[LeaveDashboard] availableLeaveMinutes : ${dto.availableLeaveMinutes}');
+      debugPrint('[LeaveDashboard] avgDailyWorkHours     : ${dto.avgDailyWorkHours}');
+      debugPrint('[LeaveDashboard] totalLeaveMinutes     : ${dto.totalLeaveMinutes}');
+      debugPrint('[LeaveDashboard] leaveAccrualBasis     : ${dto.leaveAccrualBasis}');
+      debugPrint('[LeaveDashboard] fiscalYearBaseMonth   : ${dto.fiscalYearBaseMonth}');
+      debugPrint('[LeaveDashboard] nextLeaveAccrualDate  : ${dto.nextLeaveAccrualDate}');
+      debugPrint('[LeaveDashboard] expiringLeaveMinutes  : ${dto.expiringLeaveMinutes}');
+      debugPrint('[LeaveDashboard] leavePeriodStartDate  : ${dto.leavePeriodStartDate}');
+      debugPrint('[LeaveDashboard] leavePeriodEndDate    : ${dto.leavePeriodEndDate}');
+      debugPrint('[LeaveDashboard] recentLeaveUsages     : ${dto.recentLeaveUsages.length}건');
+      for (final u in dto.recentLeaveUsages) {
+        debugPrint('[LeaveDashboard]   - ${u.startDatetime} ~ ${u.endDatetime} (${u.usedLeaveMinutes}분)');
+      }
       return Success(dto.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);

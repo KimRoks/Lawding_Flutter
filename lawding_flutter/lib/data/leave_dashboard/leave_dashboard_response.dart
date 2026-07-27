@@ -1,13 +1,11 @@
 import '../../domain/entities/leave_dashboard.dart';
 
 class RecentLeaveUsageResponse {
-  final String? title;
   final String startDatetime;
   final String endDatetime;
   final int usedLeaveMinutes;
 
   const RecentLeaveUsageResponse({
-    this.title,
     required this.startDatetime,
     required this.endDatetime,
     required this.usedLeaveMinutes,
@@ -15,7 +13,6 @@ class RecentLeaveUsageResponse {
 
   factory RecentLeaveUsageResponse.fromJson(Map<String, dynamic> json) {
     return RecentLeaveUsageResponse(
-      title: json['title'] as String?,
       startDatetime: json['startDatetime'] as String,
       endDatetime: json['endDatetime'] as String,
       usedLeaveMinutes: json['usedLeaveMinutes'] as int,
@@ -23,7 +20,6 @@ class RecentLeaveUsageResponse {
   }
 
   RecentLeaveUsage toDomain() => RecentLeaveUsage(
-    title: title,
     startDatetime: startDatetime,
     endDatetime: endDatetime,
     usedLeaveMinutes: usedLeaveMinutes,
@@ -40,6 +36,7 @@ class LeaveDashboardResponse {
   final String leavePeriodEndDate;
   final List<RecentLeaveUsageResponse> recentLeaveUsages;
   final int leaveAccrualBasis;
+  final int? fiscalYearBaseMonth;
 
   const LeaveDashboardResponse({
     required this.availableLeaveMinutes,
@@ -51,6 +48,7 @@ class LeaveDashboardResponse {
     required this.leavePeriodEndDate,
     required this.recentLeaveUsages,
     required this.leaveAccrualBasis,
+    this.fiscalYearBaseMonth,
   });
 
   factory LeaveDashboardResponse.fromJson(Map<String, dynamic> json) {
@@ -66,6 +64,7 @@ class LeaveDashboardResponse {
           .map((e) => RecentLeaveUsageResponse.fromJson(e as Map<String, dynamic>))
           .toList(),
       leaveAccrualBasis: json['leaveAccrualBasis'] as int,
+      fiscalYearBaseMonth: json['fiscalYearBaseMonth'] as int?,
     );
   }
 
@@ -79,5 +78,6 @@ class LeaveDashboardResponse {
     leavePeriodEndDate: leavePeriodEndDate,
     recentLeaveUsages: recentLeaveUsages.map((e) => e.toDomain()).toList(),
     leaveAccrualBasis: leaveAccrualBasis,
+    fiscalYearBaseMonth: fiscalYearBaseMonth,
   );
 }

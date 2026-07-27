@@ -89,7 +89,6 @@ class RecentLeaveHistoryScreen extends StatelessWidget {
     final startDate = _formatMonthDay(usage.startDatetime);
     final endDate = _formatMonthDay(usage.endDatetime);
     final dateLabel = startDate == endDate ? startDate : '$startDate-$endDate';
-    final hasTitle = usage.title != null && usage.title!.isNotEmpty;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
@@ -97,31 +96,13 @@ class RecentLeaveHistoryScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (hasTitle) ...[
-                  Text(
-                    usage.title!,
-                    style: pretendard(
-                      weight: 600,
-                      size: 16,
-                      color: const Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                Text(
-                  dateLabel,
-                  style: pretendard(
-                    weight: hasTitle ? 500 : 600,
-                    size: hasTitle ? 12 : 16,
-                    color: hasTitle
-                        ? AppColors.textGray55
-                        : const Color(0xFF333333),
-                  ),
-                ),
-              ],
+            child: Text(
+              dateLabel,
+              style: pretendard(
+                weight: 600,
+                size: 16,
+                color: const Color(0xFF333333),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -140,11 +121,7 @@ class RecentLeaveHistoryScreen extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: pretendard(
-          weight: 700,
-          size: 8,
-          color: AppColors.brandColor,
-        ),
+        style: pretendard(weight: 700, size: 8, color: AppColors.brandColor),
         textAlign: TextAlign.center,
       ),
     );
