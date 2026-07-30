@@ -7,7 +7,6 @@ import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/toast_message.dart';
-import '../basic_info/basic_info_screen.dart';
 import 'change_nickname_screen.dart';
 
 class SettingScreen extends ConsumerWidget {
@@ -26,28 +25,28 @@ class SettingScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 35),
-
-            _SettingRow(
-              title: '연차 정보 수정',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => BasicInfoScreen(
-                    isEditMode: true,
-                    onCompleted: () async {
-                      Navigator.of(context).pop();
-                      final result = await ref
-                          .read(getLeaveSummaryUseCaseProvider)
-                          .execute();
-                      if (result case Success(:final value)) {
-                        ref.read(avgDailyWorkHoursProvider.notifier).state =
-                            value.avgDailyWorkHours;
-                      }
-                      ref.read(leaveDataRefreshProvider.notifier).state++;
-                    },
-                  ),
-                ),
-              ),
-            ),
+            // TODO: 연차 정보 수정 기능은 현재 사용하지 않으므로 주석 처리
+            // _SettingRow(
+            //   title: '연차 정보 수정',
+            //   onTap: () => Navigator.of(context).push(
+            //     MaterialPageRoute(
+            //       builder: (_) => BasicInfoScreen(
+            //         isEditMode: true,
+            //         onCompleted: () async {
+            //           Navigator.of(context).pop();
+            //           final result = await ref
+            //               .read(getLeaveSummaryUseCaseProvider)
+            //               .execute();
+            //           if (result case Success(:final value)) {
+            //             ref.read(avgDailyWorkHoursProvider.notifier).state =
+            //                 value.avgDailyWorkHours;
+            //           }
+            //           ref.read(leaveDataRefreshProvider.notifier).state++;
+            //         },
+            //       ),
+            //     ),
+            //   ),
+            // ),
             _SettingRow(
               title: '닉네임 변경',
               onTap: () async {
