@@ -27,11 +27,9 @@ class LeaveDashboardRepositoryImpl implements LeaveDashboardRepository {
       final dto = LeaveDashboardResponse.fromJson(
         body['data'] as Map<String, dynamic>,
       );
-      debugPrint('[LeaveDashboard] availableLeaveMinutes : ${dto.availableLeaveMinutes}');
+      debugPrint('[LeaveDashboard] remainingLeaveMinutes : ${dto.remainingLeaveMinutes}');
       debugPrint('[LeaveDashboard] avgDailyWorkHours     : ${dto.avgDailyWorkHours}');
       debugPrint('[LeaveDashboard] totalLeaveMinutes     : ${dto.totalLeaveMinutes}');
-      debugPrint('[LeaveDashboard] leaveAccrualBasis     : ${dto.leaveAccrualBasis}');
-      debugPrint('[LeaveDashboard] fiscalYearBaseMonth   : ${dto.fiscalYearBaseMonth}');
       debugPrint('[LeaveDashboard] nextLeaveAccrualDate  : ${dto.nextLeaveAccrualDate}');
       debugPrint('[LeaveDashboard] expiringLeaveMinutes  : ${dto.expiringLeaveMinutes}');
       debugPrint('[LeaveDashboard] leavePeriodStartDate  : ${dto.leavePeriodStartDate}');

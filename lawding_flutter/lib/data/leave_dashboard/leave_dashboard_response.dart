@@ -27,7 +27,7 @@ class RecentLeaveUsageResponse {
 }
 
 class LeaveDashboardResponse {
-  final int availableLeaveMinutes;
+  final int remainingLeaveMinutes;
   final double avgDailyWorkHours;
   final int totalLeaveMinutes;
   final String nextLeaveAccrualDate;
@@ -35,11 +35,9 @@ class LeaveDashboardResponse {
   final String leavePeriodStartDate;
   final String leavePeriodEndDate;
   final List<RecentLeaveUsageResponse> recentLeaveUsages;
-  final int leaveAccrualBasis;
-  final int? fiscalYearBaseMonth;
 
   const LeaveDashboardResponse({
-    required this.availableLeaveMinutes,
+    required this.remainingLeaveMinutes,
     required this.avgDailyWorkHours,
     required this.totalLeaveMinutes,
     required this.nextLeaveAccrualDate,
@@ -47,13 +45,11 @@ class LeaveDashboardResponse {
     required this.leavePeriodStartDate,
     required this.leavePeriodEndDate,
     required this.recentLeaveUsages,
-    required this.leaveAccrualBasis,
-    this.fiscalYearBaseMonth,
   });
 
   factory LeaveDashboardResponse.fromJson(Map<String, dynamic> json) {
     return LeaveDashboardResponse(
-      availableLeaveMinutes: json['availableLeaveMinutes'] as int,
+      remainingLeaveMinutes: json['remainingLeaveMinutes'] as int,
       avgDailyWorkHours: (json['avgDailyWorkHours'] as num).toDouble(),
       totalLeaveMinutes: json['totalLeaveMinutes'] as int,
       nextLeaveAccrualDate: json['nextLeaveAccrualDate'] as String,
@@ -63,13 +59,11 @@ class LeaveDashboardResponse {
       recentLeaveUsages: (json['recentLeaveUsages'] as List<dynamic>)
           .map((e) => RecentLeaveUsageResponse.fromJson(e as Map<String, dynamic>))
           .toList(),
-      leaveAccrualBasis: json['leaveAccrualBasis'] as int,
-      fiscalYearBaseMonth: json['fiscalYearBaseMonth'] as int?,
     );
   }
 
   LeaveDashboard toDomain() => LeaveDashboard(
-    availableLeaveMinutes: availableLeaveMinutes,
+    remainingLeaveMinutes: remainingLeaveMinutes,
     avgDailyWorkHours: avgDailyWorkHours,
     totalLeaveMinutes: totalLeaveMinutes,
     nextLeaveAccrualDate: nextLeaveAccrualDate,
@@ -77,7 +71,5 @@ class LeaveDashboardResponse {
     leavePeriodStartDate: leavePeriodStartDate,
     leavePeriodEndDate: leavePeriodEndDate,
     recentLeaveUsages: recentLeaveUsages.map((e) => e.toDomain()).toList(),
-    leaveAccrualBasis: leaveAccrualBasis,
-    fiscalYearBaseMonth: fiscalYearBaseMonth,
   );
 }

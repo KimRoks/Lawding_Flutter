@@ -14,11 +14,11 @@ Map<String, dynamic> _mockSuccess({List<Map<String, dynamic>>? recentLeaveUsages
     'status': 'success',
     'message': 'success',
     'data': {
-      'availableLeaveMinutes': 2400,
+      'remainingLeaveMinutes': 6240,
       'avgDailyWorkHours': 8.00,
-      'totalLeaveMinutes': 2400,
+      'totalLeaveMinutes': 7200,
       'nextLeaveAccrualDate': '2027-07-10',
-      'expiringLeaveMinutes': 2400,
+      'expiringLeaveMinutes': 6240,
       'leavePeriodStartDate': '2026-07-10',
       'leavePeriodEndDate': '2027-07-09',
       'recentLeaveUsages': recentLeaveUsages ?? [
@@ -61,11 +61,11 @@ void main() {
       expect(result, isA<Success<LeaveDashboard, NetworkError>>());
       result.fold(
         onSuccess: (dashboard) {
-          expect(dashboard.availableLeaveMinutes, 2400);
+          expect(dashboard.remainingLeaveMinutes, 6240);
           expect(dashboard.avgDailyWorkHours, 8.0);
-          expect(dashboard.totalLeaveMinutes, 2400);
+          expect(dashboard.totalLeaveMinutes, 7200);
           expect(dashboard.nextLeaveAccrualDate, '2027-07-10');
-          expect(dashboard.expiringLeaveMinutes, 2400);
+          expect(dashboard.expiringLeaveMinutes, 6240);
           expect(dashboard.leavePeriodStartDate, '2026-07-10');
           expect(dashboard.leavePeriodEndDate, '2027-07-09');
           expect(dashboard.recentLeaveUsages.length, 1);

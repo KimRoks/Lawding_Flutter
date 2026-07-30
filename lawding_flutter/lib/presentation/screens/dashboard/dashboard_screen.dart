@@ -34,9 +34,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (result case Success(:final value)) {
-        _dashboard = value;
-      }
+      if (result case Success(:final value)) _dashboard = value;
     });
   }
 
@@ -111,10 +109,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ────────────────────────────────────────────────────────────────
   Widget _buildMainCard() {
     final d = _dashboard;
-    final availableDays = d != null ? _toDays(d.availableLeaveMinutes) : 0.0;
+    final availableDays = d != null ? _toDays(d.remainingLeaveMinutes) : 0.0;
     final totalDays = d != null ? _toDays(d.totalLeaveMinutes) : 0.0;
     final usageRate = (d != null && d.totalLeaveMinutes > 0)
-        ? (d.totalLeaveMinutes - d.availableLeaveMinutes) / d.totalLeaveMinutes
+        ? (d.totalLeaveMinutes - d.remainingLeaveMinutes) / d.totalLeaveMinutes
         : 0.0;
 
     return Container(
@@ -139,21 +137,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   weight: 700,
                   size: 20,
                   color: AppColors.textGray11,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.textGray99),
-                  borderRadius: BorderRadius.circular(12.5),
-                ),
-                child: Text(
-                  d?.leaveAccrualBasis == 2 ? '회계연도 기준' : '입사일 기준',
-                  style: pretendard(
-                    weight: 700,
-                    size: 11,
-                    color: AppColors.textGray99,
-                  ),
                 ),
               ),
             ],

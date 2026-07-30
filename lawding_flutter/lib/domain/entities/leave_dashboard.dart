@@ -11,7 +11,7 @@ class RecentLeaveUsage {
 }
 
 class LeaveDashboard {
-  final int availableLeaveMinutes;
+  final int remainingLeaveMinutes;
   final double avgDailyWorkHours;
   final int totalLeaveMinutes;
   final String nextLeaveAccrualDate; // "YYYY-MM-DD"
@@ -19,11 +19,9 @@ class LeaveDashboard {
   final String leavePeriodStartDate; // "YYYY-MM-DD"
   final String leavePeriodEndDate; // "YYYY-MM-DD"
   final List<RecentLeaveUsage> recentLeaveUsages;
-  final int leaveAccrualBasis; // 1: 입사일 기준, 2: 회계연도 기준
-  final int? fiscalYearBaseMonth; // 회계연도 기준월 (leaveAccrualBasis == 2일 때만)
 
   const LeaveDashboard({
-    required this.availableLeaveMinutes,
+    required this.remainingLeaveMinutes,
     required this.avgDailyWorkHours,
     required this.totalLeaveMinutes,
     required this.nextLeaveAccrualDate,
@@ -31,7 +29,5 @@ class LeaveDashboard {
     required this.leavePeriodStartDate,
     required this.leavePeriodEndDate,
     required this.recentLeaveUsages,
-    required this.leaveAccrualBasis,
-    this.fiscalYearBaseMonth,
   });
 }
