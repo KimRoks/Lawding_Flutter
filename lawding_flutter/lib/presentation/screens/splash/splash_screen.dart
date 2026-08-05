@@ -248,6 +248,7 @@ class _CalendarTabScreen extends ConsumerStatefulWidget {
 class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
   bool _tutorialShown = false;
   bool _isLoading = false;
+  StreamSubscription<void>? _sessionExpiredSub;
 
   static const _tutorialKey = 'calendar_tutorial_shown';
 
@@ -255,6 +256,24 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
   void initState() {
     super.initState();
     _loadTutorialShown();
+    _subscribeToSessionExpired();
+  }
+
+  void _subscribeToSessionExpired() {
+    _sessionExpiredSub = ref
+        .read(authRepositoryProvider)
+        .onSessionExpired
+        .listen((_) {
+      if (!mounted) return;
+      ref.read(calendarAuthStateProvider.notifier).state = false;
+      _showLoginScreen();
+    });
+  }
+
+  @override
+  void dispose() {
+    _sessionExpiredSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadTutorialShown() async {

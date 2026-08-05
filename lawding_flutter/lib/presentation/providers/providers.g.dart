@@ -12,7 +12,7 @@ String _$authRepositoryHash() => r'a8767550d220ede9bb05149c073a651c4422d5ef';
 ///
 /// Copied from [authRepository].
 @ProviderFor(authRepository)
-final authRepositoryProvider = AutoDisposeProvider<AuthRepository>.internal(
+final authRepositoryProvider = Provider<AuthRepository>.internal(
   authRepository,
   name: r'authRepositoryProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -24,7 +24,7 @@ final authRepositoryProvider = AutoDisposeProvider<AuthRepository>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef AuthRepositoryRef = AutoDisposeProviderRef<AuthRepository>;
+typedef AuthRepositoryRef = ProviderRef<AuthRepository>;
 String _$dioClientHash() => r'1e01a172917b0cd3222effb0bdb534bf02f7346b';
 
 /// DioClient Provider — 공개 API용 (토큰 없음)

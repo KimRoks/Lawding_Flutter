@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,6 +8,21 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+
+  final StreamController<void> _sessionExpiredController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onSessionExpired => _sessionExpiredController.stream;
+
+  @override
+  void notifySessionExpired() {
+    _sessionExpiredController.add(null);
+  }
+
+  void dispose() {
+    _sessionExpiredController.close();
+  }
 
   // iOS: Keychain / Android: EncryptedSharedPreferences
   final FlutterSecureStorage _storage = const FlutterSecureStorage(

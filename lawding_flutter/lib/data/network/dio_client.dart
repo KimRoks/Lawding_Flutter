@@ -226,9 +226,11 @@ class _AuthInterceptor extends Interceptor {
       return handler.resolve(retryResponse);
     } on DioException catch (e) {
       final status = e.response?.statusCode;
-      if (status == 401 || status == 403) {
+      // 400: 서버가 refreshToken 만료/무효 시 반환하는 코드 포함
+      if (status == 400 || status == 401 || status == 403) {
         debugPrint('[Auth] reissue $status → refreshToken 만료 → 토큰 삭제 → 로그아웃');
         await _authRepository.clearTokens();
+        _authRepository.notifySessionExpired();
       } else {
         // 네트워크 순단·타임아웃 등 일시적 오류 → 토큰 유지
         debugPrint('[Auth] reissue 일시적 실패 (status: $status, type: ${e.type}) → 토큰 유지');

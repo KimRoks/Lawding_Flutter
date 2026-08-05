@@ -17,4 +17,10 @@ abstract interface class AuthRepository {
 
   /// 로그인 상태 여부
   Future<bool> isLoggedIn();
+
+  /// 토큰 만료로 인한 강제 로그아웃 이벤트 스트림
+  Stream<void> get onSessionExpired;
+
+  /// 세션 만료 이벤트 발생 — 인터셉터가 reissue 실패 후 호출
+  void notifySessionExpired();
 }

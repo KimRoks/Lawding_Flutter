@@ -60,10 +60,12 @@ final dailyWorkMinutesProvider = StateProvider<int>((ref) => 480);
 // Infrastructure Layer (Network)
 // ============================================================================
 
-/// AuthRepository Provider
-@riverpod
+/// AuthRepository Provider — keepAlive: 앱 전체에서 단일 인스턴스 유지
+@Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
-  return AuthRepositoryImpl();
+  final impl = AuthRepositoryImpl();
+  ref.onDispose(impl.dispose);
+  return impl;
 }
 
 /// DioClient Provider — 공개 API용 (토큰 없음)
