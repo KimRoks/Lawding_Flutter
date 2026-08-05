@@ -5,12 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/calendar_event.dart';
-import '../../../domain/entities/user_dashboard.dart';
+import '../../../domain/entities/user_me.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/logo_app_bar.dart';
 import 'add_calendar_event_screen.dart';
+import 'leave_time_edit_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 데이터 모델 — 추후 VM / Repository 레이어로 이동
@@ -71,8 +72,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   // API 응답으로 교체됨. 실패 시 mock 유지
   List<CalendarHoliday> _holidays = _mockHolidays;
   List<CalendarEvent> _events = [];
-  UserDashboard? _dashboard;
-  UserDashboard? _leaveSummary;
+  UserMe? _userMe;
 
   @override
   void initState() {
@@ -83,7 +83,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _displayedMonth = DateTime(now.year, now.month, 1);
     _pageController = PageController(initialPage: _initialPage);
     _fetchHolidays();
-    _fetchLeaveSummary();
+    _fetchUserMe();
     _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
   }
 
@@ -95,22 +95,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   String _formatDays(double days) => days.toStringAsFixed(3);
 
-  Future<void> _fetchLeaveSummary() async {
-    final useCase = ref.read(getLeaveSummaryUseCaseProvider);
-    final result = await useCase.execute();
+  Future<void> _fetchUserMe() async {
+    final result = await ref.read(getUserMeUseCaseProvider).execute();
     switch (result) {
       case Success(:final value):
-        debugPrint('--- [LeaveSummary] ---');
-        debugPrint('nickname               : ${value.nickname}');
-        debugPrint('availableLeaveMinutes  : ${value.availableLeaveMinutes}');
-        debugPrint('avgDailyWorkHours      : ${value.avgDailyWorkHours}');
-        debugPrint('availableLeaveDays     : ${value.availableLeaveDays}');
-        debugPrint('availableLeaveHours    : ${value.availableLeaveHours}');
-        debugPrint('----------------------');
         if (!mounted) return;
-        setState(() => _leaveSummary = value);
+        setState(() => _userMe = value);
       case Failure(:final error):
-        debugPrint('[LeaveSummary] 실패: $error');
+        debugPrint('[UserMe] 실패: $error');
     }
   }
 
@@ -318,7 +310,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     ref.listen(leaveDataRefreshProvider, (prev, next) {
       if (prev != null && prev != next) {
         _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
-        _fetchLeaveSummary();
+        _fetchUserMe();
       }
     });
     return CustomScaffold(
@@ -347,7 +339,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildLeaveCard() {
-    final data = _leaveSummary ?? _dashboard;
+    final balance = _userMe?.leaveBalance;
     return Container(
       height: 83,
       decoration: BoxDecoration(
@@ -368,7 +360,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(
-                  '${data?.nickname ?? ''}님',
+                  '${_userMe?.user.nickname ?? ''}님',
                   style: pretendard(
                     weight: 700,
                     size: 20,
@@ -405,9 +397,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    data == null
+                    balance == null
                         ? ''
-                        : '${_formatDays(data.availableLeaveDays)}일',
+                        : '${_formatDays(balance.remainingLeaveDays)}일',
                     style: pretendard(
                       weight: 700,
                       size: 20,
@@ -416,9 +408,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    data == null
+                    balance == null
                         ? ''
-                        : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
+                        : '${balance.remainingLeaveHours.toStringAsFixed(2)}시간',
                     style: pretendard(
                       weight: 700,
                       size: 13,
@@ -429,21 +421,23 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ),
             ),
           ),
-          // TODO: 시간 편집 메서드 확정 시 재작업
-          // Positioned(
-          //   top: 41,
-          //   left: 164,
-          //   child: CupertinoButton(
-          //     padding: const EdgeInsets.all(8),
-          //     minimumSize: Size.zero,
-          //     onPressed: () {},
-          //     child: SvgPicture.asset(
-          //       'assets/icons/calendar_timeEdit.svg',
-          //       width: 14,
-          //       height: 14,
-          //     ),
-          //   ),
-          // ),
+          Positioned(
+            top: 41,
+            left: 164,
+            child: CupertinoButton(
+              padding: const EdgeInsets.all(8),
+              minimumSize: Size.zero,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeaveTimeEditScreen()),
+              ),
+              child: SvgPicture.asset(
+                'assets/icons/calendar_timeEdit.svg',
+                width: 14,
+                height: 14,
+              ),
+            ),
+          ),
           // 연차 추가 버튼 — SVG에 원 배경 포함
           Positioned.fill(
             right: 19,
@@ -462,7 +456,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       _displayedMonth.year,
                       _displayedMonth.month,
                     );
-                    _fetchLeaveSummary();
+                    _fetchUserMe();
                   }
                 },
                 child: SvgPicture.asset(
@@ -1018,7 +1012,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     _displayedMonth.year,
                     _displayedMonth.month,
                   );
-                  _fetchLeaveSummary();
+                  _fetchUserMe();
                 }
               });
             },
@@ -1070,7 +1064,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (!mounted) return;
     if (result case Success()) {
       _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
-      _fetchLeaveSummary();
+      _fetchUserMe();
     }
   }
 

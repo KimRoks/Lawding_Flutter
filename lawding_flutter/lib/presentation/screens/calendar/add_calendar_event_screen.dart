@@ -38,8 +38,12 @@ class _AddCalendarEventScreenState
   late List<List<DateTime>> _weeks;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
-  double _avgDailyWorkHours = 8.0;
   LeavePolicy? _leavePolicy;
+
+  double get _avgDailyWorkHours {
+    if (_leavePolicy != null) return _leavePolicy!.dailyWorkMinutes / 60.0;
+    return ref.read(dailyWorkMinutesProvider) / 60.0;
+  }
 
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -73,8 +77,7 @@ class _AddCalendarEventScreenState
     }
     _weeks = _buildWeeks(_calendarMonth);
     _fetchHolidays();
-    _fetchLeaveSummary();
-    _fetchLeavePolicy();
+    _fetchUserMe();
   }
 
   @override
@@ -84,25 +87,11 @@ class _AddCalendarEventScreenState
     super.dispose();
   }
 
-  Future<void> _fetchLeaveSummary() async {
-    final result = await ref.read(getLeaveSummaryUseCaseProvider).execute();
-    switch (result) {
-      case Success(:final value):
-        if (!mounted) return;
-        setState(() => _avgDailyWorkHours = value.avgDailyWorkHours);
-      case Failure():
-        break;
-    }
-  }
-
-  Future<void> _fetchLeavePolicy() async {
-    final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
-    switch (result) {
-      case Success(:final value):
-        if (!mounted) return;
-        setState(() => _leavePolicy = value);
-      case Failure():
-        break;
+  Future<void> _fetchUserMe() async {
+    final result = await ref.read(getUserMeUseCaseProvider).execute();
+    if (result case Success(:final value)) {
+      if (!mounted) return;
+      setState(() => _leavePolicy = value.leavePolicy);
     }
   }
 
@@ -174,9 +163,8 @@ class _AddCalendarEventScreenState
   }
 
   String _formatMinutes(int minutes) {
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    return '${h.toString().padLeft(2, '0')}시간${m.toString().padLeft(2, '0')}분';
+    final hours = minutes / 60;
+    return '${hours.toStringAsFixed(1)}시간';
   }
 
   static const _weekdayNames = {
@@ -544,6 +532,7 @@ class _AddCalendarEventScreenState
     setState(() => _isSubmitting = false);
 
     if (error == null) {
+      ref.read(leaveDataRefreshProvider.notifier).state++;
       Navigator.pop(context);
       return;
     }
@@ -1135,7 +1124,7 @@ class _AddCalendarEventScreenState
                   weight: 700,
                   size: 14,
                   color: hasCalcTime
-                      ? AppColors.textGray11
+                      ? AppColors.brandColor
                       : AppColors.textGray99,
                 ),
               ),
@@ -1297,7 +1286,10 @@ class _AddCalendarEventScreenState
         .read(deleteCalendarEventUseCaseProvider)
         .execute(id: id);
     if (!mounted) return;
-    if (result case Success()) Navigator.pop(context);
+    if (result case Success()) {
+      ref.read(leaveDataRefreshProvider.notifier).state++;
+      Navigator.pop(context);
+    }
   }
 
   // ── 등록하기 ──────────────────────────────────────────────────────────────

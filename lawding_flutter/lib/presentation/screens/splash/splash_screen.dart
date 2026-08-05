@@ -75,36 +75,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final hasToken = await ref.read(authRepositoryProvider).isLoggedIn();
     if (!hasToken) return;
 
-    final result = await ref.read(getUserProfileUseCaseProvider).execute();
+    final result = await ref.read(getUserMeUseCaseProvider).execute();
     result.fold(
-      onSuccess: (profile) {
-        if (profile.onboardingCompleted) {
-          ref.read(calendarAuthStateProvider.notifier).state = true;
-          _fetchLeavePolicy();
-          _fetchLeaveSummary();
-        }
-      },
-      onFailure: (_) {},
-    );
-  }
-
-  Future<void> _fetchLeavePolicy() async {
-    final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
-    result.fold(
-      onSuccess: (policy) {
+      onSuccess: (me) {
         ref.read(dailyWorkMinutesProvider.notifier).state =
-            policy.dailyWorkMinutes;
-      },
-      onFailure: (_) {},
-    );
-  }
-
-  Future<void> _fetchLeaveSummary() async {
-    final result = await ref.read(getLeaveSummaryUseCaseProvider).execute();
-    result.fold(
-      onSuccess: (summary) {
-        ref.read(avgDailyWorkHoursProvider.notifier).state =
-            summary.avgDailyWorkHours;
+            me.leavePolicy.dailyWorkMinutes;
+        if (me.user.onboardingCompleted) {
+          ref.read(calendarAuthStateProvider.notifier).state = true;
+        }
       },
       onFailure: (_) {},
     );
@@ -296,18 +274,19 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
       if (!mounted) return;
 
       if (hasToken) {
-        debugPrint('[Calendar] GET /users/me/profile 호출');
-        final result = await ref.read(getUserProfileUseCaseProvider).execute();
+        debugPrint('[Calendar] GET /v1/users/me 호출');
+        final result = await ref.read(getUserMeUseCaseProvider).execute();
         if (!mounted) return;
 
         result.fold(
-          onSuccess: (profile) {
-            debugPrint('[Calendar] profile 응답:');
-            debugPrint('  id                  : ${profile.id}');
-            debugPrint('  nickname            : ${profile.nickname}');
-            debugPrint('  onboardingCompleted : ${profile.onboardingCompleted}');
-            if (profile.onboardingCompleted) {
-              _fetchLeavePolicy();
+          onSuccess: (me) {
+            debugPrint('[Calendar] me 응답:');
+            debugPrint('  id                  : ${me.user.id}');
+            debugPrint('  nickname            : ${me.user.nickname}');
+            debugPrint('  onboardingCompleted : ${me.user.onboardingCompleted}');
+            ref.read(dailyWorkMinutesProvider.notifier).state =
+                me.leavePolicy.dailyWorkMinutes;
+            if (me.user.onboardingCompleted) {
               ref.read(calendarAuthStateProvider.notifier).state = true;
               setState(() => _isLoading = false);
             } else {
@@ -316,7 +295,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
             }
           },
           onFailure: (error) {
-            debugPrint('[Calendar] profile 실패: $error');
+            debugPrint('[Calendar] me 실패: $error');
             setState(() => _isLoading = false);
             _showLoginScreen();
           },
@@ -389,42 +368,14 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     );
   }
 
-  Future<void> _fetchLeaveSummary() async {
-    final result = await ref.read(getLeaveSummaryUseCaseProvider).execute();
+  Future<void> _fetchUserMe() async {
+    final result = await ref.read(getUserMeUseCaseProvider).execute();
     result.fold(
-      onSuccess: (summary) {
-        ref.read(avgDailyWorkHoursProvider.notifier).state =
-            summary.avgDailyWorkHours;
-      },
-      onFailure: (error) => debugPrint('[LeaveSummary] 실패: $error'),
-    );
-  }
-
-  Future<void> _fetchLeavePolicy() async {
-    debugPrint('[LeavePolicy] GET /v1/users/leave-policy 호출');
-    final result = await ref.read(getLeavePolicyUseCaseProvider).execute();
-    result.fold(
-      onSuccess: (policy) {
-        debugPrint('[LeavePolicy] 응답:');
-        debugPrint('  userId              : ${policy.userId}');
-        debugPrint('  acceptedAt          : ${policy.acceptedAt}');
-        debugPrint('  leaveAccrualBasis   : ${policy.leaveAccrualBasis}');
-        debugPrint('  hireDate            : ${policy.hireDate}');
-        debugPrint('  fiscalYearBaseMonth : ${policy.fiscalYearBaseMonth}');
-        debugPrint('  companySize         : ${policy.companySize}');
-        debugPrint('  workPattern:');
-        for (final e in policy.workPattern.entries) {
-          debugPrint('    ${e.key}: ${e.value.start} ~ ${e.value.end}');
-        }
-        debugPrint('  breakTimePattern:');
-        for (final e in policy.breakTimePattern.entries) {
-          debugPrint('    ${e.key}: ${e.value.start} ~ ${e.value.end}');
-        }
-        debugPrint('  dailyWorkMinutes    : ${policy.dailyWorkMinutes}');
+      onSuccess: (me) {
         ref.read(dailyWorkMinutesProvider.notifier).state =
-            policy.dailyWorkMinutes;
+            me.leavePolicy.dailyWorkMinutes;
       },
-      onFailure: (error) => debugPrint('[LeavePolicy] 실패: $error'),
+      onFailure: (error) => debugPrint('[UserMe] 실패: $error'),
     );
   }
 
@@ -432,8 +383,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
     Navigator.of(context, rootNavigator: true).pop();
 
     if (onboardingCompleted) {
-      _fetchLeavePolicy();
-      _fetchLeaveSummary();
+      _fetchUserMe();
       ref.read(calendarAuthStateProvider.notifier).state = true;
     } else {
       Navigator.of(context, rootNavigator: true).push(
@@ -456,8 +406,7 @@ class _CalendarTabScreenState extends ConsumerState<_CalendarTabScreen> {
 
   void _onUserInfoCompleted() {
     Navigator.of(context, rootNavigator: true).pop();
-    _fetchLeavePolicy();
-    _fetchLeaveSummary();
+    _fetchUserMe();
     ref.read(calendarAuthStateProvider.notifier).state = true;
   }
 
