@@ -77,10 +77,7 @@ void main() {
     });
 
     test('삭제 실패 - 타임아웃', () async {
-      mockDioHelper.mockTimeout(
-        path: path,
-        method: 'DELETE',
-      );
+      mockDioHelper.mockTimeout(path: path, method: 'DELETE');
 
       final result = await repository.delete();
 
