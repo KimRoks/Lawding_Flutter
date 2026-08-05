@@ -151,22 +151,28 @@ void main() {
       );
     });
 
-    test('조회 성공 - 회계연도 기준 (leaveAccrualBasis: 2, fiscalYearBaseMonth: 3)', () async {
-      mockDioHelper.mockGet(
-        path: path,
-        responseData: _mockSuccess(leaveAccrualBasis: 2, fiscalYearBaseMonth: 3),
-      );
+    test(
+      '조회 성공 - 회계연도 기준 (leaveAccrualBasis: 2, fiscalYearBaseMonth: 3)',
+      () async {
+        mockDioHelper.mockGet(
+          path: path,
+          responseData: _mockSuccess(
+            leaveAccrualBasis: 2,
+            fiscalYearBaseMonth: 3,
+          ),
+        );
 
-      final result = await repository.getMe();
+        final result = await repository.getMe();
 
-      result.fold(
-        onSuccess: (me) {
-          expect(me.leavePolicy.leaveAccrualBasis, 2);
-          expect(me.leavePolicy.fiscalYearBaseMonth, 3);
-        },
-        onFailure: (e) => fail('Should not fail: $e'),
-      );
-    });
+        result.fold(
+          onSuccess: (me) {
+            expect(me.leavePolicy.leaveAccrualBasis, 2);
+            expect(me.leavePolicy.fiscalYearBaseMonth, 3);
+          },
+          onFailure: (e) => fail('Should not fail: $e'),
+        );
+      },
+    );
 
     // ─── 실패 케이스 ─────────────────────────────────────────────────────────
 
