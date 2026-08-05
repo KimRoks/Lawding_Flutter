@@ -342,11 +342,7 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
   @override
   void initState() {
     super.initState();
-    _ctrl = TextEditingController(
-      text: widget.initialDays != null
-          ? widget.initialDays!.toStringAsFixed(3)
-          : '',
-    );
+    _ctrl = TextEditingController();
   }
 
   @override
@@ -355,10 +351,15 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
     super.dispose();
   }
 
-  bool get _isValid => double.tryParse(_ctrl.text) != null;
+  bool get _isValid {
+    if (_ctrl.text.isEmpty) return widget.initialDays != null;
+    return double.tryParse(_ctrl.text) != null;
+  }
 
   void _confirm() {
-    final parsed = double.tryParse(_ctrl.text);
+    final parsed = _ctrl.text.isEmpty
+        ? widget.initialDays
+        : double.tryParse(_ctrl.text);
     if (parsed == null) return;
 
     final usedMinutes = widget.usedLeaveMinutes;
@@ -479,7 +480,9 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                         border: InputBorder.none,
-                        hintText: '0',
+                        hintText: widget.initialDays != null
+                            ? widget.initialDays!.toStringAsFixed(3)
+                            : '0',
                         hintStyle: pretendard(
                           weight: 500,
                           size: 15,

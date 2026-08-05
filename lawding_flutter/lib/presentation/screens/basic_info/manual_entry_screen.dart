@@ -21,7 +21,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   bool get _isValid {
     final v = double.tryParse(_controller.text);
-    return v != null && v >= 0;
+    return v != null && v > 0;
   }
 
   @override
@@ -172,7 +172,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                   border: InputBorder.none,
-                  hintText: '0',
+                  hintText: '예) 15',
                   hintStyle: pretendard(
                     weight: 500,
                     size: 15,
