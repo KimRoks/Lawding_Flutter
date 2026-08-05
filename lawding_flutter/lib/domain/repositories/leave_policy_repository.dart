@@ -4,6 +4,5 @@ import '../entities/leave_policy_request.dart';
 
 abstract interface class LeavePolicyRepository {
   Future<Result<void, NetworkError>> submit(LeavePolicyRequest request);
-  Future<Result<void, NetworkError>> update(LeavePolicyRequest request);
   Future<Result<void, NetworkError>> delete();
 }

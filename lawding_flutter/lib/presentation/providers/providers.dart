@@ -33,7 +33,6 @@ import '../../domain/usecases/get_holidays_usecase.dart';
 import '../../domain/usecases/search_dictionary_usecase.dart';
 import '../../domain/usecases/submit_feedback_usecase.dart';
 import '../../domain/usecases/submit_leave_policy_usecase.dart';
-import '../../domain/usecases/update_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
 import '../../domain/usecases/update_profile_usecase.dart';
@@ -215,12 +214,6 @@ DeleteCalendarEventUseCase deleteCalendarEventUseCase(Ref ref) {
 SubmitLeavePolicyUseCase submitLeavePolicyUseCase(Ref ref) {
   final repository = ref.watch(leavePolicyRepositoryProvider);
   return SubmitLeavePolicyUseCase(repository);
-}
-
-@riverpod
-UpdateLeavePolicyUseCase updateLeavePolicyUseCase(Ref ref) {
-  final repository = ref.watch(leavePolicyRepositoryProvider);
-  return UpdateLeavePolicyUseCase(repository);
 }
 
 @riverpod

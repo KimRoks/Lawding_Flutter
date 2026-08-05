@@ -27,20 +27,6 @@ class LeavePolicyRepositoryImpl implements LeavePolicyRepository {
   }
 
   @override
-  Future<Result<void, NetworkError>> update(LeavePolicyRequest request) async {
-    try {
-      await _client.request(ApiRequest(
-        method: HttpMethod.put,
-        path: ApiEndpoints.leavePolicy,
-        body: request.toJson(),
-      ));
-      return const Success(null);
-    } on NetworkError catch (error) {
-      return Failure(error);
-    }
-  }
-
-  @override
   Future<Result<void, NetworkError>> delete() async {
     try {
       await _client.request(const ApiRequest(

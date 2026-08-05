@@ -17,12 +17,10 @@ import 'steps/step6_used_leave.dart';
 
 class BasicInfoScreen extends ConsumerStatefulWidget {
   final VoidCallback onCompleted;
-  final bool isEditMode; // true: PUT(수정), false: POST(최초 등록)
 
   const BasicInfoScreen({
     super.key,
     required this.onCompleted,
-    this.isEditMode = false,
   });
 
   @override
@@ -89,9 +87,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final result = widget.isEditMode
-        ? await ref.read(updateLeavePolicyUseCaseProvider).execute(request)
-        : await ref.read(submitLeavePolicyUseCaseProvider).execute(request);
+    final result = await ref.read(submitLeavePolicyUseCaseProvider).execute(request);
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);

@@ -473,26 +473,6 @@ final submitLeavePolicyUseCaseProvider =
 // ignore: unused_element
 typedef SubmitLeavePolicyUseCaseRef =
     AutoDisposeProviderRef<SubmitLeavePolicyUseCase>;
-String _$updateLeavePolicyUseCaseHash() =>
-    r'8f455420b74858a946dd415939bbf869972f5e08';
-
-/// See also [updateLeavePolicyUseCase].
-@ProviderFor(updateLeavePolicyUseCase)
-final updateLeavePolicyUseCaseProvider =
-    AutoDisposeProvider<UpdateLeavePolicyUseCase>.internal(
-      updateLeavePolicyUseCase,
-      name: r'updateLeavePolicyUseCaseProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$updateLeavePolicyUseCaseHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef UpdateLeavePolicyUseCaseRef =
-    AutoDisposeProviderRef<UpdateLeavePolicyUseCase>;
 String _$getLeaveDashboardUseCaseHash() =>
     r'80629f7eef10dc3331eb8fdea3a5e03bf0cb8709';
 
