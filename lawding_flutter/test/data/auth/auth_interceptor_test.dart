@@ -166,18 +166,13 @@ void main() {
         refreshToken: 'valid_refresh_token',
       );
 
-      // Given: 원본 API 첫 요청 → 401
-      mockDioHelper.mockError(
+      // Given: 첫 요청 → 401, 재시도 → 200 (순서대로 소비)
+      mockDioHelper.mockGetSequential(
         path: '/v1/test',
-        method: 'GET',
-        statusCode: 401,
-        errorMessage: 'Unauthorized',
-      );
-      // Given: 재시도 요청 → 200
-      mockDioHelper.mockGet(
-        path: '/v1/test',
-        responseData: {'result': 'ok'},
-        statusCode: 200,
+        responses: [
+          (401, {'message': 'Unauthorized', 'statusCode': 401}),
+          (200, {'result': 'ok'}),
+        ],
       );
 
       // Given: reissue → 새 토큰 발급

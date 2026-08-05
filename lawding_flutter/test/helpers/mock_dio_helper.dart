@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:http_mock_adapter/src/handlers/request_handler.dart';
+import 'package:http_mock_adapter/src/response.dart';
 
 /// 테스트용 Mock Dio 인스턴스를 생성하는 헬퍼 클래스
 class MockDioHelper {
@@ -137,6 +141,30 @@ class MockDioHelper {
         );
         break;
     }
+  }
+
+  /// 동일 경로에 대해 호출 순서별로 다른 응답을 반환 (retry 흐름 테스트용)
+  ///
+  /// http_mock_adapter는 동일 경로를 여러 번 등록하면 마지막 것만 사용되므로
+  /// 상태형 클로저로 단일 핸들러 안에서 응답을 순서대로 전환한다.
+  void mockGetSequential({
+    required String path,
+    required List<(int statusCode, Map<String, dynamic> data)> responses,
+  }) {
+    int callIndex = 0;
+    dioAdapter.onGet(path, (server) {
+      (server as RequestHandler).mockResponse = (requestOptions) async {
+        final i = callIndex < responses.length ? callIndex : responses.length - 1;
+        callIndex++;
+        final (statusCode, data) = responses[i];
+        return MockResponseBody.from(
+          jsonEncode(data),
+          statusCode,
+          headers: {Headers.contentTypeHeader: [Headers.jsonContentType]},
+          isRedirect: false,
+        );
+      };
+    });
   }
 
   /// 타임아웃 에러 Mock 설정
