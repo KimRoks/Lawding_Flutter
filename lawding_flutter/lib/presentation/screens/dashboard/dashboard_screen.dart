@@ -244,6 +244,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Expanded(
           child: _buildActionButton(
             label: '연차 계산하기',
+            icon: 'assets/icons/calendar.svg',
             onTap: () => ref.read(activeTabIndexProvider.notifier).state = 1,
           ),
         ),
@@ -251,6 +252,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         Expanded(
           child: _buildActionButton(
             label: '캘린더 보기',
+            icon: 'assets/icons/calendarCheck.svg',
             onTap: () => ref.read(activeTabIndexProvider.notifier).state = 3,
           ),
         ),
@@ -261,6 +263,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildActionButton({
     required String label,
     required VoidCallback onTap,
+    String? icon,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -274,10 +277,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
         alignment: Alignment.center,
-        child: Text(
-          label,
-          style: pretendard(weight: 700, size: 16, color: AppColors.brandColor),
-        ),
+        child: icon != null
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(icon, width: 16, height: 16),
+                  const SizedBox(width: 3),
+                  Text(
+                    label,
+                    style: pretendard(weight: 700, size: 16, color: AppColors.brandColor),
+                  ),
+                ],
+              )
+            : Text(
+                label,
+                style: pretendard(weight: 700, size: 16, color: AppColors.brandColor),
+              ),
       ),
     );
   }
