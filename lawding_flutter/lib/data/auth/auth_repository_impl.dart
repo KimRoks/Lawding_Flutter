@@ -39,10 +39,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-    ]);
+    await _storage.write(key: _accessTokenKey, value: accessToken);
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
     debugPrint('[Auth] 토큰 저장 완료');
   }
 
@@ -58,10 +56,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> clearTokens() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _refreshTokenKey),
-    ]);
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
     debugPrint('[Auth] 토큰 삭제 완료');
   }
 
