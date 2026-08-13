@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/calendar_event.dart';
 import '../../../domain/entities/user_me.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
@@ -85,6 +86,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _fetchHolidays();
     _fetchUserMe();
     _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
+    AnalyticsService().logCalendarScreenViewed();
   }
 
   @override
@@ -177,6 +179,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _goToPreviousMonth() {
+    AnalyticsService().logCalendarMonthChanged('prev');
     _pageController.previousPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -184,6 +187,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _goToNextMonth() {
+    AnalyticsService().logCalendarMonthChanged('next');
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -445,6 +449,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               alignment: Alignment.centerRight,
               child: GestureDetector(
                 onTap: () async {
+                  AnalyticsService().logCalendarAddEventTapped();
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -617,11 +622,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final isRedDay = isSunday || _isHoliday(date);
 
     return GestureDetector(
-      onTap: () => setState(() {
-        _focusedDate = (_focusedDate != null && _isSameDay(_focusedDate!, date))
-            ? null
-            : date;
-      }),
+      onTap: () {
+        final isUnfocus = _focusedDate != null && _isSameDay(_focusedDate!, date);
+        if (isUnfocus) {
+          AnalyticsService().logCalendarDateUnfocused();
+        } else {
+          AnalyticsService().logCalendarDateTapped();
+        }
+        setState(() {
+          _focusedDate = isUnfocus ? null : date;
+        });
+      },
       onDoubleTap: () {
         // 추후 이벤트 추가
       },
@@ -984,6 +995,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// isFocused=true: 내용에 따라 높이가 변하는 확장 카드
   Future<void> _showEventOptions(CalendarEvent event) async {
+    final eventType = event.type == CalendarEventType.annualLeave
+        ? 'annual_leave'
+        : 'other_leave';
+    AnalyticsService().logCalendarEventOptionsOpened(eventType);
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
@@ -991,6 +1006,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(ctx);
+              AnalyticsService().logCalendarEventEditTapped(eventType);
               final entity = CalendarEventEntity(
                 id: event.id!,
                 title: event.name,
@@ -1036,6 +1052,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       isDestructiveAction: true,
                       onPressed: () {
                         Navigator.pop(dialogCtx);
+                        AnalyticsService().logCalendarEventDeleteConfirmed(eventType);
                         _deleteEvent(event);
                       },
                       child: const Text('삭제'),
@@ -1058,13 +1075,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Future<void> _deleteEvent(CalendarEvent event) async {
     final id = event.id;
     if (id == null) return;
+    final eventType = event.type == CalendarEventType.annualLeave
+        ? 'annual_leave'
+        : 'other_leave';
     final result = await ref
         .read(deleteCalendarEventUseCaseProvider)
         .execute(id: id);
     if (!mounted) return;
     if (result case Success()) {
+      AnalyticsService().logCalendarEventDeleted(eventType);
       _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
       _fetchUserMe();
+    } else if (result case Failure(:final error)) {
+      AnalyticsService().logCalendarEventDeleteFailed(error.toString());
     }
   }
 

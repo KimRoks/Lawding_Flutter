@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/user_me.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -27,6 +28,7 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService().logLeaveTimeEditScreenViewed();
     _fetchData();
   }
 
@@ -43,6 +45,7 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
 
   void _showEditModal() {
     if (_isLoading) return;
+    AnalyticsService().logLeaveTimeEditModalOpened();
     final balance = _userMe?.leaveBalance;
     final avgHours = (balance?.avgDailyWorkHours ?? 0) > 0
         ? balance!.avgDailyWorkHours
@@ -76,9 +79,11 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
     setState(() => _isSubmitting = false);
 
     if (result case Success()) {
+      AnalyticsService().logLeaveTimeEditSubmitSucceeded();
       ref.read(leaveDataRefreshProvider.notifier).state++;
       Navigator.of(context).pop();
     } else {
+      AnalyticsService().logLeaveTimeEditSubmitFailed('api_error');
       ToastManager().show(context, '저장에 실패했습니다. 다시 시도해주세요.');
     }
   }
@@ -240,6 +245,7 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
   Widget _buildCalcButton() {
     return GestureDetector(
       onTap: () {
+        AnalyticsService().logLeaveTimeEditCalculatorTapped();
         ref.read(activeTabIndexProvider.notifier).state = 1;
         Navigator.of(context).pop();
       },

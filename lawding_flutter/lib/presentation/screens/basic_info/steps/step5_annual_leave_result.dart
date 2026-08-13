@@ -5,6 +5,7 @@ import '../../../../data/network/network_error.dart';
 import '../../../../domain/core/result.dart';
 import '../../../../domain/entities/annual_leave.dart';
 import '../../../../domain/repositories/annual_leave_repository.dart';
+import '../../../../infrastructure/services/analytics_service.dart';
 import '../../../core/design_system.dart';
 import '../../../providers/providers.dart';
 import '../manual_entry_screen.dart';
@@ -222,11 +223,13 @@ class _Step5AnnualLeaveResultState extends ConsumerState<Step5AnnualLeaveResult>
   Widget _buildManualEntryButton() {
     return GestureDetector(
       onTap: () async {
+        AnalyticsService().logBasicInfoManualEntryTapped();
         final result = await Navigator.of(context).push<ManualEntryResult>(
           MaterialPageRoute(builder: (_) => const ManualEntryScreen()),
         );
         if (result != null && mounted) {
           setState(() => _manualResult = result);
+          AnalyticsService().logBasicInfoManualResultEntered(result.totalLeave);
           widget.onValidChanged(true);
           widget.onResultChanged?.call(result.totalLeave);
         }

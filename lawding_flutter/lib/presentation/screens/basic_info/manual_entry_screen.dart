@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 
 class ManualEntryResult {
@@ -25,6 +26,12 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    AnalyticsService().logManualEntryScreenViewed();
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -32,9 +39,9 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
 
   void _onConfirm() {
     if (!_isValid) return;
-    Navigator.of(
-      context,
-    ).pop(ManualEntryResult(totalLeave: double.parse(_controller.text)));
+    final totalLeave = double.parse(_controller.text);
+    AnalyticsService().logManualEntryConfirmed(totalLeave);
+    Navigator.of(context).pop(ManualEntryResult(totalLeave: totalLeave));
   }
 
   @override

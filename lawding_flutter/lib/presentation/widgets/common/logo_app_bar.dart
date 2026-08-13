@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../screens/setting/setting_screen.dart';
 
@@ -44,9 +45,12 @@ class LogoAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         ...?actions,
         GestureDetector(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SettingScreen()),
-          ),
+          onTap: () {
+            AnalyticsService().logSettingScreenViewed();
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingScreen()),
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.only(right: 20),
             child: SvgPicture.asset(

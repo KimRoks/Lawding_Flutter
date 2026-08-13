@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
@@ -51,7 +52,10 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
     setState(() => _currentIndex = index);
 
-    // 탭이 변경되면 해당 탭의 콜백 호출
+    AnalyticsService().logTabChanged(
+      index: index,
+      tabName: widget.tabs[index].title,
+    );
     widget.tabs[index].onTabActivated?.call();
   }
 

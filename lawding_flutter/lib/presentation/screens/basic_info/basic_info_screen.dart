@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_policy_request.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -94,8 +95,10 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
     switch (result) {
       case Success():
+        AnalyticsService().logBasicInfoSubmitSucceeded(isEditMode: false);
         widget.onCompleted();
       case Failure(:final error):
+        AnalyticsService().logBasicInfoSubmitFailed(error.toString());
         debugPrint('[LeavePolicySubmit] 실패: $error');
     }
   }
@@ -163,6 +166,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
   }
 
   void _onBack() {
+    AnalyticsService().logBasicInfoBackTapped(_currentStep);
     if (_currentStep > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -171,6 +175,12 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
     } else {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService().logBasicInfoScreenViewed(isEditMode: false);
   }
 
   @override
@@ -194,10 +204,13 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() {
-                  _currentStep = i;
-                  _canProceed = _stepValidity[i] ?? false;
-                }),
+                onPageChanged: (i) {
+                  setState(() {
+                    _currentStep = i;
+                    _canProceed = _stepValidity[i] ?? false;
+                  });
+                  AnalyticsService().logBasicInfoStepViewed(i);
+                },
                 children: [
                   Step1NameTerms(
                     onValidChanged: (v) => _setStepValid(0, v),

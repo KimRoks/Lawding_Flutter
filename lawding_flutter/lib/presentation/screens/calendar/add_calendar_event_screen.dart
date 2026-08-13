@@ -8,6 +8,7 @@ import '../../../data/network/network_error.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/holiday.dart';
 import '../../../domain/entities/leave_policy.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import 'leave_time_calculator.dart';
@@ -78,6 +79,7 @@ class _AddCalendarEventScreenState
     _weeks = _buildWeeks(_calendarMonth);
     _fetchHolidays();
     _fetchUserMe();
+    AnalyticsService().logCalendarEventFormScreenViewed(isEdit: widget.editEvent != null);
   }
 
   @override
@@ -333,6 +335,9 @@ class _AddCalendarEventScreenState
         _endDate = null;
       }
     });
+    if (_startDate != null) {
+      AnalyticsService().logCalendarEventDateSelected(isRange: _endDate != null);
+    }
   }
 
   /// 선택된 기간의 날짜 목록 반환
@@ -391,6 +396,7 @@ class _AddCalendarEventScreenState
     if (_isSubmitting) return;
 
     if (_startDate == null) {
+      AnalyticsService().logCalendarEventSubmitBlocked('no_date');
       showCupertinoDialog(
         context: context,
         builder: (_) => CupertinoAlertDialog(
@@ -413,6 +419,7 @@ class _AddCalendarEventScreenState
 
       // Condition 1: 선택 기간이 모두 비근로일/공휴일 → 제출 차단
       if (dates.every(_isNonWorkOrHoliday)) {
+        AnalyticsService().logCalendarEventSubmitBlocked('all_holiday');
         await showCupertinoDialog<void>(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
@@ -432,6 +439,7 @@ class _AddCalendarEventScreenState
 
       // 근로일이지만 입력 시간이 근무시간과 전혀 겹치지 않는 경우 → 제출 차단
       if (!_isAllDay && _hasWorkDayWithNoOverlap(dates)) {
+        AnalyticsService().logCalendarEventSubmitBlocked('no_work_overlap');
         await showCupertinoDialog<void>(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
@@ -451,6 +459,7 @@ class _AddCalendarEventScreenState
 
       // 입력 시간이 모두 휴게시간 안에 포함 → 제출 차단
       if (!_isAllDay && _calcTotalUsedMinutes() == 0) {
+        AnalyticsService().logCalendarEventSubmitBlocked('break_time_only');
         await showCupertinoDialog<void>(
           context: context,
           builder: (ctx) => CupertinoAlertDialog(
@@ -506,6 +515,7 @@ class _AddCalendarEventScreenState
     setState(() => _isSubmitting = true);
 
     final editId = widget.editEvent?.id;
+    AnalyticsService().logCalendarEventSubmitTapped(isEdit: editId != null);
     NetworkError? error;
 
     final request = _buildSingleRequest();
@@ -532,6 +542,14 @@ class _AddCalendarEventScreenState
     setState(() => _isSubmitting = false);
 
     if (error == null) {
+      if (editId != null) {
+        AnalyticsService().logCalendarEventUpdated();
+      } else {
+        AnalyticsService().logCalendarEventRegistered(
+          isAllDay: _isAllDay,
+          isRange: _endDate != null,
+        );
+      }
       ref.read(leaveDataRefreshProvider.notifier).state++;
       Navigator.pop(context);
       return;
@@ -544,6 +562,11 @@ class _AddCalendarEventScreenState
       NetworkConnectionError() => '네트워크 연결을 확인해주세요.',
       _ => '일정 ${editId != null ? '수정' : '등록'}에 실패했습니다.',
     };
+    if (editId != null) {
+      AnalyticsService().logCalendarEventUpdateFailed(message);
+    } else {
+      AnalyticsService().logCalendarEventRegisterFailed(message);
+    }
     _showErrorDialog(message);
   }
 
@@ -717,7 +740,10 @@ class _AddCalendarEventScreenState
               const Spacer(),
               _buildToggle(
                 _isLeaveEvent,
-                () => setState(() => _isLeaveEvent = !_isLeaveEvent),
+                () {
+                  setState(() => _isLeaveEvent = !_isLeaveEvent);
+                  AnalyticsService().logCalendarEventLeaveTypeToggled(isLeaveEvent: _isLeaveEvent);
+                },
               ),
             ],
           ),
@@ -996,13 +1022,16 @@ class _AddCalendarEventScreenState
                 const Spacer(),
                 _buildToggle(
                   _isAllDay,
-                  () => setState(() {
-                    _isAllDay = !_isAllDay;
-                    if (_isAllDay) {
-                      _startTime = null;
-                      _endTime = null;
-                    }
-                  }),
+                  () {
+                    setState(() {
+                      _isAllDay = !_isAllDay;
+                      if (_isAllDay) {
+                        _startTime = null;
+                        _endTime = null;
+                      }
+                    });
+                    AnalyticsService().logCalendarEventAllDayToggled(isAllDay: _isAllDay);
+                  },
                 ),
               ],
             ),
@@ -1073,6 +1102,7 @@ class _AddCalendarEventScreenState
                   _endTime = picked;
                 }
               });
+              AnalyticsService().logCalendarEventTimeSet(isStart ? 'start' : 'end');
             }
           },
           child: Container(

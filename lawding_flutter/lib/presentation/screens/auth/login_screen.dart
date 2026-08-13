@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/network/network_error.dart';
 import '../../../data/network/oauth_urls.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../providers/providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _initDeepLinkListener();
+    AnalyticsService().logLoginScreenViewed();
   }
 
   void _initDeepLinkListener() {
@@ -63,6 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
     debugPrint('[OAuth] 토큰 저장 완료 / onboardingCompleted: $onboardingCompleted');
 
+    AnalyticsService().logLoginSucceeded(onboardingCompleted: onboardingCompleted);
     if (mounted) widget.onLoginSuccess(onboardingCompleted);
   }
 
@@ -72,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _loginWith(String fullUrl) async {
+  Future<void> _loginWith(String method, String fullUrl) async {
     setState(() => _isLoading = true);
     try {
       debugPrint('[OAuth] 요청 URL: $fullUrl');
@@ -86,6 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         errorMessage = e.runtimeType.toString();
       }
       debugPrint('[OAuth] 에러: $errorMessage');
+      AnalyticsService().logLoginFailed(method: method, errorMessage: errorMessage);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -117,9 +121,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   borderColor: const Color(0xFFE1E1E1),
                   onTap: _isLoading
                       ? null
-                      : () => _loginWith(
-                          OAuthUrls.apple(ref.read(baseUrlProvider)),
-                        ),
+                      : () {
+                          AnalyticsService().logLoginMethodTapped('apple');
+                          _loginWith('apple', OAuthUrls.apple(ref.read(baseUrlProvider)));
+                        },
                 ),
                 const SizedBox(height: 12),
               ],
@@ -131,9 +136,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 borderColor: const Color(0xFFE1E1E1),
                 onTap: _isLoading
                     ? null
-                    : () => _loginWith(
-                        OAuthUrls.google(ref.read(baseUrlProvider)),
-                      ),
+                    : () {
+                        AnalyticsService().logLoginMethodTapped('google');
+                        _loginWith('google', OAuthUrls.google(ref.read(baseUrlProvider)));
+                      },
               ),
               const SizedBox(height: 12),
               _LoginButton(
@@ -143,13 +149,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 textColor: const Color(0xFF191919),
                 onTap: _isLoading
                     ? null
-                    : () => _loginWith(
-                        OAuthUrls.kakao(ref.read(baseUrlProvider)),
-                      ),
+                    : () {
+                        AnalyticsService().logLoginMethodTapped('kakao');
+                        _loginWith('kakao', OAuthUrls.kakao(ref.read(baseUrlProvider)));
+                      },
               ),
               const SizedBox(height: 20),
               GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  AnalyticsService().logLoginSkipTapped();
+                  Navigator.of(context).pop();
+                },
                 behavior: HitTestBehavior.opaque,
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),

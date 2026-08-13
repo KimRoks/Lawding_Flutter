@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -28,6 +29,7 @@ class _ChangeNicknameScreenState extends ConsumerState<ChangeNicknameScreen> {
   void initState() {
     super.initState();
     _focusNode.addListener(() => setState(() {}));
+    AnalyticsService().logChangeNicknameScreenViewed();
   }
 
   @override
@@ -45,10 +47,12 @@ class _ChangeNicknameScreenState extends ConsumerState<ChangeNicknameScreen> {
         .execute(nickname: nickname);
     if (!mounted) return;
     setState(() => _isLoading = false);
-    if (result case Failure()) {
+    if (result case Failure(:final error)) {
+      AnalyticsService().logNicknameChangeFailed(error.toString());
       ToastManager().show(context, '닉네임 변경 중 오류가 발생했습니다. 다시 시도해주세요.');
       return;
     }
+    AnalyticsService().logNicknameChangeSucceeded();
     ToastManager().show(context, '닉네임이 변경되었습니다');
     Navigator.of(context).pop(true);
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -50,6 +51,7 @@ class SettingScreen extends ConsumerWidget {
             _SettingRow(
               title: '닉네임 변경',
               onTap: () async {
+                AnalyticsService().logSettingNicknameTapped();
                 final changed = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
                     builder: (_) => const ChangeNicknameScreen(),
@@ -85,11 +87,13 @@ class SettingScreen extends ConsumerWidget {
                   ),
                 );
                 if (confirmed != true) return;
+                AnalyticsService().logSettingDeleteAccountConfirmed();
                 final result = await ref
                     .read(deleteAccountUseCaseProvider)
                     .execute();
                 if (!context.mounted) return;
-                if (result case Failure()) {
+                if (result case Failure(:final error)) {
+                  AnalyticsService().logSettingDeleteAccountFailed(error.toString());
                   ToastManager().show(
                     context,
                     '탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
@@ -193,6 +197,7 @@ class _LogoutButton extends ConsumerWidget {
           ),
         );
         if (confirmed == true) {
+          AnalyticsService().logSettingLogoutConfirmed();
           await ref.read(authRepositoryProvider).clearTokens();
           if (!context.mounted) return;
           ref.read(calendarAuthStateProvider.notifier).state = false;

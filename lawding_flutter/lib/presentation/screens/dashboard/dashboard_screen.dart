@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_dashboard.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/logo_app_bar.dart';
@@ -26,6 +27,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService().logDashboardScreenViewed();
     _fetchDashboard();
   }
 
@@ -244,7 +246,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: _buildActionButton(
             label: '연차 계산하기',
             icon: 'assets/icons/calendar.svg',
-            onTap: () => ref.read(activeTabIndexProvider.notifier).state = 1,
+            onTap: () {
+              AnalyticsService().logDashboardActionTapped('calculator');
+              ref.read(activeTabIndexProvider.notifier).state = 1;
+            },
           ),
         ),
         const SizedBox(width: 16),
@@ -252,7 +257,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: _buildActionButton(
             label: '캘린더 보기',
             icon: 'assets/icons/calendarCheck.svg',
-            onTap: () => ref.read(activeTabIndexProvider.notifier).state = 3,
+            onTap: () {
+              AnalyticsService().logDashboardActionTapped('calendar');
+              ref.read(activeTabIndexProvider.notifier).state = 3;
+            },
           ),
         ),
       ],
@@ -477,14 +485,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => RecentLeaveHistoryScreen(
-                        usages: _dashboard?.recentLeaveUsages ?? [],
+                  onTap: () {
+                    AnalyticsService().logDashboardLeaveHistoryTapped();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RecentLeaveHistoryScreen(
+                          usages: _dashboard?.recentLeaveUsages ?? [],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                   child: Row(
                     children: [
                       Text(
