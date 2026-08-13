@@ -142,7 +142,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          // TODO: dashBoard API가 '연차 정보 수정'을 반영하지 못하고 있는듯 함
           Text(
             d != null ? _formatDays(availableDays) : '--일',
             style: pretendard(
@@ -285,13 +284,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(width: 3),
                   Text(
                     label,
-                    style: pretendard(weight: 700, size: 16, color: AppColors.brandColor),
+                    style: pretendard(
+                      weight: 700,
+                      size: 16,
+                      color: AppColors.brandColor,
+                    ),
                   ),
                 ],
               )
             : Text(
                 label,
-                style: pretendard(weight: 700, size: 16, color: AppColors.brandColor),
+                style: pretendard(
+                  weight: 700,
+                  size: 16,
+                  color: AppColors.brandColor,
+                ),
               ),
       ),
     );

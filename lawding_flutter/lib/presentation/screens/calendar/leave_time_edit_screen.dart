@@ -240,7 +240,8 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
   Widget _buildCalcButton() {
     return GestureDetector(
       onTap: () {
-        // TODO: 연차 계산기 화면으로 이동
+        ref.read(activeTabIndexProvider.notifier).state = 1;
+        Navigator.of(context).pop();
       },
       child: Container(
         height: 32,
