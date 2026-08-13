@@ -16,9 +16,9 @@ abstract interface class UserRepository {
   /// DELETE /v1/users/me/profile
   Future<Result<void, NetworkError>> deleteAccount();
 
-  /// 연차 총 분 수정
-  /// PATCH /v1/users/leave-yearly-balance/total-minutes
-  Future<Result<void, NetworkError>> updateLeaveYearlyBalance({
-    required int totalLeaveMinutes,
+  /// 남은 연차 분 수정
+  /// PATCH /v1/users/leave-yearly-balance/remaining-minutes
+  Future<Result<void, NetworkError>> updateRemainingLeaveMinutes({
+    required int remainingLeaveMinutes,
   });
 }

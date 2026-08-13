@@ -61,14 +61,14 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Result<void, NetworkError>> updateLeaveYearlyBalance({
-    required int totalLeaveMinutes,
+  Future<Result<void, NetworkError>> updateRemainingLeaveMinutes({
+    required int remainingLeaveMinutes,
   }) async {
     try {
       final request = ApiRequest(
         method: HttpMethod.patch,
-        path: ApiEndpoints.leaveYearlyBalance,
-        body: {'totalLeaveMinutes': totalLeaveMinutes},
+        path: ApiEndpoints.leaveYearlyBalanceRemainingMinutes,
+        body: {'remainingLeaveMinutes': remainingLeaveMinutes},
       );
       await _client.request(request);
       return const Success(null);

@@ -78,7 +78,7 @@ class MockDioHelper {
     dioAdapter.onPatch(
       path,
       (server) => server.reply(statusCode, responseData),
-      data: requestData,
+      data: requestData ?? Matchers.any,
     );
   }
 
@@ -200,6 +200,19 @@ class MockDioHelper {
         break;
       case 'PUT':
         dioAdapter.onPut(
+          path,
+          (server) => server.throws(
+            408,
+            DioException(
+              requestOptions: RequestOptions(path: path),
+              type: DioExceptionType.connectionTimeout,
+            ),
+          ),
+          data: Matchers.any,
+        );
+        break;
+      case 'PATCH':
+        dioAdapter.onPatch(
           path,
           (server) => server.throws(
             408,

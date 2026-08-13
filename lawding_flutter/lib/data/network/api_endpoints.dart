@@ -31,7 +31,7 @@ class ApiEndpoints {
   static const String userDashboard = '/v1/users/me/dashboard';
   static const String leaveSummary = '/v1/users/me/leave-summary';
   static const String leavePolicy = '/v1/users/leave-policy';
-  static const String leaveYearlyBalance = '/v1/users/leave-yearly-balance/total-minutes';
+  static const String leaveYearlyBalanceRemainingMinutes = '/v1/users/leave-yearly-balance/remaining-minutes';
   static const String leaveYearlyBalanceLatest = '/v1/users/leave-yearly-balance/latest';
 
   // Dashboard

@@ -512,26 +512,26 @@ final updateProfileUseCaseProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UpdateProfileUseCaseRef = AutoDisposeProviderRef<UpdateProfileUseCase>;
-String _$updateLeaveYearlyBalanceUseCaseHash() =>
-    r'746d519d4b95b26668a9e2875ed482ace536df1a';
+String _$updateRemainingLeaveMinutesUseCaseHash() =>
+    r'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2';
 
-/// See also [updateLeaveYearlyBalanceUseCase].
-@ProviderFor(updateLeaveYearlyBalanceUseCase)
-final updateLeaveYearlyBalanceUseCaseProvider =
-    AutoDisposeProvider<UpdateLeaveYearlyBalanceUseCase>.internal(
-      updateLeaveYearlyBalanceUseCase,
-      name: r'updateLeaveYearlyBalanceUseCaseProvider',
+/// See also [updateRemainingLeaveMinutesUseCase].
+@ProviderFor(updateRemainingLeaveMinutesUseCase)
+final updateRemainingLeaveMinutesUseCaseProvider =
+    AutoDisposeProvider<UpdateRemainingLeaveMinutesUseCase>.internal(
+      updateRemainingLeaveMinutesUseCase,
+      name: r'updateRemainingLeaveMinutesUseCaseProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$updateLeaveYearlyBalanceUseCaseHash,
+          : _$updateRemainingLeaveMinutesUseCaseHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef UpdateLeaveYearlyBalanceUseCaseRef =
-    AutoDisposeProviderRef<UpdateLeaveYearlyBalanceUseCase>;
+typedef UpdateRemainingLeaveMinutesUseCaseRef =
+    AutoDisposeProviderRef<UpdateRemainingLeaveMinutesUseCase>;
 String _$deleteAccountUseCaseHash() =>
     r'37a78dd0febb734ab3d4057ec3993f4557c034f1';
 

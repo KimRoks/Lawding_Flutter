@@ -36,7 +36,7 @@ import '../../domain/usecases/submit_leave_policy_usecase.dart';
 import '../../domain/usecases/update_calendar_event_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
 import '../../domain/usecases/update_profile_usecase.dart';
-import '../../domain/usecases/update_leave_yearly_balance_usecase.dart';
+import '../../domain/usecases/update_remaining_leave_minutes_usecase.dart';
 import '../../domain/usecases/get_leave_dashboard_usecase.dart';
 import '../../domain/usecases/get_user_me_usecase.dart';
 
@@ -229,9 +229,9 @@ UpdateProfileUseCase updateProfileUseCase(Ref ref) {
 }
 
 @riverpod
-UpdateLeaveYearlyBalanceUseCase updateLeaveYearlyBalanceUseCase(Ref ref) {
+UpdateRemainingLeaveMinutesUseCase updateRemainingLeaveMinutesUseCase(Ref ref) {
   final repository = ref.watch(userRepositoryProvider);
-  return UpdateLeaveYearlyBalanceUseCase(repository);
+  return UpdateRemainingLeaveMinutesUseCase(repository);
 }
 
 @riverpod

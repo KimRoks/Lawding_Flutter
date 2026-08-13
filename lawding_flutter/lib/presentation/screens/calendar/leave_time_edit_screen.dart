@@ -53,7 +53,6 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
       builder: (ctx) => _LeaveEditSheet(
         initialDays: _editedDays ?? balance?.remainingLeaveDays,
         avgDailyWorkHours: avgHours,
-        usedLeaveMinutes: balance?.usedLeaveMinutes,
         onConfirm: (days) => setState(() => _editedDays = days),
       ),
     );
@@ -67,12 +66,12 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
     final avgHours = (balance?.avgDailyWorkHours ?? 0) > 0
         ? balance!.avgDailyWorkHours
         : 8.0;
-    final totalMinutes = (days * avgHours * 60).round();
+    final remainingMinutes = (days * avgHours * 60).round();
 
     setState(() => _isSubmitting = true);
     final result = await ref
-        .read(updateLeaveYearlyBalanceUseCaseProvider)
-        .execute(totalLeaveMinutes: totalMinutes);
+        .read(updateRemainingLeaveMinutesUseCaseProvider)
+        .execute(remainingLeaveMinutes: remainingMinutes);
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
@@ -322,14 +321,12 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
 class _LeaveEditSheet extends StatefulWidget {
   final double? initialDays;
   final double avgDailyWorkHours;
-  final int? usedLeaveMinutes;
   final void Function(double) onConfirm;
 
   const _LeaveEditSheet({
     required this.initialDays,
     required this.avgDailyWorkHours,
     required this.onConfirm,
-    this.usedLeaveMinutes,
   });
 
   @override
@@ -353,7 +350,8 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
 
   bool get _isValid {
     if (_ctrl.text.isEmpty) return widget.initialDays != null;
-    return double.tryParse(_ctrl.text) != null;
+    final v = double.tryParse(_ctrl.text);
+    return v != null && v > 0;
   }
 
   void _confirm() {
@@ -361,27 +359,6 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
         ? widget.initialDays
         : double.tryParse(_ctrl.text);
     if (parsed == null) return;
-
-    final usedMinutes = widget.usedLeaveMinutes;
-    if (usedMinutes != null) {
-      final inputMinutes = (parsed * widget.avgDailyWorkHours * 60).round();
-      if (inputMinutes > usedMinutes) {
-        showDialog<void>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text('입력값 오류'),
-            content: const Text('입력한 연차가 이미 사용한 연차를 초과합니다.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('확인'),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-    }
 
     widget.onConfirm(parsed);
     Navigator.of(context).pop();
@@ -468,9 +445,7 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                      ],
+                      inputFormatters: [_DecimalInputFormatter()],
                       style: pretendard(
                         weight: 500,
                         size: 15,
@@ -531,5 +506,23 @@ class _LeaveEditSheetState extends State<_LeaveEditSheet> {
           ),
         ),
     );
+  }
+}
+
+class _DecimalInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.isEmpty) return newValue;
+    if (!RegExp(r'^\d*\.?\d{0,3}$').hasMatch(text)) return oldValue;
+    final intPart = text.split('.').first;
+    if (intPart.isNotEmpty) {
+      final intValue = int.tryParse(intPart);
+      if (intValue != null && intValue >= 50) return oldValue;
+    }
+    return newValue;
   }
 }
