@@ -227,11 +227,12 @@ class _AuthInterceptor extends Interceptor {
     }
 
     if (refreshToken == null) {
-      debugPrint('[Auth] refreshToken 없음 → 토큰 삭제 → 로그아웃');
+      debugPrint('[Auth] refreshToken 없음 → 토큰 삭제');
       try {
         await _authRepository.clearTokens();
       } catch (_) {}
-      _authRepository.notifySessionExpired();
+      // notifySessionExpired()는 reissue 실패(400/401/403)에서만 발사.
+      // refreshToken 자체가 없는 경우는 401을 caller에게 돌려보내 화면별로 처리.
       completer.complete(null);
       _isRefreshing = false;
       _refreshCompleter = null;
