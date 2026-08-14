@@ -35,11 +35,11 @@ class UserMeResponse {
     return UserMeResponse(
       user: UserProfile(
         id: u['id'] as int,
-        username: u['username'] as String,
-        email: u['email'] as String,
-        provider: u['provider'] as String,
-        nickname: u['nickname'] as String,
-        onboardingCompleted: u['onboardingCompleted'] as bool,
+        username: u['username'] as String? ?? '',
+        email: u['email'] as String? ?? '',
+        provider: u['provider'] as String? ?? '',
+        nickname: u['nickname'] as String? ?? '',
+        onboardingCompleted: u['onboardingCompleted'] as bool? ?? false,
         deleted: u['deleted'] as bool? ?? false,
       ),
       leavePolicy: LeavePolicy(

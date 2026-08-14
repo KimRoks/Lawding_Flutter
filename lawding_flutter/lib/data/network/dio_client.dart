@@ -226,6 +226,8 @@ class _AuthInterceptor extends Interceptor {
 
     debugPrint('[Auth] refreshToken 존재 → reissue 시도');
 
+    // reissue 전용 try-catch: 여기서 나오는 예외만 토큰 만료 처리
+    String? newAccessToken;
     try {
       // 인터셉터 없는 별도 Dio로 reissue 호출 → 무한루프 방지
       final response = await _reissueDio.post(
@@ -239,7 +241,7 @@ class _AuthInterceptor extends Interceptor {
           ? body['data'] as Map
           : body as Map;
 
-      final newAccessToken = payload['accessToken'] as String;
+      newAccessToken = payload['accessToken'] as String;
       final newRefreshToken = payload['refreshToken'] as String;
 
       await _authRepository.saveTokens(
@@ -248,12 +250,7 @@ class _AuthInterceptor extends Interceptor {
       );
 
       debugPrint('[Auth] 토큰 갱신 성공 → 원본 요청 재시도: ${err.requestOptions.path}');
-
       completer.complete(newAccessToken);
-      // 원본 요청 헤더에 새 토큰 적용 후 재시도
-      err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-      final retryResponse = await _dio.fetch(err.requestOptions);
-      return handler.resolve(retryResponse);
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       // 400: 서버가 refreshToken 만료/무효 시 반환하는 코드 포함
@@ -274,6 +271,16 @@ class _AuthInterceptor extends Interceptor {
     } finally {
       _isRefreshing = false;
       _refreshCompleter = null;
+    }
+
+    // 원본 요청 retry — reissue try-catch 밖에서 실행하여 retry 오류가
+    // reissue 오류 핸들러를 트리거하지 않도록 분리
+    err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+    try {
+      final retryResponse = await _dio.fetch(err.requestOptions);
+      return handler.resolve(retryResponse);
+    } on DioException catch (e) {
+      return handler.next(e);
     }
   }
 }
