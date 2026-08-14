@@ -378,7 +378,7 @@ class AnalyticsService {
   Future<void> logLoginSucceeded({required bool onboardingCompleted}) async {
     await _analytics.logEvent(
       name: 'login_succeeded',
-      parameters: {'onboarding_completed': onboardingCompleted},
+      parameters: {'onboarding_completed': onboardingCompleted ? 1 : 0},
     );
   }
 
@@ -404,7 +404,7 @@ class AnalyticsService {
   Future<void> logUserInfoAllTermsToggled({required bool agreed}) async {
     await _analytics.logEvent(
       name: 'user_info_all_terms_toggled',
-      parameters: {'agreed': agreed},
+      parameters: {'agreed': agreed ? 1 : 0},
     );
   }
 
@@ -415,7 +415,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'user_info_term_toggled',
-      parameters: {'term_index': termIndex, 'agreed': agreed},
+      parameters: {'term_index': termIndex, 'agreed': agreed ? 1 : 0},
     );
   }
 
@@ -450,7 +450,7 @@ class AnalyticsService {
   Future<void> logBasicInfoScreenViewed({required bool isEditMode}) async {
     await _analytics.logEvent(
       name: 'basic_info_screen_viewed',
-      parameters: {'is_edit_mode': isEditMode},
+      parameters: {'is_edit_mode': isEditMode ? 1 : 0},
     );
   }
 
@@ -474,7 +474,7 @@ class AnalyticsService {
   Future<void> logBasicInfoSubmitSucceeded({required bool isEditMode}) async {
     await _analytics.logEvent(
       name: 'basic_info_submit_succeeded',
-      parameters: {'is_edit_mode': isEditMode},
+      parameters: {'is_edit_mode': isEditMode ? 1 : 0},
     );
   }
 
@@ -586,7 +586,7 @@ class AnalyticsService {
   Future<void> logCalendarEventFormScreenViewed({required bool isEdit}) async {
     await _analytics.logEvent(
       name: 'calendar_event_form_screen_viewed',
-      parameters: {'is_edit': isEdit},
+      parameters: {'is_edit': isEdit ? 1 : 0},
     );
   }
 
@@ -594,7 +594,7 @@ class AnalyticsService {
   Future<void> logCalendarEventDateSelected({required bool isRange}) async {
     await _analytics.logEvent(
       name: 'calendar_event_date_selected',
-      parameters: {'is_range': isRange},
+      parameters: {'is_range': isRange ? 1 : 0},
     );
   }
 
@@ -610,7 +610,7 @@ class AnalyticsService {
   Future<void> logCalendarEventLeaveTypeToggled({required bool isLeaveEvent}) async {
     await _analytics.logEvent(
       name: 'calendar_event_leave_type_toggled',
-      parameters: {'is_leave_event': isLeaveEvent},
+      parameters: {'is_leave_event': isLeaveEvent ? 1 : 0},
     );
   }
 
@@ -618,7 +618,7 @@ class AnalyticsService {
   Future<void> logCalendarEventAllDayToggled({required bool isAllDay}) async {
     await _analytics.logEvent(
       name: 'calendar_event_allday_toggled',
-      parameters: {'is_all_day': isAllDay},
+      parameters: {'is_all_day': isAllDay ? 1 : 0},
     );
   }
 
@@ -626,7 +626,7 @@ class AnalyticsService {
   Future<void> logCalendarEventSubmitTapped({required bool isEdit}) async {
     await _analytics.logEvent(
       name: 'calendar_event_submit_tapped',
-      parameters: {'is_edit': isEdit},
+      parameters: {'is_edit': isEdit ? 1 : 0},
     );
   }
 
@@ -646,7 +646,7 @@ class AnalyticsService {
   }) async {
     await _analytics.logEvent(
       name: 'calendar_event_registered',
-      parameters: {'is_all_day': isAllDay, 'is_range': isRange},
+      parameters: {'is_all_day': isAllDay ? 1 : 0, 'is_range': isRange ? 1 : 0},
     );
   }
 
