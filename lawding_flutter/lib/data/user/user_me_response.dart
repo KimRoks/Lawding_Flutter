@@ -16,25 +16,42 @@ class UserMeResponse {
   });
 
   factory UserMeResponse.fromJson(Map<String, dynamic> json) {
-    final u = json['user'] as Map<String, dynamic>;
-    final p = json['leavePolicy'] as Map<String, dynamic>;
-    final b = json['leaveBalance'] as Map<String, dynamic>;
+    // 최상위 필드가 null이면 명시적 예외 → user_repository_impl catch(e)가 잡아 Failure 반환
+    final rawUser = json['user'];
+    final rawPolicy = json['leavePolicy'];
+    final rawBalance = json['leaveBalance'];
+    if (rawUser is! Map<String, dynamic>) {
+      throw const FormatException('user_me: user field is null or invalid');
+    }
+    if (rawPolicy is! Map<String, dynamic>) {
+      throw const FormatException('user_me: leavePolicy field is null or invalid');
+    }
+    if (rawBalance is! Map<String, dynamic>) {
+      throw const FormatException('user_me: leaveBalance field is null or invalid');
+    }
+    final u = rawUser;
+    final p = rawPolicy;
+    final b = rawBalance;
 
-    Map<String, WorkTimeSlot> parsePattern(Map<String, dynamic> raw) {
+    Map<String, WorkTimeSlot> parsePattern(Object? raw) {
+      if (raw is! Map<String, dynamic>) return const {};
       return raw.map(
-        (day, slot) => MapEntry(
-          day,
-          WorkTimeSlot(
-            start: (slot as Map<String, dynamic>)['start'] as String,
-            end: slot['end'] as String,
-          ),
-        ),
+        (day, slot) {
+          final s = slot is Map<String, dynamic> ? slot : const <String, dynamic>{};
+          return MapEntry(
+            day,
+            WorkTimeSlot(
+              start: s['start'] as String? ?? '00:00',
+              end: s['end'] as String? ?? '00:00',
+            ),
+          );
+        },
       );
     }
 
     return UserMeResponse(
       user: UserProfile(
-        id: u['id'] as int,
+        id: u['id'] as int? ?? 0,
         username: u['username'] as String? ?? '',
         email: u['email'] as String? ?? '',
         provider: u['provider'] as String? ?? '',
@@ -43,20 +60,20 @@ class UserMeResponse {
         deleted: u['deleted'] as bool? ?? false,
       ),
       leavePolicy: LeavePolicy(
-        userId: p['userId'] as int,
-        acceptedAt: p['acceptedAt'] as String,
-        leaveAccrualBasis: p['leaveAccrualBasis'] as int,
-        hireDate: p['hireDate'] as String,
+        userId: p['userId'] as int? ?? 0,
+        acceptedAt: p['acceptedAt'] as String? ?? '',
+        leaveAccrualBasis: p['leaveAccrualBasis'] as int? ?? 1,
+        hireDate: p['hireDate'] as String? ?? '',
         fiscalYearBaseMonth: p['fiscalYearBaseMonth'] as int?,
-        companySize: p['companySize'] as int,
-        workPattern: parsePattern(p['workPattern'] as Map<String, dynamic>),
-        breakTimePattern: parsePattern(p['breakTimePattern'] as Map<String, dynamic>),
+        companySize: p['companySize'] as int? ?? 0,
+        workPattern: parsePattern(p['workPattern']),
+        breakTimePattern: parsePattern(p['breakTimePattern']),
       ),
       leaveBalance: LeaveYearlyBalance(
-        usedLeaveMinutes: b['usedLeaveMinutes'] as int,
-        remainingLeaveMinutes: b['remainingLeaveMinutes'] as int,
-        totalLeaveMinutes: b['totalLeaveMinutes'] as int,
-        avgDailyWorkHours: (b['avgDailyWorkHours'] as num).toDouble(),
+        usedLeaveMinutes: b['usedLeaveMinutes'] as int? ?? 0,
+        remainingLeaveMinutes: b['remainingLeaveMinutes'] as int? ?? 0,
+        totalLeaveMinutes: b['totalLeaveMinutes'] as int? ?? 0,
+        avgDailyWorkHours: (b['avgDailyWorkHours'] as num?)?.toDouble() ?? 8.0,
       ),
     );
   }
