@@ -23,6 +23,8 @@ class LeavePolicyRepositoryImpl implements LeavePolicyRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 
@@ -36,6 +38,8 @@ class LeavePolicyRepositoryImpl implements LeavePolicyRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 

@@ -29,6 +29,8 @@ class HolidayRepositoryImpl implements HolidayRepository {
       return Success(apiResponse.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

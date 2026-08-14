@@ -1329,7 +1329,7 @@ class _AddCalendarEventScreenState
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submit,
+        onPressed: (_isSubmitting || (_isLeaveEvent && _leavePolicy == null)) ? null : _submit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandColor,
           foregroundColor: Colors.white,

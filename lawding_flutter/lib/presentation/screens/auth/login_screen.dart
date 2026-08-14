@@ -38,7 +38,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _linkSub = _appLinks.uriLinkStream.listen((uri) {
       if (uri.scheme == 'ggimiowner.annualleavecalculator' &&
           uri.host == 'oauth') {
-        debugPrint('[OAuth] 콜백 수신 - 전체 파라미터: ${uri.queryParameters}');
         _handleOAuthCallback(uri.queryParameters);
       }
     });

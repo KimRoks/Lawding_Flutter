@@ -41,6 +41,8 @@ class LeaveDashboardRepositoryImpl implements LeaveDashboardRepository {
       return Success(dto.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

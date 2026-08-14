@@ -25,6 +25,8 @@ class DictionaryRepositoryImpl implements DictionaryRepository {
       return Success(apiResponse.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 
@@ -43,6 +45,8 @@ class DictionaryRepositoryImpl implements DictionaryRepository {
       return Success(apiResponse.data.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

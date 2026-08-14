@@ -27,6 +27,8 @@ class AppVersionRepositoryImpl implements AppVersionRepository {
       return Success(versionInfo);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

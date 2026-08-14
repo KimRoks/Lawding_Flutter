@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -149,6 +151,10 @@ class _AuthInterceptor extends Interceptor {
   // reissue 전용 Dio — 인터셉터 없이 직접 호출해 무한루프 방지
   late final Dio _reissueDio;
 
+  // 동시 401 처리 시 단일 refresh 보장
+  bool _isRefreshing = false;
+  Completer<String?>? _refreshCompleter;
+
   _AuthInterceptor(this._dio, this._authRepository, {Dio? reissueDio})
       : _reissueDio = reissueDio ??
             Dio(
@@ -176,7 +182,8 @@ class _AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
-  /// 401 응답 시 refreshToken으로 토큰 갱신 후 원본 요청 재시도
+  /// 401 응답 시 refreshToken으로 토큰 갱신 후 원본 요청 재시도.
+  /// 동시 401이 여러 개 와도 refresh는 한 번만 수행 (single-flight).
   @override
   Future<void> onError(
     DioException err,
@@ -186,12 +193,34 @@ class _AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    // 이미 refresh 중이면 완료 대기 후 새 토큰으로 재시도
+    if (_isRefreshing) {
+      final newToken = await _refreshCompleter!.future;
+      if (newToken != null) {
+        err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+        try {
+          final retryResponse = await _dio.fetch(err.requestOptions);
+          return handler.resolve(retryResponse);
+        } on DioException catch (e) {
+          return handler.next(e);
+        }
+      }
+      return handler.next(err);
+    }
+
+    _isRefreshing = true;
+    final completer = Completer<String?>();
+    _refreshCompleter = completer;
+
     debugPrint('[Auth] 401 감지 → path: ${err.requestOptions.path}');
 
     final refreshToken = await _authRepository.getRefreshToken();
     if (refreshToken == null) {
       debugPrint('[Auth] refreshToken 없음 → 토큰 삭제 → 로그아웃');
       await _authRepository.clearTokens();
+      completer.complete(null);
+      _isRefreshing = false;
+      _refreshCompleter = null;
       return handler.next(err);
     }
 
@@ -220,6 +249,7 @@ class _AuthInterceptor extends Interceptor {
 
       debugPrint('[Auth] 토큰 갱신 성공 → 원본 요청 재시도: ${err.requestOptions.path}');
 
+      completer.complete(newAccessToken);
       // 원본 요청 헤더에 새 토큰 적용 후 재시도
       err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
       final retryResponse = await _dio.fetch(err.requestOptions);
@@ -235,10 +265,15 @@ class _AuthInterceptor extends Interceptor {
         // 네트워크 순단·타임아웃 등 일시적 오류 → 토큰 유지
         debugPrint('[Auth] reissue 일시적 실패 (status: $status, type: ${e.type}) → 토큰 유지');
       }
+      completer.complete(null);
       return handler.next(err);
     } catch (e) {
       debugPrint('[Auth] reissue 예외 (${e.runtimeType}: $e) → 토큰 유지');
+      completer.complete(null);
       return handler.next(err);
+    } finally {
+      _isRefreshing = false;
+      _refreshCompleter = null;
     }
   }
 }

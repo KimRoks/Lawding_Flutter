@@ -26,6 +26,8 @@ class UserRepositoryImpl implements UserRepository {
       return Success(dto.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 
@@ -43,6 +45,8 @@ class UserRepositoryImpl implements UserRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 
@@ -57,6 +61,8 @@ class UserRepositoryImpl implements UserRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 
@@ -74,6 +80,8 @@ class UserRepositoryImpl implements UserRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

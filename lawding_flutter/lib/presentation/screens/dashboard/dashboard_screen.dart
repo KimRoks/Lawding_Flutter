@@ -23,6 +23,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   LeaveDashboard? _dashboard;
   bool _isLoading = true;
+  int _fetchGeneration = 0;
 
   @override
   void initState() {
@@ -32,8 +33,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> _fetchDashboard() async {
+    final gen = ++_fetchGeneration;
     final result = await ref.read(getLeaveDashboardUseCaseProvider).execute();
-    if (!mounted) return;
+    if (!mounted || gen != _fetchGeneration) return;
     setState(() {
       _isLoading = false;
       if (result case Success(:final value)) _dashboard = value;

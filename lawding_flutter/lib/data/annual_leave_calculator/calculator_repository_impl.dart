@@ -42,6 +42,8 @@ class AnnualLeaveRepositoryImpl implements AnnualLeaveRepository {
       return Success(calculatorResponse.toDomain());
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }

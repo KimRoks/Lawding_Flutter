@@ -74,6 +74,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   List<CalendarHoliday> _holidays = _mockHolidays;
   List<CalendarEvent> _events = [];
   UserMe? _userMe;
+  int _fetchGeneration = 0;
 
   @override
   void initState() {
@@ -130,12 +131,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Future<void> _fetchCalendarEvents(int year, int month) async {
+    final gen = ++_fetchGeneration;
     final result = await ref
         .read(getCalendarEventsUseCaseProvider)
         .execute(year: year, month: month);
     switch (result) {
       case Success(:final value):
-        if (!mounted) return;
+        if (!mounted || gen != _fetchGeneration) return;
         setState(() {
           _events = value.map(_toCalendarEvent).toList();
         });
@@ -848,7 +850,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     // 연차 시간 계산
     final annualLeaveMinutes = _annualLeaveMinutes(events);
     final String? annualLeaveText;
-    if (annualLeaveMinutes > 0) {
+    if (annualLeaveMinutes == -1) {
+      annualLeaveText = '종일';
+    } else if (annualLeaveMinutes > 0) {
       final h = annualLeaveMinutes ~/ 60;
       final m = annualLeaveMinutes % 60;
       annualLeaveText = m == 0 ? '$h시간' : '$h시간 $m분';
@@ -891,6 +895,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         .where((e) => e.type == CalendarEventType.annualLeave)
         .toList();
     if (annuals.isEmpty) return 0;
+    if (annuals.any((e) => e.label == '종일')) return -1;
     int total = 0;
     for (final e in annuals) {
       total += _minutesFromLabel(e.label);
@@ -910,10 +915,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildAnnualLeaveBadge(String label) {
-    final minutes = _minutesFromLabel(label);
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    final String text = m == 0 ? '연차($h시간)' : '연차($h시간 $m분)';
+    final String text;
+    if (label == '종일') {
+      text = '연차(종일)';
+    } else {
+      final minutes = _minutesFromLabel(label);
+      final h = minutes ~/ 60;
+      final m = minutes % 60;
+      text = m == 0 ? '연차($h시간)' : '연차($h시간 $m분)';
+    }
     return Container(
       height: 14,
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -995,6 +1005,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// isFocused=true: 내용에 따라 높이가 변하는 확장 카드
   Future<void> _showEventOptions(CalendarEvent event) async {
+    if (event.id == null) return;
     final eventType = event.type == CalendarEventType.annualLeave
         ? 'annual_leave'
         : 'other_leave';

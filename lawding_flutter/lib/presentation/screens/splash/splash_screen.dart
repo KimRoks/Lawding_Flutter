@@ -91,10 +91,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _initializeApp() async {
     try {
       // 저장된 토큰 확인 및 로그인 상태 복원
-      final authRepo = ref.read(authRepositoryProvider);
-      final accessToken = await authRepo.getAccessToken();
-      debugPrint('[Splash] accessToken: $accessToken');
-
       await _restoreAuthState();
 
       // 이전 세션에서 크래시가 발생했는지 확인

@@ -25,6 +25,8 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
       return const Success(null);
     } on NetworkError catch (error) {
       return Failure(error);
+    } catch (e) {
+      return Failure(ServerError(message: e.toString()));
     }
   }
 }
