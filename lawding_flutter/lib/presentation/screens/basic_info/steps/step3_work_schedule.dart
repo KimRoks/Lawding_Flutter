@@ -71,14 +71,37 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
 
   bool get _isValid {
     if (_selectedDays.isEmpty) return false;
-    if (!_unifyWorkTime) {
-      for (final day in _selectedDays) {
-        if (!_perWorkStart.containsKey(day) || !_perWorkEnd.containsKey(day)) {
-          return false;
-        }
+    for (final day in _selectedDays) {
+      if (!_unifyWorkTime &&
+          (!_perWorkStart.containsKey(day) || !_perWorkEnd.containsKey(day))) {
+        return false;
+      }
+      if (_isEndInvalid(day: day, isWork: true)) return false;
+      if (!_daysWithoutBreak.contains(day) &&
+          _isEndInvalid(day: day, isWork: false)) {
+        return false;
       }
     }
     return true;
+  }
+
+  // 시작 >= 마감인 경우 마감 필드를 무효 처리
+  bool _isEndInvalid({required int day, required bool isWork}) {
+    if (isWork) {
+      if (!_unifyWorkTime &&
+          (!_perWorkStart.containsKey(day) || !_perWorkEnd.containsKey(day))) {
+        return false;
+      }
+    } else {
+      if (_daysWithoutBreak.contains(day)) return false;
+      if (!_unifyBreakTime &&
+          (!_perBreakStart.containsKey(day) || !_perBreakEnd.containsKey(day))) {
+        return false;
+      }
+    }
+    final s = _getTime(day: day, isStart: true, isWork: isWork);
+    final e = _getTime(day: day, isStart: false, isWork: isWork);
+    return s.hour * 60 + s.minute >= e.hour * 60 + e.minute;
   }
 
   void _notify() {
@@ -170,136 +193,37 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
     _notify();
   }
 
-  /// 상대방 시간이 이미 설정되어 있는지 여부 (per-day 모드에서 미설정이면 검사 스킵)
-  bool _isCounterpartSet({
-    required int day,
-    required bool isStart,
-    required bool isWork,
-  }) {
-    if (isWork) {
-      if (_unifyWorkTime) return true;
-      return isStart
-          ? _perWorkEnd.containsKey(day)
-          : _perWorkStart.containsKey(day);
-    } else {
-      if (_daysWithoutBreak.contains(day)) return false;
-      if (_unifyBreakTime) return true;
-      return isStart
-          ? _perBreakEnd.containsKey(day)
-          : _perBreakStart.containsKey(day);
-    }
-  }
-
-  void _showTimeError(String message) {
-    showCupertinoDialog<void>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('시간 설정 오류'),
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('확인'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _onTimeTap({
     required int day,
     required bool isStart,
     required bool isWork,
   }) async {
-    TimeOfDay? minTime;
-    TimeOfDay? maxTime;
-
-    if (_isCounterpartSet(day: day, isStart: isStart, isWork: isWork)) {
-      final counterpart = _getTime(day: day, isStart: !isStart, isWork: isWork);
-      if (isStart) {
-        maxTime = counterpart; // 시작 시간 < 마감 시간
-      } else {
-        minTime = counterpart; // 마감 시간 > 시작 시간
-      }
-    }
-
     final picked = await _showTimePicker(
       _getTime(day: day, isStart: isStart, isWork: isWork),
-      minTime: minTime,
-      maxTime: maxTime,
     );
     if (picked == null || !mounted) return;
 
-    // 혹시라도 통과된 경우 최종 방어
-    if (minTime != null) {
-      final pickedMin = picked.hour * 60 + picked.minute;
-      final minMin = minTime.hour * 60 + minTime.minute;
-      if (pickedMin <= minMin) {
-        _showTimeError('마감 시간은 시작 시간보다 늦은 시간이어야 합니다.');
-        return;
-      }
-    }
-    if (maxTime != null) {
-      final pickedMin = picked.hour * 60 + picked.minute;
-      final maxMin = maxTime.hour * 60 + maxTime.minute;
-      if (pickedMin >= maxMin) {
-        _showTimeError('시작 시간은 마감 시간보다 이른 시간이어야 합니다.');
-        return;
-      }
-    }
-
     setState(() {
-      final unified = isWork ? _unifyWorkTime : _unifyBreakTime;
-      if (unified) {
-        if (isWork) {
-          if (isStart) {
-            _workStart = picked;
-          } else {
-            _workEnd = picked;
-          }
+      if (isWork) {
+        if (_unifyWorkTime) {
+          if (isStart) { _workStart = picked; } else { _workEnd = picked; }
         } else {
-          if (isStart) {
-            _breakStart = picked;
-          } else {
-            _breakEnd = picked;
-          }
+          if (isStart) { _perWorkStart[day] = picked; } else { _perWorkEnd[day] = picked; }
         }
       } else {
-        if (isWork) {
-          if (isStart) {
-            _perWorkStart[day] = picked;
-          } else {
-            _perWorkEnd[day] = picked;
-          }
+        if (_unifyBreakTime) {
+          if (isStart) { _breakStart = picked; } else { _breakEnd = picked; }
         } else {
-          if (isStart) {
-            _perBreakStart[day] = picked;
-          } else {
-            _perBreakEnd[day] = picked;
-          }
+          if (isStart) { _perBreakStart[day] = picked; } else { _perBreakEnd[day] = picked; }
         }
       }
     });
     _notify();
   }
 
-  Future<TimeOfDay?> _showTimePicker(
-    TimeOfDay initial, {
-    TimeOfDay? minTime,
-    TimeOfDay? maxTime,
-  }) async {
-    // 초기값을 범위 안으로 클램핑
-    int clampedTotalMin = initial.hour * 60 + initial.minute;
-    if (minTime != null) {
-      final minMin = minTime.hour * 60 + minTime.minute + 5;
-      if (clampedTotalMin <= minMin - 5) clampedTotalMin = minMin;
-    }
-    if (maxTime != null) {
-      final maxMin = maxTime.hour * 60 + maxTime.minute - 5;
-      if (clampedTotalMin >= maxMin + 5) clampedTotalMin = maxMin;
-    }
-    var tempHour = clampedTotalMin ~/ 60;
-    var tempMinute = (clampedTotalMin % 60 ~/ 5) * 5;
+  Future<TimeOfDay?> _showTimePicker(TimeOfDay initial) async {
+    var tempHour = initial.hour;
+    var tempMinute = (initial.minute ~/ 5) * 5;
 
     return showModalBottomSheet<TimeOfDay>(
       context: context,
@@ -517,12 +441,38 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
                     if (isWork) {
                       _unifyWorkTime = !_unifyWorkTime;
                       if (!_unifyWorkTime) {
-                        _perWorkStart.clear();
-                        _perWorkEnd.clear();
+                        // 통일 → 개별: 현재 통일 시간을 모든 선택 요일에 pre-fill
+                        for (final day in _selectedDays) {
+                          _perWorkStart[day] = _workStart;
+                          _perWorkEnd[day] = _workEnd;
+                        }
+                      } else {
+                        // 개별 → 통일: 월요일(없으면 첫 번째 요일) 기준으로 통일 시간 갱신
+                        final ref = _selectedDays.contains(1)
+                            ? 1
+                            : _sortedDays.first;
+                        _workStart = _perWorkStart[ref] ?? _workStart;
+                        _workEnd = _perWorkEnd[ref] ?? _workEnd;
                       }
                     } else {
                       _unifyBreakTime = !_unifyBreakTime;
-                      if (_unifyBreakTime) _daysWithoutBreak.clear();
+                      if (!_unifyBreakTime) {
+                        // 통일 → 개별: 현재 통일 시간을 모든 선택 요일에 pre-fill
+                        for (final day in _selectedDays) {
+                          if (!_daysWithoutBreak.contains(day)) {
+                            _perBreakStart[day] = _breakStart;
+                            _perBreakEnd[day] = _breakEnd;
+                          }
+                        }
+                      } else {
+                        // 개별 → 통일: 월요일(없으면 첫 번째 요일) 기준으로 통일 시간 갱신
+                        _daysWithoutBreak.clear();
+                        final ref = _selectedDays.contains(1)
+                            ? 1
+                            : _sortedDays.first;
+                        _breakStart = _perBreakStart[ref] ?? _breakStart;
+                        _breakEnd = _perBreakEnd[ref] ?? _breakEnd;
+                      }
                     }
                   });
                   _notify();
@@ -575,6 +525,7 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
       if (i > 0) rows.add(const SizedBox(height: 18));
       final day = days[i];
       final isActive = _isRowActive(day, isWork);
+      final isEndInvalid = isActive && _isEndInvalid(day: day, isWork: isWork);
       final canTapTime = isWork || !_daysWithoutBreak.contains(day);
       rows.add(
         _buildTimeRow(
@@ -582,6 +533,7 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
           start: _getTime(day: day, isStart: true, isWork: isWork),
           end: _getTime(day: day, isStart: false, isWork: isWork),
           isActive: isActive,
+          isEndInvalid: isEndInvalid,
           onStartTap: canTapTime
               ? () => _onTimeTap(day: day, isStart: true, isWork: isWork)
               : null,
@@ -600,10 +552,13 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
     required TimeOfDay start,
     required TimeOfDay end,
     required bool isActive,
+    required bool isEndInvalid,
     VoidCallback? onStartTap,
     VoidCallback? onEndTap,
     VoidCallback? onDayTap,
   }) {
+    // 마감 필드: 시작 >= 마감이면 회색으로 표시 (탭은 가능)
+    final endActive = isActive && !isEndInvalid;
     return Row(
       children: [
         GestureDetector(
@@ -682,9 +637,9 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
               duration: const Duration(milliseconds: 200),
               height: 35,
               decoration: BoxDecoration(
-                color: isActive ? const Color(0xFFF3FBFF) : Colors.white,
+                color: endActive ? const Color(0xFFF3FBFF) : Colors.white,
                 border: Border.all(
-                  color: isActive
+                  color: endActive
                       ? AppColors.brandColor
                       : const Color(0xFFE1E1E1),
                 ),
@@ -696,7 +651,7 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
                 style: pretendard(
                   weight: 500,
                   size: 15,
-                  color: isActive
+                  color: endActive
                       ? AppColors.brandColor
                       : const Color(0xFF999999),
                 ),

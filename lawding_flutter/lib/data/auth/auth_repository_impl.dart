@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,6 +8,21 @@ import '../../domain/repositories/auth_repository.dart';
 class AuthRepositoryImpl implements AuthRepository {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+
+  final StreamController<void> _sessionExpiredController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onSessionExpired => _sessionExpiredController.stream;
+
+  @override
+  void notifySessionExpired() {
+    _sessionExpiredController.add(null);
+  }
+
+  void dispose() {
+    _sessionExpiredController.close();
+  }
 
   // iOS: Keychain / Android: EncryptedSharedPreferences
   final FlutterSecureStorage _storage = const FlutterSecureStorage(
@@ -22,10 +39,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-    ]);
+    // refreshToken 먼저 저장: crash 시 new_access + old_refresh 불일치 방지
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    await _storage.write(key: _accessTokenKey, value: accessToken);
     debugPrint('[Auth] 토큰 저장 완료');
   }
 
@@ -41,10 +57,8 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> clearTokens() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _refreshTokenKey),
-    ]);
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
     debugPrint('[Auth] 토큰 삭제 완료');
   }
 

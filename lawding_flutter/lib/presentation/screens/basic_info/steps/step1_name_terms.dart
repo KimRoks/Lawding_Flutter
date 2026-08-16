@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../infrastructure/services/analytics_service.dart';
 import '../../../core/design_system.dart';
+import '../../webview/webview_screen.dart';
 
 class Step1Data {
   final String nickname;
@@ -27,6 +29,7 @@ class Step1NameTerms extends StatefulWidget {
 class _Step1NameTermsState extends State<Step1NameTerms> {
   final _nameController = TextEditingController();
   final _nameFocus = FocusNode();
+  final _analytics = AnalyticsService();
   bool _allAgreed = false;
   bool _term1Agreed = false;
   bool _term2Agreed = false;
@@ -45,6 +48,18 @@ class _Step1NameTermsState extends State<Step1NameTerms> {
     _nameController.dispose();
     _nameFocus.dispose();
     super.dispose();
+  }
+
+  void _openTerms() {
+    const url =
+        'https://maze-palladium-edf.notion.site/Lawding-273c4b24d2e2805f99f5f0eba1645a96?source=copy_link';
+    _analytics.logExternalLinkClicked('terms', url);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const WebViewScreen(url: url, title: '이용약관'),
+      ),
+    );
   }
 
   void _notify() {
@@ -243,14 +258,14 @@ class _Step1NameTermsState extends State<Step1NameTerms> {
             label: '(필수) 이용 약관 동의',
             checked: _term1Agreed,
             onToggle: () => _updateTerm(0, !_term1Agreed),
-            onDetail: () {}, // TODO: 약관 상세 연결
+            onDetail: _openTerms,
           ),
           const SizedBox(height: 19),
           _TermRow(
             label: '(필수) 이용 약관 및 개인정보취급방침',
             checked: _term2Agreed,
             onToggle: () => _updateTerm(1, !_term2Agreed),
-            onDetail: () {}, // TODO: 개인정보취급방침 상세 연결
+            onDetail: _openTerms,
           ),
         ],
       ),

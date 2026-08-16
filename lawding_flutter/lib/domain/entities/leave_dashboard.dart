@@ -11,7 +11,7 @@ class RecentLeaveUsage {
 }
 
 class LeaveDashboard {
-  final int availableLeaveMinutes;
+  final int remainingLeaveMinutes;
   final double avgDailyWorkHours;
   final int totalLeaveMinutes;
   final String nextLeaveAccrualDate; // "YYYY-MM-DD"
@@ -21,7 +21,7 @@ class LeaveDashboard {
   final List<RecentLeaveUsage> recentLeaveUsages;
 
   const LeaveDashboard({
-    required this.availableLeaveMinutes,
+    required this.remainingLeaveMinutes,
     required this.avgDailyWorkHours,
     required this.totalLeaveMinutes,
     required this.nextLeaveAccrualDate,

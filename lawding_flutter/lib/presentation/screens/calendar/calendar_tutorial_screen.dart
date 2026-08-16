@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 
 class CalendarTutorialScreen extends StatefulWidget {
@@ -85,6 +86,7 @@ class _CalendarTutorialScreenState extends State<CalendarTutorialScreen>
         );
 
     _entranceController.forward();
+    AnalyticsService().logTutorialScreenViewed();
   }
 
   @override
@@ -103,6 +105,7 @@ class _CalendarTutorialScreenState extends State<CalendarTutorialScreen>
 
   void _goToNext() {
     if (_currentPage == _pages.length - 1) {
+      AnalyticsService().logTutorialFinished();
       widget.onFinished();
     } else {
       _pageController.nextPage(
@@ -164,8 +167,10 @@ class _CalendarTutorialScreenState extends State<CalendarTutorialScreen>
                                 PageView.builder(
                                   controller: _pageController,
                                   itemCount: _pages.length,
-                                  onPageChanged: (page) =>
-                                      setState(() => _currentPage = page),
+                                  onPageChanged: (page) {
+                                    setState(() => _currentPage = page);
+                                    AnalyticsService().logTutorialPageChanged(page);
+                                  },
                                   itemBuilder: (context, index) {
                                     return Align(
                                       alignment: Alignment.topCenter,

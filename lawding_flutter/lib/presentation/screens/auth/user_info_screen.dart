@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
+import '../webview/webview_screen.dart';
 
 class UserInfoScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -26,6 +28,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   void initState() {
     super.initState();
     _nameFocus.addListener(() => setState(() {}));
+    AnalyticsService().logUserInfoScreenViewed();
   }
 
   @override
@@ -41,6 +44,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       _term1Agreed = value;
       _term2Agreed = value;
     });
+    AnalyticsService().logUserInfoAllTermsToggled(agreed: value);
+    if (value) AnalyticsService().logTermsAgreed();
+  }
+
+  void _openTerms() {
+    const url = 'https://maze-palladium-edf.notion.site/Lawding-273c4b24d2e2805f99f5f0eba1645a96?source=copy_link';
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const WebViewScreen(url: url, title: '이용약관'),
+      ),
+    );
   }
 
   void _updateTerm(int index, bool value) {
@@ -52,6 +67,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       }
       _allAgreed = _term1Agreed && _term2Agreed;
     });
+    AnalyticsService().logUserInfoTermToggled(termIndex: index, agreed: value);
+    if (_term1Agreed && _term2Agreed) AnalyticsService().logTermsAgreed();
   }
 
   @override
@@ -318,14 +335,17 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             label: '(필수) 이용 약관 동의',
             checked: _term1Agreed,
             onToggle: () => _updateTerm(0, !_term1Agreed),
-            onDetail: () {}, // TODO: 약관 상세 연결
+            onDetail: _openTerms,
           ),
           const SizedBox(height: 19),
           _TermRow(
             label: '(필수) 이용 약관 및 개인정보취급방침',
             checked: _term2Agreed,
             onToggle: () => _updateTerm(1, !_term2Agreed),
-            onDetail: () {}, // TODO: 개인정보취급방침 상세 연결
+            onDetail: () {
+              AnalyticsService().logPrivacyPolicyViewed();
+              _openTerms();
+            },
           ),
         ],
       ),
@@ -335,7 +355,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   Widget _buildNextButton() {
     final enabled = _canProceed;
     return GestureDetector(
-      onTap: enabled ? widget.onNext : null,
+      onTap: enabled ? () {
+        AnalyticsService().logUserInfoNextTapped();
+        widget.onNext();
+      } : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,

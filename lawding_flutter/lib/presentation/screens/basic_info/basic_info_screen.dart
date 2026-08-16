@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_policy_request.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -17,12 +18,10 @@ import 'steps/step6_used_leave.dart';
 
 class BasicInfoScreen extends ConsumerStatefulWidget {
   final VoidCallback onCompleted;
-  final bool isEditMode; // true: PUT(수정), false: POST(최초 등록)
 
   const BasicInfoScreen({
     super.key,
     required this.onCompleted,
-    this.isEditMode = false,
   });
 
   @override
@@ -71,8 +70,28 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
     setState(() => _totalDays = days);
   }
 
+  void _showValidationAlert() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('입력 확인'),
+        content: const Text('모든 항목을 올바르게 입력해주세요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onNext() async {
-    if (!_canProceed || _isSubmitting) return;
+    if (_isSubmitting) return;
+    if (!_canProceed) {
+      _showValidationAlert();
+      return;
+    }
     if (_currentStep < _totalSteps - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -89,17 +108,17 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final result = widget.isEditMode
-        ? await ref.read(updateLeavePolicyUseCaseProvider).execute(request)
-        : await ref.read(submitLeavePolicyUseCaseProvider).execute(request);
+    final result = await ref.read(submitLeavePolicyUseCaseProvider).execute(request);
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     switch (result) {
       case Success():
+        AnalyticsService().logBasicInfoSubmitSucceeded(isEditMode: false);
         widget.onCompleted();
       case Failure(:final error):
+        AnalyticsService().logBasicInfoSubmitFailed(error.toString());
         debugPrint('[LeavePolicySubmit] 실패: $error');
     }
   }
@@ -167,6 +186,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
   }
 
   void _onBack() {
+    AnalyticsService().logBasicInfoBackTapped(_currentStep);
     if (_currentStep > 0) {
       _pageController.previousPage(
         duration: const Duration(milliseconds: 300),
@@ -175,6 +195,12 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
     } else {
       Navigator.of(context, rootNavigator: true).pop();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService().logBasicInfoScreenViewed(isEditMode: false);
   }
 
   @override
@@ -198,10 +224,13 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() {
-                  _currentStep = i;
-                  _canProceed = _stepValidity[i] ?? false;
-                }),
+                onPageChanged: (i) {
+                  setState(() {
+                    _currentStep = i;
+                    _canProceed = _stepValidity[i] ?? false;
+                  });
+                  AnalyticsService().logBasicInfoStepViewed(i);
+                },
                 children: [
                   Step1NameTerms(
                     onValidChanged: (v) => _setStepValid(0, v),
@@ -275,7 +304,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
   Widget _buildNextButton() {
     return GestureDetector(
-      onTap: (_canProceed && !_isSubmitting) ? _onNext : null,
+      onTap: _isSubmitting ? null : _onNext,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,

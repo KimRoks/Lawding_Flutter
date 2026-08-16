@@ -166,18 +166,13 @@ void main() {
         refreshToken: 'valid_refresh_token',
       );
 
-      // Given: 원본 API 첫 요청 → 401
-      mockDioHelper.mockError(
+      // Given: 첫 요청 → 401, 재시도 → 200 (순서대로 소비)
+      mockDioHelper.mockGetSequential(
         path: '/v1/test',
-        method: 'GET',
-        statusCode: 401,
-        errorMessage: 'Unauthorized',
-      );
-      // Given: 재시도 요청 → 200
-      mockDioHelper.mockGet(
-        path: '/v1/test',
-        responseData: {'result': 'ok'},
-        statusCode: 200,
+        responses: [
+          (401, {'message': 'Unauthorized', 'statusCode': 401}),
+          (200, {'result': 'ok'}),
+        ],
       );
 
       // Given: reissue → 새 토큰 발급
@@ -229,6 +224,42 @@ void main() {
         method: 'POST',
         statusCode: 401,
         errorMessage: 'Refresh token expired',
+      );
+
+      // When / Then: UnauthorizedError throw
+      await expectLater(
+        () => authDioClient.request(
+          const ApiRequest(path: '/v1/test', method: HttpMethod.get),
+        ),
+        throwsA(isA<UnauthorizedError>()),
+      );
+
+      // Then: 토큰 삭제됨
+      expect(await authRepository.getAccessToken(), isNull);
+      expect(await authRepository.getRefreshToken(), isNull);
+    });
+
+    test('401 응답 시 reissue가 400 반환하면 토큰 삭제', () async {
+      // Given: 만료된 토큰
+      await authRepository.saveTokens(
+        accessToken: 'expired_access_token',
+        refreshToken: 'expired_refresh_token',
+      );
+
+      // Given: 원본 API → 401
+      mockDioHelper.mockError(
+        path: '/v1/test',
+        method: 'GET',
+        statusCode: 401,
+        errorMessage: 'Unauthorized',
+      );
+
+      // Given: reissue → 400 (서버가 refreshToken 무효 시 반환하는 코드)
+      reissueMockHelper.mockError(
+        path: '/v1/auth/reissue',
+        method: 'POST',
+        statusCode: 400,
+        errorMessage: '토큰이 만료되었습니다.',
       );
 
       // When / Then: UnauthorizedError throw

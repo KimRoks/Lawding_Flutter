@@ -22,8 +22,8 @@ class CalendarEventRequest {
     return {
       'title': title,
       'description': description,
-      'startDatetime': startDatetime.toIso8601String().split('.').first,
-      'endDatetime': endDatetime.toIso8601String().split('.').first,
+      'startDatetime': startDatetime.toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
+      'endDatetime': endDatetime.toIso8601String().replaceAll(RegExp(r'\.\d+'), ''),
       'usedLeaveMinutes': usedLeaveMinutes,
       'isAllDay': isAllDay,
       'isLeaveEvent': isLeaveEvent,

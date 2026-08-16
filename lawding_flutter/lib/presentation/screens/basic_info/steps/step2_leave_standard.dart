@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../infrastructure/services/analytics_service.dart';
 import '../../../core/design_system.dart';
 import '../../../widgets/common/date_picker_sheet.dart';
 import '../../../widgets/common/submit_button.dart';
@@ -72,6 +73,9 @@ class _Step2LeaveStandardState extends State<Step2LeaveStandard>
 
   void _selectStandard(LeaveStandard standard) {
     setState(() => _selected = standard);
+    AnalyticsService().logCalculationTypeSelected(
+      standard == LeaveStandard.hireDate ? 'hireDate' : 'fiscalYear',
+    );
     _notify();
   }
 
@@ -84,6 +88,9 @@ class _Step2LeaveStandardState extends State<Step2LeaveStandard>
     );
     if (picked != null && mounted) {
       setState(() => _hireDate = picked);
+      AnalyticsService().logHireDateSelected(
+        '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}',
+      );
       _notify();
     }
   }
@@ -149,6 +156,7 @@ class _Step2LeaveStandardState extends State<Step2LeaveStandard>
     );
     if (mounted) {
       setState(() => _monthCtrl.text = tempMonth.toString());
+      AnalyticsService().logFiscalYearStartMonthSelected(tempMonth);
       _notify();
     }
   }

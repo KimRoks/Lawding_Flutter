@@ -27,7 +27,7 @@ class RecentLeaveUsageResponse {
 }
 
 class LeaveDashboardResponse {
-  final int availableLeaveMinutes;
+  final int remainingLeaveMinutes;
   final double avgDailyWorkHours;
   final int totalLeaveMinutes;
   final String nextLeaveAccrualDate;
@@ -37,7 +37,7 @@ class LeaveDashboardResponse {
   final List<RecentLeaveUsageResponse> recentLeaveUsages;
 
   const LeaveDashboardResponse({
-    required this.availableLeaveMinutes,
+    required this.remainingLeaveMinutes,
     required this.avgDailyWorkHours,
     required this.totalLeaveMinutes,
     required this.nextLeaveAccrualDate,
@@ -49,7 +49,7 @@ class LeaveDashboardResponse {
 
   factory LeaveDashboardResponse.fromJson(Map<String, dynamic> json) {
     return LeaveDashboardResponse(
-      availableLeaveMinutes: json['availableLeaveMinutes'] as int,
+      remainingLeaveMinutes: json['remainingLeaveMinutes'] as int,
       avgDailyWorkHours: (json['avgDailyWorkHours'] as num).toDouble(),
       totalLeaveMinutes: json['totalLeaveMinutes'] as int,
       nextLeaveAccrualDate: json['nextLeaveAccrualDate'] as String,
@@ -63,7 +63,7 @@ class LeaveDashboardResponse {
   }
 
   LeaveDashboard toDomain() => LeaveDashboard(
-    availableLeaveMinutes: availableLeaveMinutes,
+    remainingLeaveMinutes: remainingLeaveMinutes,
     avgDailyWorkHours: avgDailyWorkHours,
     totalLeaveMinutes: totalLeaveMinutes,
     nextLeaveAccrualDate: nextLeaveAccrualDate,

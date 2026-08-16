@@ -5,12 +5,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/calendar_event.dart';
-import '../../../domain/entities/user_dashboard.dart';
+import '../../../domain/entities/user_me.dart';
+import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_scaffold.dart';
 import '../../widgets/common/logo_app_bar.dart';
 import 'add_calendar_event_screen.dart';
+import 'leave_time_edit_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 데이터 모델 — 추후 VM / Repository 레이어로 이동
@@ -33,7 +35,8 @@ enum CalendarEventType {
 
 class CalendarEvent {
   final int? id; // 공휴일은 null
-  final DateTime date;
+  final DateTime date; // = startDatetime
+  final DateTime endDatetime; // 단일 이벤트는 같은 날, 기간 이벤트는 마지막 날 포함
   final CalendarEventType type;
   final String label; // 셀 배지: 공휴일명 또는 "HH:MM-HH:MM" 또는 "종일"
   final String name; // 카드 제목 (비공휴일), 미입력 시 label 표시
@@ -41,6 +44,7 @@ class CalendarEvent {
   const CalendarEvent({
     this.id,
     required this.date,
+    required this.endDatetime,
     required this.type,
     required this.label,
     this.name = '',
@@ -69,8 +73,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   // API 응답으로 교체됨. 실패 시 mock 유지
   List<CalendarHoliday> _holidays = _mockHolidays;
   List<CalendarEvent> _events = [];
-  UserDashboard? _dashboard;
-  UserDashboard? _leaveSummary;
+  UserMe? _userMe;
+  int _fetchGeneration = 0;
 
   @override
   void initState() {
@@ -81,8 +85,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _displayedMonth = DateTime(now.year, now.month, 1);
     _pageController = PageController(initialPage: _initialPage);
     _fetchHolidays();
-    _fetchLeaveSummary();
+    _fetchUserMe();
     _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
+    AnalyticsService().logCalendarScreenViewed();
   }
 
   @override
@@ -93,22 +98,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   String _formatDays(double days) => days.toStringAsFixed(3);
 
-  Future<void> _fetchLeaveSummary() async {
-    final useCase = ref.read(getLeaveSummaryUseCaseProvider);
-    final result = await useCase.execute();
+  Future<void> _fetchUserMe() async {
+    final result = await ref.read(getUserMeUseCaseProvider).execute();
     switch (result) {
       case Success(:final value):
-        debugPrint('--- [LeaveSummary] ---');
-        debugPrint('nickname               : ${value.nickname}');
-        debugPrint('availableLeaveMinutes  : ${value.availableLeaveMinutes}');
-        debugPrint('avgDailyWorkHours      : ${value.avgDailyWorkHours}');
-        debugPrint('availableLeaveDays     : ${value.availableLeaveDays}');
-        debugPrint('availableLeaveHours    : ${value.availableLeaveHours}');
-        debugPrint('----------------------');
         if (!mounted) return;
-        setState(() => _leaveSummary = value);
+        setState(() => _userMe = value);
       case Failure(:final error):
-        debugPrint('[LeaveSummary] 실패: $error');
+        debugPrint('[UserMe] 실패: $error');
     }
   }
 
@@ -134,12 +131,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Future<void> _fetchCalendarEvents(int year, int month) async {
+    final gen = ++_fetchGeneration;
     final result = await ref
         .read(getCalendarEventsUseCaseProvider)
         .execute(year: year, month: month);
     switch (result) {
       case Success(:final value):
-        if (!mounted) return;
+        if (!mounted || gen != _fetchGeneration) return;
         setState(() {
           _events = value.map(_toCalendarEvent).toList();
         });
@@ -167,6 +165,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     return CalendarEvent(
       id: entity.id,
       date: entity.startDatetime,
+      endDatetime: entity.endDatetime,
       type: type,
       label: label,
       name: entity.title,
@@ -182,6 +181,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _goToPreviousMonth() {
+    AnalyticsService().logCalendarMonthChanged('prev');
     _pageController.previousPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -189,6 +189,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   void _goToNextMonth() {
+    AnalyticsService().logCalendarMonthChanged('next');
     _pageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -256,6 +257,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       final (label, detail) = _parseHolidayName(h.name);
       return CalendarEvent(
         date: date,
+        endDatetime: date,
         type: CalendarEventType.holiday,
         label: label,
         name: label,
@@ -265,7 +267,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final otherEvents = _events
         .where(
           (e) =>
-              _isSameDay(e.date, date) && e.type != CalendarEventType.holiday,
+              e.type != CalendarEventType.holiday &&
+              !date.isBefore(DateTime(e.date.year, e.date.month, e.date.day)) &&
+              !date.isAfter(
+                DateTime(
+                  e.endDatetime.year,
+                  e.endDatetime.month,
+                  e.endDatetime.day,
+                ),
+              ),
         )
         .toList();
 
@@ -303,10 +313,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(calendarRefreshProvider, (prev, next) {
+    ref.listen(leaveDataRefreshProvider, (prev, next) {
       if (prev != null && prev != next) {
         _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
-        _fetchLeaveSummary();
+        _fetchUserMe();
       }
     });
     return CustomScaffold(
@@ -335,7 +345,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildLeaveCard() {
-    final data = _leaveSummary ?? _dashboard;
+    final balance = _userMe?.leaveBalance;
     return Container(
       height: 83,
       decoration: BoxDecoration(
@@ -356,7 +366,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(
-                  '${data?.nickname ?? ''}님',
+                  '${_userMe?.user.nickname ?? ''}님',
                   style: pretendard(
                     weight: 700,
                     size: 20,
@@ -375,61 +385,58 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ],
             ),
           ),
-          // 회색 pill (top: 120-81=39, left: 30-20=10)
+          // 회색 pill — 텍스트 너비에 맞게 자동 크기
           Positioned(
             top: 39,
             left: 10,
             child: Container(
-              width: 186,
               height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(17),
               ),
+              alignment: Alignment.center,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    balance == null
+                        ? ''
+                        : '${_formatDays(balance.remainingLeaveDays)}일',
+                    style: pretendard(
+                      weight: 700,
+                      size: 20,
+                      color: AppColors.textGray11,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    balance == null
+                        ? ''
+                        : '${balance.remainingLeaveHours.toStringAsFixed(2)}시간',
+                    style: pretendard(
+                      weight: 700,
+                      size: 13,
+                      color: AppColors.textGray55,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          // 남은 일수 + 남은 시간 (baseline 정렬로 bottom 맞춤)
-          Positioned(
-            top: 44,
-            left: 22,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  data == null
-                      ? ''
-                      : '${_formatDays(data.availableLeaveDays)}일',
-                  style: pretendard(
-                    weight: 700,
-                    size: 20,
-                    color: AppColors.textGray11,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  data == null
-                      ? ''
-                      : '${data.availableLeaveHours.toStringAsFixed(2)}시간',
-                  style: pretendard(
-                    weight: 700,
-                    size: 13,
-                    color: AppColors.textGray55,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // 시간 편집 아이콘 (top: 130-81=49, left: 192-20=172)
           Positioned(
             top: 41,
             left: 164,
             child: CupertinoButton(
               padding: const EdgeInsets.all(8),
               minimumSize: Size.zero,
-              onPressed: () {
-                // TODO: 시간 편집
-              },
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeaveTimeEditScreen()),
+              ),
               child: SvgPicture.asset(
                 'assets/icons/calendar_timeEdit.svg',
                 width: 14,
@@ -444,6 +451,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               alignment: Alignment.centerRight,
               child: GestureDetector(
                 onTap: () async {
+                  AnalyticsService().logCalendarAddEventTapped();
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -455,7 +463,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       _displayedMonth.year,
                       _displayedMonth.month,
                     );
-                    _fetchLeaveSummary();
+                    _fetchUserMe();
                   }
                 },
                 child: SvgPicture.asset(
@@ -616,11 +624,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final isRedDay = isSunday || _isHoliday(date);
 
     return GestureDetector(
-      onTap: () => setState(() {
-        _focusedDate = (_focusedDate != null && _isSameDay(_focusedDate!, date))
-            ? null
-            : date;
-      }),
+      onTap: () {
+        final isUnfocus = _focusedDate != null && _isSameDay(_focusedDate!, date);
+        if (isUnfocus) {
+          AnalyticsService().logCalendarDateUnfocused();
+        } else {
+          AnalyticsService().logCalendarDateTapped();
+        }
+        setState(() {
+          _focusedDate = isUnfocus ? null : date;
+        });
+      },
       onDoubleTap: () {
         // 추후 이벤트 추가
       },
@@ -727,6 +741,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             .add(
               CalendarEvent(
                 date: d,
+                endDatetime: d,
                 type: CalendarEventType.holiday,
                 label: label,
                 name: label,
@@ -737,10 +752,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     }
 
     for (final e in _events) {
-      final d = DateTime(e.date.year, e.date.month, e.date.day);
-      if (!d.isBefore(_today) && d.isBefore(end)) {
-        grouped.putIfAbsent(d, () => []).add(e);
-      }
+      final eStart = DateTime(e.date.year, e.date.month, e.date.day);
+      final eEnd = DateTime(
+        e.endDatetime.year,
+        e.endDatetime.month,
+        e.endDatetime.day,
+      );
+      // 이벤트 기간이 오늘~14일 윈도우와 겹치면 포함
+      if (eEnd.isBefore(_today) || !eStart.isBefore(end)) continue;
+      // 진행 중인 이벤트(시작일 < 오늘)는 오늘 날짜 그룹에 표시
+      final d = eStart.isBefore(_today) ? _today : eStart;
+      grouped.putIfAbsent(d, () => []).add(e);
     }
 
     // 날짜별로 정렬(type→time)하여 최대 3개씩 취합
@@ -828,7 +850,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     // 연차 시간 계산
     final annualLeaveMinutes = _annualLeaveMinutes(events);
     final String? annualLeaveText;
-    if (annualLeaveMinutes > 0) {
+    if (annualLeaveMinutes == -1) {
+      annualLeaveText = '종일';
+    } else if (annualLeaveMinutes > 0) {
       final h = annualLeaveMinutes ~/ 60;
       final m = annualLeaveMinutes % 60;
       annualLeaveText = m == 0 ? '$h시간' : '$h시간 $m분';
@@ -871,6 +895,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         .where((e) => e.type == CalendarEventType.annualLeave)
         .toList();
     if (annuals.isEmpty) return 0;
+    if (annuals.any((e) => e.label == '종일')) return -1;
     int total = 0;
     for (final e in annuals) {
       total += _minutesFromLabel(e.label);
@@ -890,10 +915,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   }
 
   Widget _buildAnnualLeaveBadge(String label) {
-    final minutes = _minutesFromLabel(label);
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    final String text = m == 0 ? '연차($h시간)' : '연차($h시간 $m분)';
+    final String text;
+    if (label == '종일') {
+      text = '연차(종일)';
+    } else {
+      final minutes = _minutesFromLabel(label);
+      final h = minutes ~/ 60;
+      final m = minutes % 60;
+      text = m == 0 ? '연차($h시간)' : '연차($h시간 $m분)';
+    }
     return Container(
       height: 14,
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -975,6 +1005,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   /// isFocused=true: 내용에 따라 높이가 변하는 확장 카드
   Future<void> _showEventOptions(CalendarEvent event) async {
+    if (event.id == null) return;
+    final eventType = event.type == CalendarEventType.annualLeave
+        ? 'annual_leave'
+        : 'other_leave';
+    AnalyticsService().logCalendarEventOptionsOpened(eventType);
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
@@ -982,12 +1017,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(ctx);
+              AnalyticsService().logCalendarEventEditTapped(eventType);
               final entity = CalendarEventEntity(
                 id: event.id!,
                 title: event.name,
                 description: event.detail,
                 startDatetime: event.date,
-                endDatetime: event.date,
+                endDatetime: event.endDatetime,
                 usedLeaveMinutes: 0,
                 isAllDay: event.label == '종일',
                 isLeaveEvent: event.type == CalendarEventType.annualLeave,
@@ -1003,7 +1039,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     _displayedMonth.year,
                     _displayedMonth.month,
                   );
-                  _fetchLeaveSummary();
+                  _fetchUserMe();
                 }
               });
             },
@@ -1027,6 +1063,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       isDestructiveAction: true,
                       onPressed: () {
                         Navigator.pop(dialogCtx);
+                        AnalyticsService().logCalendarEventDeleteConfirmed(eventType);
                         _deleteEvent(event);
                       },
                       child: const Text('삭제'),
@@ -1049,13 +1086,19 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   Future<void> _deleteEvent(CalendarEvent event) async {
     final id = event.id;
     if (id == null) return;
+    final eventType = event.type == CalendarEventType.annualLeave
+        ? 'annual_leave'
+        : 'other_leave';
     final result = await ref
         .read(deleteCalendarEventUseCaseProvider)
         .execute(id: id);
     if (!mounted) return;
     if (result case Success()) {
+      AnalyticsService().logCalendarEventDeleted(eventType);
       _fetchCalendarEvents(_displayedMonth.year, _displayedMonth.month);
-      _fetchLeaveSummary();
+      _fetchUserMe();
+    } else if (result case Failure(:final error)) {
+      AnalyticsService().logCalendarEventDeleteFailed(error.toString());
     }
   }
 
