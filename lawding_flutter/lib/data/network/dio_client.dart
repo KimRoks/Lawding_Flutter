@@ -193,11 +193,17 @@ class _AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    // 이미 retry된 요청이 또 401을 받으면 무한루프 방지를 위해 즉시 반환
+    if (err.requestOptions.extra['_retried'] == true) {
+      return handler.next(err);
+    }
+
     // 이미 refresh 중이면 완료 대기 후 새 토큰으로 재시도
     if (_isRefreshing) {
       final newToken = await _refreshCompleter!.future;
       if (newToken != null) {
         err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+        err.requestOptions.extra['_retried'] = true;
         try {
           final retryResponse = await _dio.fetch(err.requestOptions);
           return handler.resolve(retryResponse);
@@ -271,8 +277,9 @@ class _AuthInterceptor extends Interceptor {
       // 400: 서버가 refreshToken 만료/무효 시 반환하는 코드 포함
       if (status == 400 || status == 401 || status == 403) {
         debugPrint('[Auth] reissue $status → refreshToken 만료 → 토큰 삭제 → 로그아웃');
-        await _authRepository.clearTokens();
-        _authRepository.notifySessionExpired();
+        // clearTokens/notifySessionExpired 자체가 throw 해도 completer 교착 방지
+        try { await _authRepository.clearTokens(); } catch (_) {}
+        try { _authRepository.notifySessionExpired(); } catch (_) {}
       } else {
         // 네트워크 순단·타임아웃 등 일시적 오류 → 토큰 유지
         debugPrint('[Auth] reissue 일시적 실패 (status: $status, type: ${e.type}) → 토큰 유지');
@@ -292,6 +299,8 @@ class _AuthInterceptor extends Interceptor {
     // 원본 요청 retry — reissue try-catch 밖에서 실행.
     // _isRefreshing을 true로 유지해 retry 중 새 401이 완료된 completer를
     // 즉시 읽어 새 토큰을 받도록 보장.
+    // _retried 마킹: retry 자체가 401을 받았을 때 onError 재진입 → 무한루프 방지
+    err.requestOptions.extra['_retried'] = true;
     err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
     try {
       final retryResponse = await _dio.fetch(err.requestOptions);

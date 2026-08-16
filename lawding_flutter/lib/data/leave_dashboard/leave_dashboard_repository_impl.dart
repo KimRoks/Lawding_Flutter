@@ -27,16 +27,18 @@ class LeaveDashboardRepositoryImpl implements LeaveDashboardRepository {
       final dto = LeaveDashboardResponse.fromJson(
         body['data'] as Map<String, dynamic>,
       );
-      debugPrint('[LeaveDashboard] remainingLeaveMinutes : ${dto.remainingLeaveMinutes}');
-      debugPrint('[LeaveDashboard] avgDailyWorkHours     : ${dto.avgDailyWorkHours}');
-      debugPrint('[LeaveDashboard] totalLeaveMinutes     : ${dto.totalLeaveMinutes}');
-      debugPrint('[LeaveDashboard] nextLeaveAccrualDate  : ${dto.nextLeaveAccrualDate}');
-      debugPrint('[LeaveDashboard] expiringLeaveMinutes  : ${dto.expiringLeaveMinutes}');
-      debugPrint('[LeaveDashboard] leavePeriodStartDate  : ${dto.leavePeriodStartDate}');
-      debugPrint('[LeaveDashboard] leavePeriodEndDate    : ${dto.leavePeriodEndDate}');
-      debugPrint('[LeaveDashboard] recentLeaveUsages     : ${dto.recentLeaveUsages.length}건');
-      for (final u in dto.recentLeaveUsages) {
-        debugPrint('[LeaveDashboard]   - ${u.startDatetime} ~ ${u.endDatetime} (${u.usedLeaveMinutes}분)');
+      if (kDebugMode) {
+        debugPrint('[LeaveDashboard] remainingLeaveMinutes : ${dto.remainingLeaveMinutes}');
+        debugPrint('[LeaveDashboard] avgDailyWorkHours     : ${dto.avgDailyWorkHours}');
+        debugPrint('[LeaveDashboard] totalLeaveMinutes     : ${dto.totalLeaveMinutes}');
+        debugPrint('[LeaveDashboard] nextLeaveAccrualDate  : ${dto.nextLeaveAccrualDate}');
+        debugPrint('[LeaveDashboard] expiringLeaveMinutes  : ${dto.expiringLeaveMinutes}');
+        debugPrint('[LeaveDashboard] leavePeriodStartDate  : ${dto.leavePeriodStartDate}');
+        debugPrint('[LeaveDashboard] leavePeriodEndDate    : ${dto.leavePeriodEndDate}');
+        debugPrint('[LeaveDashboard] recentLeaveUsages     : ${dto.recentLeaveUsages.length}건');
+        for (final u in dto.recentLeaveUsages) {
+          debugPrint('[LeaveDashboard]   - ${u.startDatetime} ~ ${u.endDatetime} (${u.usedLeaveMinutes}분)');
+        }
       }
       return Success(dto.toDomain());
     } on NetworkError catch (error) {

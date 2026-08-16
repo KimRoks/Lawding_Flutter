@@ -51,7 +51,7 @@ class UserMeResponse {
 
     return UserMeResponse(
       user: UserProfile(
-        id: u['id'] as int? ?? 0,
+        id: (u['id'] as num?)?.toInt() ?? 0,
         username: u['username'] as String? ?? '',
         email: u['email'] as String? ?? '',
         provider: u['provider'] as String? ?? '',
@@ -60,19 +60,19 @@ class UserMeResponse {
         deleted: u['deleted'] as bool? ?? false,
       ),
       leavePolicy: LeavePolicy(
-        userId: p['userId'] as int? ?? 0,
+        userId: (p['userId'] as num?)?.toInt() ?? 0,
         acceptedAt: p['acceptedAt'] as String? ?? '',
-        leaveAccrualBasis: p['leaveAccrualBasis'] as int? ?? 1,
+        leaveAccrualBasis: (p['leaveAccrualBasis'] as num?)?.toInt() ?? 1,
         hireDate: p['hireDate'] as String? ?? '',
-        fiscalYearBaseMonth: p['fiscalYearBaseMonth'] as int?,
-        companySize: p['companySize'] as int? ?? 0,
+        fiscalYearBaseMonth: (p['fiscalYearBaseMonth'] as num?)?.toInt(),
+        companySize: (p['companySize'] as num?)?.toInt() ?? 0,
         workPattern: parsePattern(p['workPattern']),
         breakTimePattern: parsePattern(p['breakTimePattern']),
       ),
       leaveBalance: LeaveYearlyBalance(
-        usedLeaveMinutes: b['usedLeaveMinutes'] as int? ?? 0,
-        remainingLeaveMinutes: b['remainingLeaveMinutes'] as int? ?? 0,
-        totalLeaveMinutes: b['totalLeaveMinutes'] as int? ?? 0,
+        usedLeaveMinutes: (b['usedLeaveMinutes'] as num?)?.toInt() ?? 0,
+        remainingLeaveMinutes: (b['remainingLeaveMinutes'] as num?)?.toInt() ?? 0,
+        totalLeaveMinutes: (b['totalLeaveMinutes'] as num?)?.toInt() ?? 0,
         avgDailyWorkHours: (b['avgDailyWorkHours'] as num?)?.toDouble() ?? 8.0,
       ),
     );

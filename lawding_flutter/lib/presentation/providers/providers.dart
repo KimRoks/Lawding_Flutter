@@ -75,7 +75,8 @@ DioClient dioClient(Ref ref) {
 }
 
 /// Auth DioClient Provider — 로그인 필요 API용 (Bearer 토큰 주입 + 401 재시도)
-@riverpod
+/// keepAlive: dispose/재생성 시 _AuthInterceptor 상태 초기화로 single-flight 보장이 깨지는 것 방지
+@Riverpod(keepAlive: true)
 DioClient authDioClient(Ref ref) {
   final baseUrl = dotenv.env['BASE_URL'] ?? 'https://api.default.com';
   final auth = ref.watch(authRepositoryProvider);

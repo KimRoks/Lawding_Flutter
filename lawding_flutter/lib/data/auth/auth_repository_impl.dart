@@ -39,8 +39,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await _storage.write(key: _accessTokenKey, value: accessToken);
+    // refreshToken 먼저 저장: crash 시 new_access + old_refresh 불일치 방지
     await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    await _storage.write(key: _accessTokenKey, value: accessToken);
     debugPrint('[Auth] 토큰 저장 완료');
   }
 
