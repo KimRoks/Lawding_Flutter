@@ -70,8 +70,28 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
     setState(() => _totalDays = days);
   }
 
+  void _showValidationAlert() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('입력 확인'),
+        content: const Text('모든 항목을 올바르게 입력해주세요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onNext() async {
-    if (!_canProceed || _isSubmitting) return;
+    if (_isSubmitting) return;
+    if (!_canProceed) {
+      _showValidationAlert();
+      return;
+    }
     if (_currentStep < _totalSteps - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -284,7 +304,7 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
 
   Widget _buildNextButton() {
     return GestureDetector(
-      onTap: (_canProceed && !_isSubmitting) ? _onNext : null,
+      onTap: _isSubmitting ? null : _onNext,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
