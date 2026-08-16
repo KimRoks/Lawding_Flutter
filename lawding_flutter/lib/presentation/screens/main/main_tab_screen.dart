@@ -23,17 +23,17 @@ class TabItemInfo {
   });
 }
 
-class MainTabScreen extends StatefulWidget {
+class MainTabScreen extends ConsumerStatefulWidget {
   final List<TabItemInfo> tabs;
   final int initialIndex;
 
   const MainTabScreen({super.key, required this.tabs, this.initialIndex = 0});
 
   @override
-  State<MainTabScreen> createState() => _MainTabScreenState();
+  ConsumerState<MainTabScreen> createState() => _MainTabScreenState();
 }
 
-class _MainTabScreenState extends State<MainTabScreen> {
+class _MainTabScreenState extends ConsumerState<MainTabScreen> {
   late int _currentIndex;
 
   @override
@@ -52,6 +52,12 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
     setState(() => _currentIndex = index);
 
+    // 하단 탭바 직접 탭 시에도 provider 동기화
+    // → 외부에서 activeTabIndexProvider를 set할 때 이미 같은 값이면 리스너가 미발동하는 문제 방지
+    if (ref.read(activeTabIndexProvider) != index) {
+      ref.read(activeTabIndexProvider.notifier).state = index;
+    }
+
     AnalyticsService().logTabChanged(
       index: index,
       tabName: widget.tabs[index].title,
@@ -61,10 +67,8 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) {
-        ref.listen(activeTabIndexProvider, (_, next) => _onTabChanged(next));
-        return CustomScaffold(
+    ref.listen(activeTabIndexProvider, (_, next) => _onTabChanged(next));
+    return CustomScaffold(
           backgroundColor: Colors.white,
           useDefaultAppBar: false,
           dismissKeyboardOnTap: false,
@@ -125,7 +129,5 @@ class _MainTabScreenState extends State<MainTabScreen> {
             ),
           ),
         );
-      },
-    );
   }
 }

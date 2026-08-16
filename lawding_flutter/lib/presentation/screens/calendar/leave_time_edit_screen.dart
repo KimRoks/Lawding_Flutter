@@ -246,8 +246,9 @@ class _LeaveTimeEditScreenState extends ConsumerState<LeaveTimeEditScreen> {
     return GestureDetector(
       onTap: () {
         AnalyticsService().logLeaveTimeEditCalculatorTapped();
-        ref.read(activeTabIndexProvider.notifier).state = 1;
         Navigator.of(context).pop();
+        // pop 이후 탭 전환: Android에서 setState와 pop 동시 처리 시 탭 전환이 소실되는 문제 방지
+        ref.read(activeTabIndexProvider.notifier).state = 1;
       },
       child: Container(
         height: 32,
