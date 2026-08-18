@@ -32,7 +32,7 @@ class AppVersionService {
 
   // 앱 스토어 ID
   static const String _iosAppId = '6751892414';
-  static const String _androidPackageName = 'GGimiOwner.AnnualLeaveCalculator';
+  static const String _androidPackageName = 'com.lawding.annualleavecalculator';
 
   /// 앱 스토어로 이동
   /// 플랫폼에 맞는 스토어 URL을 자동으로 생성하여 이동
