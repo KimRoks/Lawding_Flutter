@@ -165,6 +165,9 @@ class _AuthInterceptor extends Interceptor {
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
+                  'X-Platform': defaultTargetPlatform == TargetPlatform.android
+                      ? 'android'
+                      : 'ios',
                 },
               ),
             );
