@@ -385,62 +385,65 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               ],
             ),
           ),
-          // 회색 pill — 텍스트 너비에 맞게 자동 크기
+          // 회색 pill — 텍스트 너비에 맞게 자동 크기, edit 아이콘 포함
           Positioned(
             top: 39,
             left: 10,
-            child: Container(
-              height: 34,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(17),
-              ),
-              alignment: Alignment.center,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    balance == null
-                        ? ''
-                        : '${_formatDays(balance.remainingLeaveDays)}일',
-                    style: pretendard(
-                      weight: 700,
-                      size: 20,
-                      color: AppColors.textGray11,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    balance == null
-                        ? ''
-                        : '${balance.remainingLeaveHours.toStringAsFixed(2)}시간',
-                    style: pretendard(
-                      weight: 700,
-                      size: 13,
-                      color: AppColors.textGray55,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            top: 41,
-            left: 164,
-            child: CupertinoButton(
-              padding: const EdgeInsets.all(8),
-              minimumSize: Size.zero,
-              onPressed: () => Navigator.push(
+            child: GestureDetector(
+              onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const LeaveTimeEditScreen()),
               ),
-              child: SvgPicture.asset(
-                'assets/icons/calendar_timeEdit.svg',
-                width: 14,
-                height: 14,
+              child: Container(
+                height: 34,
+                padding: const EdgeInsets.only(left: 12, right: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          balance == null
+                              ? ''
+                              : '${_formatDays(balance.remainingLeaveDays)}일',
+                          style: pretendard(
+                            weight: 700,
+                            size: 20,
+                            color: AppColors.textGray11,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          balance == null
+                              ? ''
+                              : '${balance.remainingLeaveHours.toStringAsFixed(2)}시간',
+                          style: pretendard(
+                            weight: 700,
+                            size: 13,
+                            color: AppColors.textGray55,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (balance != null) ...[
+                      const SizedBox(width: 6),
+                      SvgPicture.asset(
+                        'assets/icons/calendar_timeEdit.svg',
+                        width: 14,
+                        height: 14,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
