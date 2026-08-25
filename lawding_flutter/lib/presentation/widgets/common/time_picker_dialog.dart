@@ -257,7 +257,6 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
         border: Border.all(color: const Color(0xFFE1E1E1), width: 2),
         borderRadius: BorderRadius.circular(8),
       ),
-      padding: const EdgeInsets.all(2),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final pillWidth = constraints.maxWidth / 2;
@@ -274,7 +273,7 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x40000000),
