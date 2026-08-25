@@ -1,9 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../core/design_system.dart';
-import '../../../widgets/common/submit_button.dart';
+import '../../../widgets/common/time_picker_dialog.dart';
 
 class Step3Data {
   // 선택된 요일별 근무 시작/종료 시간 (1=월~7=일)
@@ -221,94 +219,8 @@ class _Step3WorkScheduleState extends State<Step3WorkSchedule>
     _notify();
   }
 
-  Future<TimeOfDay?> _showTimePicker(TimeOfDay initial) async {
-    var tempHour = initial.hour;
-    var tempMinute = (initial.minute ~/ 5) * 5;
-
-    return showModalBottomSheet<TimeOfDay>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) {
-        final bottomInset = MediaQuery.paddingOf(context).bottom;
-        return Container(
-          height: 310 + bottomInset,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.borderLight,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Expanded(
-                child: Row(
-                  children: [
-                    _buildWheelPicker(
-                      items: List.generate(
-                        24,
-                        (i) => '${i.toString().padLeft(2, '0')}시',
-                      ),
-                      initialItem: tempHour,
-                      onChanged: (i) => tempHour = i,
-                    ),
-                    _buildWheelPicker(
-                      items: List.generate(
-                        12,
-                        (i) => '${(i * 5).toString().padLeft(2, '0')}분',
-                      ),
-                      initialItem: tempMinute ~/ 5,
-                      onChanged: (i) => tempMinute = i * 5,
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 30 + bottomInset),
-                child: SubmitButton(
-                  text: '확인',
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).pop(TimeOfDay(hour: tempHour, minute: tempMinute)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWheelPicker({
-    required List<String> items,
-    required int initialItem,
-    required void Function(int) onChanged,
-  }) {
-    return Expanded(
-      child: CupertinoPicker(
-        scrollController: FixedExtentScrollController(initialItem: initialItem),
-        itemExtent: 40,
-        onSelectedItemChanged: (i) {
-          HapticFeedback.selectionClick();
-          onChanged(i);
-        },
-        children: items
-            .map(
-              (item) => Center(
-                child: Text(item, style: pretendard(weight: 500, size: 23)),
-              ),
-            )
-            .toList(),
-      ),
-    );
+  Future<TimeOfDay?> _showTimePicker(TimeOfDay initial) {
+    return showLawdingTimePicker(context, initialTime: initial);
   }
 
   static String _formatTime(TimeOfDay t) {

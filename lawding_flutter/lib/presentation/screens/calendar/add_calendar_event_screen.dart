@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/common/time_picker_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/calendar_event.dart';
@@ -254,61 +255,8 @@ class _AddCalendarEventScreenState
     return (e - s).clamp(0, (_avgDailyWorkHours * 60).round());
   }
 
-  Future<TimeOfDay?> _showTimePicker(TimeOfDay? initial) async {
-    // 5분 단위로 반올림 (initialDateTime이 5의 배수여야 picker가 올바른 위치에서 시작)
-    final raw = initial ?? const TimeOfDay(hour: 9, minute: 0);
-    final roundedMinute = (raw.minute ~/ 5) * 5;
-    TimeOfDay picked = TimeOfDay(hour: raw.hour, minute: roundedMinute);
-    return await showCupertinoModalPopup<TimeOfDay>(
-      context: context,
-      builder: (ctx) {
-        return Container(
-          color: Colors.white,
-          height: 300,
-          child: Column(
-            children: [
-              // 완료 버튼
-              SizedBox(
-                height: 50,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => Navigator.pop(ctx, picked),
-                      child: Text(
-                        '완료',
-                        style: pretendard(
-                          weight: 700,
-                          size: 16,
-                          color: AppColors.brandColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.time,
-                  use24hFormat: false,
-                  minuteInterval: 5,
-                  initialDateTime: DateTime(
-                    2000,
-                    1,
-                    1,
-                    picked.hour,
-                    picked.minute,
-                  ),
-                  onDateTimeChanged: (dt) {
-                    picked = TimeOfDay(hour: dt.hour, minute: dt.minute);
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  Future<TimeOfDay?> _showTimePicker(TimeOfDay? initial) {
+    return showLawdingTimePicker(context, initialTime: initial);
   }
 
   void _onDateTapped(DateTime date) {
