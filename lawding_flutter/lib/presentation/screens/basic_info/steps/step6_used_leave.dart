@@ -87,7 +87,9 @@ class _Step6UsedLeaveState extends State<Step6UsedLeave>
   void _notify() {
     setState(() {});
     widget.onValidChanged(_isValid);
-    if (_isValid) widget.onDataChanged?.call(_usedDays!);
+    if (_isValid) {
+      widget.onDataChanged?.call(_usedDays!);
+    }
   }
 
   static String _fmt(double? days) {

@@ -38,7 +38,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (!mounted || gen != _fetchGeneration) return;
     setState(() {
       _isLoading = false;
-      if (result case Success(:final value)) _dashboard = value;
+      if (result case Success(:final value)) {
+        _dashboard = value;
+      }
     });
   }
 

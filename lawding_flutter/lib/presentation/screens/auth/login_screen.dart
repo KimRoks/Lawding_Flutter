@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -65,7 +66,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     debugPrint('[OAuth] 토큰 저장 완료 / onboardingCompleted: $onboardingCompleted');
 
     AnalyticsService().logLoginSucceeded(onboardingCompleted: onboardingCompleted);
-    if (mounted) widget.onLoginSuccess(onboardingCompleted);
+    await closeInAppWebView();
+    if (mounted) {
+      setState(() => _isLoading = false);
+      widget.onLoginSuccess(onboardingCompleted);
+    }
   }
 
   @override
@@ -79,8 +84,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       debugPrint('[OAuth] 요청 URL: $fullUrl');
       final uri = Uri.parse(fullUrl);
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
     } catch (e) {
+      if (e is PlatformException) {
+        // inAppBrowserView에서 OAuth 커스텀 스킴 리다이렉트 시 정상적으로 발생하는 예외
+        debugPrint('[OAuth] PlatformException (OAuth 리다이렉트 정상 처리): ${e.code}');
+        return;
+      }
       String errorMessage;
       if (e is ServerError) {
         errorMessage = '[${e.statusCode}] ${e.message}';

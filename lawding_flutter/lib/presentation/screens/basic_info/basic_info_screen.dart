@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -177,10 +175,6 @@ class _BasicInfoScreenState extends ConsumerState<BasicInfoScreen> {
       totalLeave: total,
       usedLeave: used,
     );
-
-    debugPrint('--- [LeavePolicyRequest] ---');
-    debugPrint(const JsonEncoder.withIndent('  ').convert(request.toJson()));
-    debugPrint('----------------------------');
 
     return request;
   }
