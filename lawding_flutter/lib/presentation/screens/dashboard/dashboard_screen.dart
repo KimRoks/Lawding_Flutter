@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:marquee/marquee.dart';
+
+import '../../../data/holiday/public_holiday_periods.dart';
 import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_dashboard.dart';
+import '../../../domain/entities/public_holiday_period.dart';
 import '../../../infrastructure/services/analytics_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
@@ -102,8 +106,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   const SizedBox(height: 16),
                   _buildRecentHistoryCard(isCalendarLinked),
                   // TODO: 추천 일정 API 준비 후 활성화
-                  // const SizedBox(height: 13),
-                  // _buildRecommendCard(),
+                  const SizedBox(height: 13),
+                  _buildRecommendCard(),
                 ],
               ),
             ),
@@ -585,35 +589,57 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ────────────────────────────────────────────────────────────────
   // 추천 일정 (API 준비 전 비활성화)
   // ────────────────────────────────────────────────────────────────
-  // Widget _buildRecommendCard() {
-  //   return Container(
-  //     height: 67,
-  //     padding: const EdgeInsets.symmetric(horizontal: 20),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(10),
-  //       boxShadow: const [
-  //         BoxShadow(color: AppColors.shadow, blurRadius: 10, spreadRadius: 2),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         Text(
-  //           '추천 일정',
-  //           style: pretendard(weight: 700, size: 18, color: AppColors.brandColor),
-  //         ),
-  //         const SizedBox(width: 22),
-  //         Expanded(
-  //           child: Text(
-  //             '8월 15일(토) - 8월 17일(월) 황금연휴',
-  //             style: pretendard(weight: 700, size: 13, color: AppColors.textGray55),
-  //             textAlign: TextAlign.right,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _buildRecommendCard() {
+    final today = DateTime.now();
+    final todayUtc = DateTime.utc(today.year, today.month, today.day);
+    final nearest = PublicHolidayPeriod.nearest(
+      kPublicHolidayPeriods,
+      today: todayUtc,
+    );
+
+    return Container(
+      height: 67,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(color: AppColors.shadow, blurRadius: 10, spreadRadius: 2),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text(
+            '추천 일정',
+            style: pretendard(
+              weight: 700,
+              size: 18,
+              color: AppColors.brandColor,
+            ),
+          ),
+          const SizedBox(width: 22),
+          Expanded(
+            child: SizedBox(
+              height: 20,
+              child: Marquee(
+                text: nearest?.displayLabel ?? '예정된 연휴가 없습니다',
+                style: pretendard(
+                  weight: 700,
+                  size: 13,
+                  color: AppColors.textGray55,
+                ),
+                scrollAxis: Axis.horizontal,
+                blankSpace: 60,
+                velocity: 40,
+                pauseAfterRound: const Duration(seconds: 2),
+                startAfter: const Duration(seconds: 1),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // ────────────────────────────────────────────────────────────────
   // 딤 처리 래퍼
