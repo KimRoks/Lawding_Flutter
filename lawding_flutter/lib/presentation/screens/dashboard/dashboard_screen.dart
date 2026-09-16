@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'package:marquee/marquee.dart';
 
@@ -46,6 +47,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         _dashboard = value;
       }
     });
+    if (result case Success(:final value)) {
+      final totalHours = value.remainingLeaveMinutes ~/ 60;
+      final daysDouble = value.avgDailyWorkHours > 0
+          ? value.remainingLeaveMinutes / 60 / value.avgDailyWorkHours
+          : 0.0;
+      final daysStr = daysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
+      await HomeWidget.saveWidgetData('widgetDays', daysStr);
+      await HomeWidget.saveWidgetData('widgetTotalHours', totalHours);
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetProvider',
+        iOSName: 'LawdingWidget',
+      );
+    }
   }
 
   double _toDays(int minutes) {
