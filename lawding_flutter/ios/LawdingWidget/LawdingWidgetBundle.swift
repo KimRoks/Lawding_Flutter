@@ -1,10 +1,3 @@
-//
-//  LawdingWidgetBundle.swift
-//  LawdingWidget
-//
-//  Created by 김경록 on 9/16/26.
-//
-
 import WidgetKit
 import SwiftUI
 
@@ -12,6 +5,5 @@ import SwiftUI
 struct LawdingWidgetBundle: WidgetBundle {
     var body: some Widget {
         LawdingWidget()
-        LawdingWidgetControl()
     }
 }
