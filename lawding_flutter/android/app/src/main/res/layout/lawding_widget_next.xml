@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_horizontal">
+
+    <!-- 헤더: 아이콘 + 다음 연차 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="23dp"
+            android:src="@drawable/calendar_tabbar"
+            android:contentDescription="달력" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="다음 연차"
+            android:textColor="#111111"
+            android:textSize="15sp"
+            android:fontFamily="@font/pretendard_bold" />
+
+    </LinearLayout>
+
+    <!-- 날짜 -->
+    <TextView
+        android:id="@+id/widget_next_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:text="--"
+        android:textColor="#111111"
+        android:textSize="30sp"
+        android:fontFamily="@font/pretendard_bold"
+        android:gravity="center" />
+
+    <!-- 연차 종류 -->
+    <TextView
+        android:id="@+id/widget_next_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="--"
+        android:textColor="#555555"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_semibold"
+        android:gravity="center" />
+
+    <!-- D-day pill -->
+    <TextView
+        android:id="@+id/widget_next_dday"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_marginTop="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:text="--"
+        android:textColor="#0057B8"
+        android:textSize="20sp"
+        android:fontFamily="@font/pretendard_bold"
+        android:gravity="center"
+        android:background="@drawable/widget_pill_background" />
+
+</LinearLayout>
