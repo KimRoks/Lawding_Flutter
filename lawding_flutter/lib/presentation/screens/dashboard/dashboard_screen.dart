@@ -55,9 +55,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       final daysStr = daysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
       await HomeWidget.saveWidgetData('widgetDays', daysStr);
       await HomeWidget.saveWidgetData('widgetTotalHours', totalHours);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final upcoming = value.recentLeaveUsages.where((u) {
+        final dt = DateTime.parse(u.startDatetime);
+        return !DateTime(dt.year, dt.month, dt.day).isBefore(today);
+      }).toList()
+        ..sort((a, b) => a.startDatetime.compareTo(b.startDatetime));
+      String fmtDate(RecentLeaveUsage u) {
+        final dt = DateTime.parse(u.startDatetime);
+        return '${dt.month}월 ${dt.day}일';
+      }
+      String fmtType(RecentLeaveUsage u) {
+        final h = u.usedLeaveMinutes / 60;
+        final hStr = (h % 1 == 0) ? '${h.toInt()}' : h.toStringAsFixed(1);
+        return '$hStr시간 사용 예정';
+      }
+      String fmtDDay(RecentLeaveUsage u) {
+        final dt = DateTime.parse(u.startDatetime);
+        final leaveDay = DateTime(dt.year, dt.month, dt.day);
+        final diff = leaveDay.difference(today).inDays;
+        return diff == 0 ? 'D-Day' : 'D-$diff';
+      }
+      await HomeWidget.saveWidgetData('widgetMediumNextDate', upcoming.isNotEmpty ? fmtDate(upcoming[0]) : null);
+      await HomeWidget.saveWidgetData('widgetMediumNextType', upcoming.isNotEmpty ? fmtType(upcoming[0]) : null);
+      await HomeWidget.saveWidgetData('widgetMediumAfterNextDate', upcoming.length >= 2 ? fmtDate(upcoming[1]) : null);
+      await HomeWidget.saveWidgetData('widgetMediumAfterNextType', upcoming.length >= 2 ? fmtType(upcoming[1]) : null);
+      await HomeWidget.saveWidgetData('widgetCalNextDDay', upcoming.isNotEmpty ? fmtDDay(upcoming[0]) : null);
+      await HomeWidget.saveWidgetData('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
       await HomeWidget.updateWidget(
         androidName: 'LawdingWidgetProvider',
         iOSName: 'LawdingWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetMediumProvider',
+        iOSName: 'LawdingWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetCalendarProvider',
+        iOSName: 'LawdingCalendarWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetNextProvider',
+        iOSName: 'LawdingNextWidget',
       );
     }
   }

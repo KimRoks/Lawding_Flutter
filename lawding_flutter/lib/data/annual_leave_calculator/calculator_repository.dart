@@ -11,13 +11,9 @@ class CalculatorRepository {
   CalculatorRepository(this._client);
 
   /// 연차 계산 API 호출
-  Future<CalculatorResponse> calculate(
-    CalculatorCalculateParams params,
-  ) async {
+  Future<CalculatorResponse> calculate(CalculatorCalculateParams params) async {
     final request = CalculatorApi.calculate(params);
     final response = await _client.request(request);
-    return CalculatorResponse.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return CalculatorResponse.fromJson(response.data as Map<String, dynamic>);
   }
 }
