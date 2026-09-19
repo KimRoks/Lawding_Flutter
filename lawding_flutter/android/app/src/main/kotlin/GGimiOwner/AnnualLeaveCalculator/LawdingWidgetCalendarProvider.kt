@@ -1,0 +1,61 @@
+package com.lawding.annualleavecalculator
+
+import GGimiOwner.AnnualLeaveCalculator.R
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetPlugin
+
+class LawdingWidgetCalendarProvider : AppWidgetProvider() {
+
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+        for (appWidgetId in appWidgetIds) {
+            updateWidget(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    private fun updateWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int
+    ) {
+        val widgetData = HomeWidgetPlugin.getData(context)
+        val nextDate = widgetData.getString("widgetMediumNextDate", null)
+        val nextType = widgetData.getString("widgetMediumNextType", null)
+        val nextDDay = widgetData.getString("widgetCalNextDDay", null)
+        val afterDate = widgetData.getString("widgetMediumAfterNextDate", null)
+        val afterType = widgetData.getString("widgetMediumAfterNextType", null)
+        val afterDDay = widgetData.getString("widgetCalAfterDDay", null)
+
+        val views = RemoteViews(context.packageName, R.layout.lawding_widget_calendar)
+
+        views.setTextViewText(R.id.widget_cal_left_date, nextDate ?: "--")
+        views.setTextViewText(R.id.widget_cal_left_type, nextType ?: "--")
+        views.setTextViewText(R.id.widget_cal_left_dday, nextDDay ?: "--")
+
+        views.setTextViewText(R.id.widget_cal_right_date, afterDate ?: "--")
+        views.setTextViewText(R.id.widget_cal_right_type, afterType ?: "--")
+        views.setTextViewText(R.id.widget_cal_right_dday, afterDDay ?: "--")
+
+        val addIntent = Intent(Intent.ACTION_VIEW,
+            Uri.parse("ggimiowner.annualleavecalculator://add-calendar")).apply {
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, addIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        views.setOnClickPendingIntent(R.id.btn_add_calendar, pendingIntent)
+
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+}
