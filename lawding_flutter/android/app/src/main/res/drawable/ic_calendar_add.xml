@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="69dp"
-    android:height="69dp"
-    android:viewportWidth="69"
-    android:viewportHeight="69">
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+    <!-- Blue circle -->
     <path
-        android:pathData="M34.5,12 A22.5,22.5 0,0,1 57,34.5 A22.5,22.5 0,0,1 34.5,57 A22.5,22.5 0,0,1 12,34.5 A22.5,22.5 0,0,1 34.5,12 Z"
-        android:fillColor="#0057B8"/>
+        android:fillColor="#0057B8"
+        android:pathData="M20,1A19,19,0,1,0,20,39A19,19,0,0,0,20,1Z"/>
+    <!-- White + horizontal bar -->
     <path
-        android:pathData="M34.4434,25.3827 L34.4434,43.504"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.12"
-        android:strokeLineCap="round"/>
+        android:fillColor="#FFFFFF"
+        android:pathData="M11.5,18.95L28.5,18.95L28.5,21.05L11.5,21.05Z"/>
+    <!-- White + vertical bar -->
     <path
-        android:pathData="M25.3827,34.4434 L43.504,34.4434"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.12"
-        android:strokeLineCap="round"/>
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.95,11.5L21.05,11.5L21.05,28.5L18.95,28.5Z"/>
 </vector>
