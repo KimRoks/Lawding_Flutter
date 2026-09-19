@@ -5,5 +5,7 @@ import SwiftUI
 struct LawdingWidgetBundle: WidgetBundle {
     var body: some Widget {
         LawdingWidget()
+        LawdingNextWidget()
+        LawdingCalendarWidget()
     }
 }
