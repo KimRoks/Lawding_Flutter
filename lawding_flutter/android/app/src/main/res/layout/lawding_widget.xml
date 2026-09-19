@@ -28,7 +28,7 @@
             android:text="잔여 연차"
             android:textColor="#111111"
             android:textSize="15sp"
-            android:textStyle="bold" />
+            android:fontFamily="@font/pretendard_bold" />
     </LinearLayout>
 
     <!-- 남은 일수 -->
@@ -41,7 +41,7 @@
         android:text="--일"
         android:textColor="#111111"
         android:textSize="40sp"
-        android:textStyle="bold"
+        android:fontFamily="@font/pretendard_bold"
         android:gravity="center" />
 
     <!-- 시간 pill -->
@@ -57,6 +57,6 @@
         android:text="--시간"
         android:textColor="#0057B8"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:fontFamily="@font/pretendard_bold" />
 
 </LinearLayout>
