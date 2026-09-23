@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- statistics_ic placeholder — replace with final asset -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="25dp"
-    android:height="23dp"
-    android:viewportWidth="25"
-    android:viewportHeight="23">
+    android:width="27dp"
+    android:height="25dp"
+    android:viewportWidth="27"
+    android:viewportHeight="25">
     <path
         android:fillColor="#0057B8"
-        android:pathData="M11,23A11,10.75 0,1,1 11,1.5A11,10.75 0,1,1 11,23Z"/>
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M18.5,13A6.5,6.5 0,1,1 18.5,0A6.5,6.5 0,1,1 18.5,13Z"/>
+        android:pathData="M0,14.242 A10.9848,10.7581 0,1,0 21.9696,14.242 A10.9848,10.7581 0,1,0 0,14.242 Z"/>
     <path
         android:fillColor="#0057B8"
-        android:pathData="M18.5,11A4.5,4.5 0,1,1 18.5,2A4.5,4.5 0,1,1 18.5,11Z"/>
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:pathData="M12.1211,1C19.7664,1 26,7.07552 26,14.6133V15.6133H11.1211V1H12.1211Z"/>
 </vector>
