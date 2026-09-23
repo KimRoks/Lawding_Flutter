@@ -88,6 +88,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await HomeWidget.saveWidgetData('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
       await HomeWidget.saveWidgetData('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
       await HomeWidget.saveWidgetData('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
+      // 4×4 large 위젯 전용
+      final totalMinutes = value.totalLeaveMinutes;
+      final usedMinutes = (totalMinutes - value.remainingLeaveMinutes).clamp(0, totalMinutes);
+      final totalDaysDouble = value.avgDailyWorkHours > 0
+          ? totalMinutes / 60 / value.avgDailyWorkHours
+          : 0.0;
+      final totalDaysStr = totalDaysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
+      final usageRateStr = totalMinutes > 0
+          ? '${(usedMinutes / totalMinutes * 100).toStringAsFixed(1)}%'
+          : '0.0%';
+      final progressPct = totalMinutes > 0 ? (usedMinutes * 100 ~/ totalMinutes) : 0;
+      await HomeWidget.saveWidgetData('widgetLargeTotalDays', totalDaysStr);
+      await HomeWidget.saveWidgetData('widgetLargeUsageRate', usageRateStr);
+      await HomeWidget.saveWidgetData('widgetLargeProgressPct', progressPct);
+      await HomeWidget.saveWidgetData('widgetLargePeriod', '${value.leavePeriodStartDate} ~ ${value.leavePeriodEndDate}');
+      await HomeWidget.saveWidgetData('widgetLargeExpiry', value.leavePeriodEndDate);
       await HomeWidget.updateWidget(
         androidName: 'LawdingWidgetProvider',
         iOSName: 'LawdingWidget',

@@ -1,14 +1,11 @@
 package com.lawding.annualleavecalculator
 
 import GGimiOwner.AnnualLeaveCalculator.R
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
 import java.text.SimpleDateFormat
@@ -64,61 +61,25 @@ class LawdingWidgetLargeProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val widgetData = HomeWidgetPlugin.getData(context)
-        val days = widgetData.getString("widgetDays", null)
-        val totalHours = widgetData.getInt("widgetTotalHours", -1)
+        val d = HomeWidgetPlugin.getData(context)
 
-        val date1 = widgetData.getString("widgetMediumNextDate", null)
-        val type1 = widgetData.getString("widgetMediumNextType", null)
-        val dday1 = computeDDay(widgetData.getString("widgetNextDateIso", null))
-            ?: widgetData.getString("widgetCalNextDDay", null)
-
-        val date2 = widgetData.getString("widgetMediumAfterNextDate", null)
-        val type2 = widgetData.getString("widgetMediumAfterNextType", null)
-        val dday2 = computeDDay(widgetData.getString("widgetAfterNextDateIso", null))
-            ?: widgetData.getString("widgetCalAfterDDay", null)
-
-        val date3 = widgetData.getString("widgetThirdDate", null)
-        val type3 = widgetData.getString("widgetThirdType", null)
-        val dday3 = computeDDay(widgetData.getString("widgetThirdDateIso", null))
+        val days = d.getString("widgetDays", null)
+        val totalDays = d.getString("widgetLargeTotalDays", null)
+        val usageRate = d.getString("widgetLargeUsageRate", null)
+        val progressPct = d.getInt("widgetLargeProgressPct", 0)
+        val period = d.getString("widgetLargePeriod", null)
+        val expiry = d.getString("widgetLargeExpiry", null)
+        val nextDateIso = d.getString("widgetNextDateIso", null)
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget_large)
 
         views.setTextViewText(R.id.widget_large_days, if (days != null) "${days}일" else "--일")
-        views.setTextViewText(R.id.widget_large_hours, if (totalHours >= 0) "${totalHours}시간" else "--시간")
-
-        views.setTextViewText(R.id.widget_large_date1, date1 ?: "--")
-        views.setTextViewText(R.id.widget_large_type1, type1 ?: "--")
-        views.setTextViewText(R.id.widget_large_dday1, dday1 ?: "--")
-
-        val show2 = date2 != null
-        views.setViewVisibility(R.id.widget_large_divider2, if (show2) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_large_row2, if (show2) View.VISIBLE else View.GONE)
-        if (show2) {
-            views.setTextViewText(R.id.widget_large_date2, date2 ?: "--")
-            views.setTextViewText(R.id.widget_large_type2, type2 ?: "--")
-            views.setTextViewText(R.id.widget_large_dday2, dday2 ?: "--")
-        }
-
-        val show3 = date3 != null
-        views.setViewVisibility(R.id.widget_large_divider3, if (show3) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_large_row3, if (show3) View.VISIBLE else View.GONE)
-        if (show3) {
-            views.setTextViewText(R.id.widget_large_date3, date3 ?: "--")
-            views.setTextViewText(R.id.widget_large_type3, type3 ?: "--")
-            views.setTextViewText(R.id.widget_large_dday3, dday3 ?: "--")
-        }
-
-        val addIntent = Intent(Intent.ACTION_VIEW,
-            Uri.parse("ggimiowner.annualleavecalculator://add-calendar")).apply {
-            setPackage(context.packageName)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 0, addIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        views.setOnClickPendingIntent(R.id.btn_add_large, pendingIntent)
+        views.setTextViewText(R.id.widget_large_total_days, if (totalDays != null) "${totalDays}일" else "--일")
+        views.setTextViewText(R.id.widget_large_usage_rate, usageRate ?: "--")
+        views.setProgressBar(R.id.widget_large_progress, 100, progressPct.coerceIn(0, 100), false)
+        views.setTextViewText(R.id.widget_large_period, "사용 기간 : ${period ?: "--"}")
+        views.setTextViewText(R.id.widget_large_expiry, "다음 소멸 : ${expiry ?: "--"}")
+        views.setTextViewText(R.id.widget_large_next_date, "다음 연차 : ${nextDateIso ?: "--"}")
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

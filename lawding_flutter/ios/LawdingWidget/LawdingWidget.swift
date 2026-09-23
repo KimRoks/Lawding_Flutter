@@ -20,6 +20,13 @@ struct LawdingEntry: TimelineEntry {
     let thirdDate: String?
     let thirdType: String?
     let thirdDDay: String?
+    // 4×4 large (stats)
+    let totalDays: String?
+    let usageRate: String?
+    let progressPct: Int?
+    let period: String?
+    let expiry: String?
+    let nextDateIso: String?
 }
 
 struct LawdingProvider: TimelineProvider {
@@ -30,7 +37,9 @@ struct LawdingProvider: TimelineProvider {
             nextDate: nil, nextType: nil,
             afterNextDate: nil, afterNextType: nil,
             nextDDay: nil, afterNextDDay: nil,
-            thirdDate: nil, thirdType: nil, thirdDDay: nil
+            thirdDate: nil, thirdType: nil, thirdDDay: nil,
+            totalDays: nil, usageRate: nil, progressPct: nil,
+            period: nil, expiry: nil, nextDateIso: nil
         )
     }
 
@@ -75,7 +84,13 @@ struct LawdingProvider: TimelineProvider {
                 ?? d?.string(forKey: "widgetCalAfterDDay"),
             thirdDate: d?.string(forKey: "widgetThirdDate"),
             thirdType: d?.string(forKey: "widgetThirdType"),
-            thirdDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetThirdDateIso"))
+            thirdDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetThirdDateIso")),
+            totalDays: d?.string(forKey: "widgetLargeTotalDays"),
+            usageRate: d?.string(forKey: "widgetLargeUsageRate"),
+            progressPct: d?.object(forKey: "widgetLargeProgressPct") as? Int,
+            period: d?.string(forKey: "widgetLargePeriod"),
+            expiry: d?.string(forKey: "widgetLargeExpiry"),
+            nextDateIso: d?.string(forKey: "widgetNextDateIso")
         )
     }
 }
@@ -387,8 +402,8 @@ struct LawdingWidget: Widget {
         StaticConfiguration(kind: kind, provider: LawdingProvider()) { entry in
             LawdingWidgetView(entry: entry)
         }
-        .configurationDisplayName("연차계산기")
-        .description("남은 연차와 예정 연차를 확인하세요.")
+        .configurationDisplayName("다음 예정 연차")
+        .description("다음 연차 예정일을 확인하세요.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
@@ -400,113 +415,79 @@ struct LawdingLargeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 헤더
+            // 헤더: statistics_ic + 연차 종합현황
             HStack(spacing: 6) {
-                Image("calendar_tabbar")
+                Image("statistics_ic")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 18, height: 23)
-                Text("연차 현황")
-                    .font(.custom("Pretendard-Bold", size: 15))
+                    .frame(width: 25, height: 23)
+                Text("연차 종합현황")
+                    .font(.custom("Pretendard-Bold", size: 18))
                     .foregroundColor(Color(hex: 0x111111))
             }
 
-            // 잔여 연차
-            HStack(alignment: .center) {
-                Text(entry.days.map { "\($0)일" } ?? "--일")
-                    .font(.custom("Pretendard-Bold", size: 38))
-                    .foregroundColor(Color(hex: 0x111111))
-                Spacer()
-                Text(entry.totalHours.map { "\($0)시간" } ?? "--시간")
-                    .font(.custom("Pretendard-SemiBold", size: 16))
-                    .foregroundColor(Color(hex: 0x0057B8))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: 0xCFE6FF)))
-            }
-            .padding(.top, 10)
+            // 잔여 연차 (큰 숫자, 중앙 정렬)
+            Text(entry.days.map { "\($0)일" } ?? "--일")
+                .font(.custom("Pretendard-Bold", size: 55))
+                .foregroundColor(Color(hex: 0x111111))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 14)
 
-            Rectangle()
-                .fill(Color(hex: 0xE1E1E1))
-                .frame(height: 1)
-                .padding(.vertical, 12)
+            // 총 발생 연차
+            Text("총 발생 연차")
+                .font(.custom("Pretendard-SemiBold", size: 16))
+                .foregroundColor(Color(hex: 0x999999))
+                .padding(.top, 12)
+            Text(entry.totalDays.map { "\($0)일" } ?? "--일")
+                .font(.custom("Pretendard-Bold", size: 24))
+                .foregroundColor(Color(hex: 0x999999))
+                .padding(.top, 2)
 
-            // 예정 연차 헤더
+            // 연차 사용률 + 비율
             HStack {
-                Text("예정 연차")
+                Text("연차 사용률")
                     .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color(hex: 0x0057B8))
                 Spacer()
-                Link(destination: URL(string: "ggimiowner.annualleavecalculator://add-calendar")!) {
-                    ZStack {
-                        Circle()
+                Text(entry.usageRate ?? "--")
+                    .font(.custom("Pretendard-Bold", size: 14))
+                    .foregroundColor(Color(hex: 0x0057B8))
+            }
+            .padding(.top, 12)
+
+            // 프로그레스 바
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 17)
+                        .fill(Color(hex: 0xF5F5F5))
+                    if let pct = entry.progressPct, pct > 0 {
+                        RoundedRectangle(cornerRadius: 5)
                             .fill(Color(hex: 0x0057B8))
-                            .frame(width: 32, height: 32)
-                        Image(systemName: "plus")
-                            .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .semibold))
+                            .frame(width: geo.size.width * Double(min(pct, 100)) / 100.0)
                     }
                 }
             }
-
-            if entry.nextDate != nil {
-                eventRow(date: entry.nextDate, type: entry.nextType, dday: entry.nextDDay, isFirst: true)
-                    .padding(.top, 10)
-                if entry.afterNextDate != nil {
-                    thinDivider.padding(.top, 8)
-                    eventRow(date: entry.afterNextDate, type: entry.afterNextType, dday: entry.afterNextDDay, isFirst: false)
-                        .padding(.top, 8)
-                }
-                if entry.thirdDate != nil {
-                    thinDivider.padding(.top, 8)
-                    eventRow(date: entry.thirdDate, type: entry.thirdType, dday: entry.thirdDDay, isFirst: false)
-                        .padding(.top, 8)
-                }
-            } else {
-                Spacer()
-                Text("예정된 연차가 없습니다")
-                    .font(.custom("Pretendard-SemiBold", size: 14))
-                    .foregroundColor(Color(hex: 0x555555))
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
+            .frame(height: 10)
+            .padding(.top, 6)
 
             Spacer(minLength: 0)
+
+            // 하단 정보 3줄
+            infoLine("사용 기간", entry.period ?? "--")
+            infoLine("다음 소멸", entry.expiry ?? "--")
+                .padding(.top, 8)
+            infoLine("다음 연차", entry.nextDateIso ?? "--")
+                .padding(.top, 8)
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Color.white)
     }
 
-    private var thinDivider: some View {
-        Rectangle()
-            .fill(Color(hex: 0xE1E1E1))
-            .frame(height: 1)
-    }
-
-    @ViewBuilder
-    private func eventRow(date: String?, type: String?, dday: String?, isFirst: Bool) -> some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(date ?? "--")
-                    .font(.custom("Pretendard-Bold", size: 18))
-                    .foregroundColor(Color(hex: 0x111111))
-                Text(type ?? "--")
-                    .font(.custom("Pretendard-SemiBold", size: 13))
-                    .foregroundColor(Color(hex: 0x555555))
-            }
-            Spacer()
-            if let d = dday {
-                Text(d)
-                    .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(isFirst ? Color(hex: 0x0057B8) : Color(hex: 0x555555))
-                    .padding(.horizontal, 10)
-                    .frame(height: 24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(isFirst ? Color(hex: 0xCFE6FF) : Color(hex: 0xE1E1E1))
-                    )
-            }
-        }
+    private func infoLine(_ label: String, _ value: String) -> some View {
+        Text("\(label) : \(value)")
+            .font(.custom("Pretendard-SemiBold", size: 16))
+            .foregroundColor(Color(hex: 0x999999))
     }
 }
 

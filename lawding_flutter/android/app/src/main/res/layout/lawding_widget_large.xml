@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- 헤더: 아이콘 + 연차 현황 -->
+    <!-- 헤더: statistics_ic + 연차 종합현황 -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -14,258 +14,125 @@
         android:gravity="center_vertical">
 
         <ImageView
-            android:layout_width="18dp"
+            android:layout_width="25dp"
             android:layout_height="23dp"
-            android:src="@drawable/calendar_tabbar"
-            android:contentDescription="달력" />
+            android:src="@drawable/ic_statistics"
+            android:contentDescription="통계" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:text="연차 현황"
+            android:text="연차 종합현황"
             android:textColor="#111111"
-            android:textSize="15sp"
+            android:textSize="18sp"
             android:fontFamily="@font/pretendard_bold" />
     </LinearLayout>
 
-    <!-- 잔여 연차: 일수 + 시간 pill -->
-    <LinearLayout
+    <!-- 잔여 연차 (큰 숫자, 중앙 정렬) -->
+    <TextView
+        android:id="@+id/widget_large_days"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="14dp"
+        android:text="--일"
+        android:textColor="#111111"
+        android:textSize="55sp"
+        android:fontFamily="@font/pretendard_bold"
+        android:gravity="center" />
 
-        <TextView
-            android:id="@+id/widget_large_days"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="--일"
-            android:textColor="#111111"
-            android:textSize="36sp"
-            android:fontFamily="@font/pretendard_bold" />
-
-        <TextView
-            android:id="@+id/widget_large_hours"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp"
-            android:text="--시간"
-            android:textColor="#0057B8"
-            android:textSize="16sp"
-            android:fontFamily="@font/pretendard_semibold"
-            android:background="@drawable/widget_pill_background" />
-    </LinearLayout>
-
-    <!-- 구분선 -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E1E1E1"
+    <!-- 총 발생 연차 레이블 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp" />
+        android:text="총 발생 연차"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_semibold" />
 
-    <!-- 예정 연차 헤더 + 추가 버튼 -->
+    <!-- 총 발생 연차 값 -->
+    <TextView
+        android:id="@+id/widget_large_total_days"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="--일"
+        android:textColor="#999999"
+        android:textSize="24sp"
+        android:fontFamily="@font/pretendard_bold" />
+
+    <!-- 연차 사용률 + 비율 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_marginTop="12dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="예정 연차"
-            android:textColor="#111111"
+            android:text="연차 사용률"
+            android:textColor="#0057B8"
             android:textSize="14sp"
             android:fontFamily="@font/pretendard_bold" />
 
-        <LinearLayout
-            android:id="@+id/btn_add_large"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_calendar_add"
-                android:contentDescription="연차 추가" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- 이벤트 1 -->
-    <LinearLayout
-        android:id="@+id/widget_large_row1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="10dp">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_large_date1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="--"
-                android:textColor="#111111"
-                android:textSize="18sp"
-                android:fontFamily="@font/pretendard_bold" />
-
-            <TextView
-                android:id="@+id/widget_large_type1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="--"
-                android:textColor="#555555"
-                android:textSize="13sp"
-                android:fontFamily="@font/pretendard_semibold" />
-        </LinearLayout>
-
         <TextView
-            android:id="@+id/widget_large_dday1"
+            android:id="@+id/widget_large_usage_rate"
             android:layout_width="wrap_content"
-            android:layout_height="24dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
+            android:layout_height="wrap_content"
             android:text="--"
             android:textColor="#0057B8"
             android:textSize="14sp"
-            android:fontFamily="@font/pretendard_bold"
-            android:gravity="center"
-            android:background="@drawable/widget_pill_background" />
+            android:fontFamily="@font/pretendard_bold" />
     </LinearLayout>
 
-    <!-- 구분선 2 -->
+    <!-- 프로그레스 바 -->
+    <ProgressBar
+        android:id="@+id/widget_large_progress"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="6dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_progress_drawable" />
+
+    <!-- Spacer -->
     <View
-        android:id="@+id/widget_large_divider2"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E1E1E1"
-        android:layout_marginTop="8dp"
-        android:visibility="gone" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- 이벤트 2 -->
-    <LinearLayout
-        android:id="@+id/widget_large_row2"
-        android:layout_width="match_parent"
+    <!-- 하단 정보 3줄 -->
+    <TextView
+        android:id="@+id/widget_large_period"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="8dp"
-        android:visibility="gone">
+        android:text="사용 기간 : --"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_semibold" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_large_date2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="--"
-                android:textColor="#111111"
-                android:textSize="18sp"
-                android:fontFamily="@font/pretendard_bold" />
-
-            <TextView
-                android:id="@+id/widget_large_type2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="--"
-                android:textColor="#555555"
-                android:textSize="13sp"
-                android:fontFamily="@font/pretendard_semibold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/widget_large_dday2"
-            android:layout_width="wrap_content"
-            android:layout_height="24dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="--"
-            android:textColor="#555555"
-            android:textSize="14sp"
-            android:fontFamily="@font/pretendard_bold"
-            android:gravity="center"
-            android:background="@drawable/widget_pill_gray_background" />
-    </LinearLayout>
-
-    <!-- 구분선 3 -->
-    <View
-        android:id="@+id/widget_large_divider3"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#E1E1E1"
-        android:layout_marginTop="8dp"
-        android:visibility="gone" />
-
-    <!-- 이벤트 3 -->
-    <LinearLayout
-        android:id="@+id/widget_large_row3"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/widget_large_expiry"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:layout_marginTop="8dp"
-        android:visibility="gone">
+        android:text="다음 소멸 : --"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_semibold" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_large_date3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="--"
-                android:textColor="#111111"
-                android:textSize="18sp"
-                android:fontFamily="@font/pretendard_bold" />
-
-            <TextView
-                android:id="@+id/widget_large_type3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="--"
-                android:textColor="#555555"
-                android:textSize="13sp"
-                android:fontFamily="@font/pretendard_semibold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/widget_large_dday3"
-            android:layout_width="wrap_content"
-            android:layout_height="24dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:text="--"
-            android:textColor="#555555"
-            android:textSize="14sp"
-            android:fontFamily="@font/pretendard_bold"
-            android:gravity="center"
-            android:background="@drawable/widget_pill_gray_background" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/widget_large_next_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="다음 연차 : --"
+        android:textColor="#999999"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_semibold" />
 
 </LinearLayout>
