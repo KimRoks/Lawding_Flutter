@@ -85,6 +85,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await HomeWidget.saveWidgetData('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
       await HomeWidget.saveWidgetData('widgetNextDateIso', upcoming.isNotEmpty ? upcoming[0].startDatetime.substring(0, 10) : null);
       await HomeWidget.saveWidgetData('widgetAfterNextDateIso', upcoming.length >= 2 ? upcoming[1].startDatetime.substring(0, 10) : null);
+      await HomeWidget.saveWidgetData('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
+      await HomeWidget.saveWidgetData('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
+      await HomeWidget.saveWidgetData('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
       await HomeWidget.updateWidget(
         androidName: 'LawdingWidgetProvider',
         iOSName: 'LawdingWidget',
@@ -100,6 +103,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await HomeWidget.updateWidget(
         androidName: 'LawdingWidgetNextProvider',
         iOSName: 'LawdingNextWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetLargeProvider',
+        iOSName: 'LawdingLargeWidget',
       );
     }
   }

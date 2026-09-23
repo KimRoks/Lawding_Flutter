@@ -16,6 +16,10 @@ struct LawdingEntry: TimelineEntry {
     // 4×2 calendar
     let nextDDay: String?
     let afterNextDDay: String?
+    // 4×4 large (3rd event)
+    let thirdDate: String?
+    let thirdType: String?
+    let thirdDDay: String?
 }
 
 struct LawdingProvider: TimelineProvider {
@@ -25,7 +29,8 @@ struct LawdingProvider: TimelineProvider {
             days: nil, totalHours: nil,
             nextDate: nil, nextType: nil,
             afterNextDate: nil, afterNextType: nil,
-            nextDDay: nil, afterNextDDay: nil
+            nextDDay: nil, afterNextDDay: nil,
+            thirdDate: nil, thirdType: nil, thirdDDay: nil
         )
     }
 
@@ -67,7 +72,10 @@ struct LawdingProvider: TimelineProvider {
             nextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetNextDateIso"))
                 ?? d?.string(forKey: "widgetCalNextDDay"),
             afterNextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetAfterNextDateIso"))
-                ?? d?.string(forKey: "widgetCalAfterDDay")
+                ?? d?.string(forKey: "widgetCalAfterDDay"),
+            thirdDate: d?.string(forKey: "widgetThirdDate"),
+            thirdType: d?.string(forKey: "widgetThirdType"),
+            thirdDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetThirdDateIso"))
         )
     }
 }
@@ -382,5 +390,137 @@ struct LawdingWidget: Widget {
         .configurationDisplayName("연차계산기")
         .description("남은 연차와 예정 연차를 확인하세요.")
         .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
+// MARK: - 4×4 Large Widget View
+
+struct LawdingLargeView: View {
+    let entry: LawdingEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // 헤더
+            HStack(spacing: 6) {
+                Image("calendar_tabbar")
+                    .resizable()
+                    .renderingMode(.original)
+                    .frame(width: 18, height: 23)
+                Text("연차 현황")
+                    .font(.custom("Pretendard-Bold", size: 15))
+                    .foregroundColor(Color(hex: 0x111111))
+            }
+
+            // 잔여 연차
+            HStack(alignment: .center) {
+                Text(entry.days.map { "\($0)일" } ?? "--일")
+                    .font(.custom("Pretendard-Bold", size: 38))
+                    .foregroundColor(Color(hex: 0x111111))
+                Spacer()
+                Text(entry.totalHours.map { "\($0)시간" } ?? "--시간")
+                    .font(.custom("Pretendard-SemiBold", size: 16))
+                    .foregroundColor(Color(hex: 0x0057B8))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: 0xCFE6FF)))
+            }
+            .padding(.top, 10)
+
+            Rectangle()
+                .fill(Color(hex: 0xE1E1E1))
+                .frame(height: 1)
+                .padding(.vertical, 12)
+
+            // 예정 연차 헤더
+            HStack {
+                Text("예정 연차")
+                    .font(.custom("Pretendard-Bold", size: 14))
+                    .foregroundColor(Color(hex: 0x111111))
+                Spacer()
+                Link(destination: URL(string: "ggimiowner.annualleavecalculator://add-calendar")!) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: 0x0057B8))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                }
+            }
+
+            if entry.nextDate != nil {
+                eventRow(date: entry.nextDate, type: entry.nextType, dday: entry.nextDDay, isFirst: true)
+                    .padding(.top, 10)
+                if entry.afterNextDate != nil {
+                    thinDivider.padding(.top, 8)
+                    eventRow(date: entry.afterNextDate, type: entry.afterNextType, dday: entry.afterNextDDay, isFirst: false)
+                        .padding(.top, 8)
+                }
+                if entry.thirdDate != nil {
+                    thinDivider.padding(.top, 8)
+                    eventRow(date: entry.thirdDate, type: entry.thirdType, dday: entry.thirdDDay, isFirst: false)
+                        .padding(.top, 8)
+                }
+            } else {
+                Spacer()
+                Text("예정된 연차가 없습니다")
+                    .font(.custom("Pretendard-SemiBold", size: 14))
+                    .foregroundColor(Color(hex: 0x555555))
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Color.white)
+    }
+
+    private var thinDivider: some View {
+        Rectangle()
+            .fill(Color(hex: 0xE1E1E1))
+            .frame(height: 1)
+    }
+
+    @ViewBuilder
+    private func eventRow(date: String?, type: String?, dday: String?, isFirst: Bool) -> some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(date ?? "--")
+                    .font(.custom("Pretendard-Bold", size: 18))
+                    .foregroundColor(Color(hex: 0x111111))
+                Text(type ?? "--")
+                    .font(.custom("Pretendard-SemiBold", size: 13))
+                    .foregroundColor(Color(hex: 0x555555))
+            }
+            Spacer()
+            if let d = dday {
+                Text(d)
+                    .font(.custom("Pretendard-Bold", size: 14))
+                    .foregroundColor(isFirst ? Color(hex: 0x0057B8) : Color(hex: 0x555555))
+                    .padding(.horizontal, 10)
+                    .frame(height: 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(isFirst ? Color(hex: 0xCFE6FF) : Color(hex: 0xE1E1E1))
+                    )
+            }
+        }
+    }
+}
+
+// MARK: - Large Widget
+
+struct LawdingLargeWidget: Widget {
+    let kind = "LawdingLargeWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: LawdingProvider()) { entry in
+            LawdingLargeView(entry: entry)
+        }
+        .configurationDisplayName("연차 종합")
+        .description("잔여 연차와 예정 연차 목록을 한눈에 확인하세요.")
+        .supportedFamilies([.systemLarge])
     }
 }

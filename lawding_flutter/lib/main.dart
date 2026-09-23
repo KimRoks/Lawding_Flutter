@@ -61,6 +61,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumProvider', iOSName: 'LawdingWidget');
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetCalendarProvider', iOSName: 'LawdingCalendarWidget');
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetNextProvider', iOSName: 'LawdingNextWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetLargeProvider', iOSName: 'LawdingLargeWidget');
   }
 
   Future<void> _initDeepLinks() async {

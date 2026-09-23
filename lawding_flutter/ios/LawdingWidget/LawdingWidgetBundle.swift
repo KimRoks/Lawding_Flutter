@@ -7,5 +7,6 @@ struct LawdingWidgetBundle: WidgetBundle {
         LawdingWidget()
         LawdingNextWidget()
         LawdingCalendarWidget()
+        LawdingLargeWidget()
     }
 }
