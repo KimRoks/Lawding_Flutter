@@ -34,8 +34,24 @@ struct LawdingProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LawdingEntry>) -> Void) {
-        let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
-        completion(Timeline(entries: [loadEntry()], policy: .after(next)))
+        let midnight = Calendar.current.nextDate(
+            after: Date(),
+            matching: DateComponents(hour: 0, minute: 0, second: 0),
+            matchingPolicy: .nextTime
+        )!
+        completion(Timeline(entries: [loadEntry()], policy: .after(midnight)))
+    }
+
+    private func computeDDay(isoDateStr: String?) -> String? {
+        guard let str = isoDateStr else { return nil }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        guard let eventDate = fmt.date(from: String(str.prefix(10))) else { return nil }
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let event = cal.startOfDay(for: eventDate)
+        let diff = cal.dateComponents([.day], from: today, to: event).day ?? 0
+        return diff == 0 ? "D-Day" : "D-\(diff)"
     }
 
     private func loadEntry() -> LawdingEntry {
@@ -48,8 +64,10 @@ struct LawdingProvider: TimelineProvider {
             nextType: d?.string(forKey: "widgetMediumNextType"),
             afterNextDate: d?.string(forKey: "widgetMediumAfterNextDate"),
             afterNextType: d?.string(forKey: "widgetMediumAfterNextType"),
-            nextDDay: d?.string(forKey: "widgetCalNextDDay"),
-            afterNextDDay: d?.string(forKey: "widgetCalAfterDDay")
+            nextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetNextDateIso"))
+                ?? d?.string(forKey: "widgetCalNextDDay"),
+            afterNextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetAfterNextDateIso"))
+                ?? d?.string(forKey: "widgetCalAfterDDay")
         )
     }
 }

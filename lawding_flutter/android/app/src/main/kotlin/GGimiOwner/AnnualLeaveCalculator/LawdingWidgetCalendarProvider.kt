@@ -4,13 +4,27 @@ import GGimiOwner.AnnualLeaveCalculator.R
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class LawdingWidgetCalendarProvider : AppWidgetProvider() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == Intent.ACTION_DATE_CHANGED) {
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(ComponentName(context, LawdingWidgetCalendarProvider::class.java))
+            onUpdate(context, manager, ids)
+        }
+    }
 
     override fun onUpdate(
         context: Context,
@@ -22,6 +36,28 @@ class LawdingWidgetCalendarProvider : AppWidgetProvider() {
         }
     }
 
+    private fun computeDDay(isoDate: String?): String? {
+        if (isoDate == null) return null
+        return try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            sdf.isLenient = false
+            val eventDate = sdf.parse(isoDate.take(10)) ?: return null
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            }
+            val event = Calendar.getInstance().apply {
+                time = eventDate
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            }
+            val diff = TimeUnit.MILLISECONDS.toDays(event.timeInMillis - today.timeInMillis)
+            if (diff == 0L) "D-Day" else "D-$diff"
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun updateWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -30,10 +66,12 @@ class LawdingWidgetCalendarProvider : AppWidgetProvider() {
         val widgetData = HomeWidgetPlugin.getData(context)
         val nextDate = widgetData.getString("widgetMediumNextDate", null)
         val nextType = widgetData.getString("widgetMediumNextType", null)
-        val nextDDay = widgetData.getString("widgetCalNextDDay", null)
+        val nextDDay = computeDDay(widgetData.getString("widgetNextDateIso", null))
+            ?: widgetData.getString("widgetCalNextDDay", null)
         val afterDate = widgetData.getString("widgetMediumAfterNextDate", null)
         val afterType = widgetData.getString("widgetMediumAfterNextType", null)
-        val afterDDay = widgetData.getString("widgetCalAfterDDay", null)
+        val afterDDay = computeDDay(widgetData.getString("widgetAfterNextDateIso", null))
+            ?: widgetData.getString("widgetCalAfterDDay", null)
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget_calendar)
 

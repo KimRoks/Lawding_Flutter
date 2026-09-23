@@ -38,14 +38,29 @@ class MyApp extends ConsumerStatefulWidget {
   ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends ConsumerState<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   StreamSubscription<Uri>? _deepLinkSub;
   DateTime? _lastAddCalendarHandled;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initDeepLinks();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshWidgets();
+    }
+  }
+
+  Future<void> _refreshWidgets() async {
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetProvider', iOSName: 'LawdingWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumProvider', iOSName: 'LawdingWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetCalendarProvider', iOSName: 'LawdingCalendarWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetNextProvider', iOSName: 'LawdingNextWidget');
   }
 
   Future<void> _initDeepLinks() async {
@@ -59,6 +74,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _deepLinkSub?.cancel();
     super.dispose();
   }

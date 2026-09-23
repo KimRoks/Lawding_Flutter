@@ -83,6 +83,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await HomeWidget.saveWidgetData('widgetMediumAfterNextType', upcoming.length >= 2 ? fmtType(upcoming[1]) : null);
       await HomeWidget.saveWidgetData('widgetCalNextDDay', upcoming.isNotEmpty ? fmtDDay(upcoming[0]) : null);
       await HomeWidget.saveWidgetData('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
+      await HomeWidget.saveWidgetData('widgetNextDateIso', upcoming.isNotEmpty ? upcoming[0].startDatetime.substring(0, 10) : null);
+      await HomeWidget.saveWidgetData('widgetAfterNextDateIso', upcoming.length >= 2 ? upcoming[1].startDatetime.substring(0, 10) : null);
       await HomeWidget.updateWidget(
         androidName: 'LawdingWidgetProvider',
         iOSName: 'LawdingWidget',
