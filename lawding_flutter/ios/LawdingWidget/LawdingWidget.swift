@@ -428,11 +428,10 @@ struct LawdingLargeView: View {
                     .foregroundColor(Color(hex: 0x111111))
             }
 
-            // 잔여 연차 (큰 숫자, 중앙 정렬)
+            // 잔여 연차 (큰 숫자)
             Text(entry.days.map { "\($0)일" } ?? "--일")
                 .font(.custom("Pretendard-Bold", size: 55))
                 .foregroundColor(Color(hex: 0x111111))
-                .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.top, 14)
 
             // 총 발생 연차
@@ -472,14 +471,14 @@ struct LawdingLargeView: View {
             .frame(height: 10)
             .padding(.top, 6)
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 10)
 
             // 하단 정보 3줄
             infoLine("사용 기간", entry.period ?? "--")
             infoLine("다음 소멸", entry.expiry ?? "--")
-                .padding(.top, 8)
+                .padding(.top, 12)
             infoLine("다음 연차", entry.nextDateIso ?? "--")
-                .padding(.top, 8)
+                .padding(.top, 12)
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
