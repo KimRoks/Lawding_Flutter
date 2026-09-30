@@ -6,5 +6,7 @@
     android:minHeight="250dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/lawding_widget_large"
+    android:previewLayout="@layout/lawding_widget_large"
+    android:description="@string/widget_desc_large"
     android:resizeMode="none"
     android:widgetCategory="home_screen" />

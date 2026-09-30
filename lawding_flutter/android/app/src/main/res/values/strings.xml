@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_desc_small">남은 연차 일수를 확인하세요.</string>
+    <string name="widget_desc_next">다음 연차 일정과 D-day를 확인하세요.</string>
+    <string name="widget_desc_medium">다음 예정 연차 일정을 확인하세요.</string>
+    <string name="widget_desc_calendar">예정된 연차 일정을 확인하고 추가하세요.</string>
+    <string name="widget_desc_large">잔여 연차와 연차 종합 현황을 확인하세요.</string>
+</resources>
