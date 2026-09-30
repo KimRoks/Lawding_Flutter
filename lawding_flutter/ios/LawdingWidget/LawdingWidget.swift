@@ -404,8 +404,8 @@ struct LawdingWidget: Widget {
         StaticConfiguration(kind: kind, provider: LawdingProvider()) { entry in
             LawdingWidgetView(entry: entry)
         }
-        .configurationDisplayName("다음 예정 연차")
-        .description("다음 연차 예정일을 확인하세요.")
+        .configurationDisplayName("잔여연차")
+        .description("남은 연차 일수를 확인하세요.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
