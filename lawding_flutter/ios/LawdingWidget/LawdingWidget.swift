@@ -247,6 +247,8 @@ struct LawdingNextView: View {
             Text(entry.nextDDay ?? "--")
                 .font(.custom("Pretendard-Bold", size: 20))
                 .foregroundColor(Color(hex: 0x0057B8))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .padding(.horizontal, 12)
                 .frame(height: 30)
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: 0xCFE6FF)))

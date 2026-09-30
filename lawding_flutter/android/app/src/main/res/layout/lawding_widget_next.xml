@@ -21,6 +21,7 @@
             android:contentDescription="달력" />
 
         <TextView
+            android:id="@+id/widget_next_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
@@ -68,6 +69,7 @@
         android:textSize="20sp"
         android:fontFamily="@font/pretendard_bold"
         android:gravity="center"
+        android:maxLines="1"
         android:background="@drawable/widget_pill_background" />
 
 </LinearLayout>
