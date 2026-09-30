@@ -29,13 +29,8 @@ class LawdingWidgetProvider : AppWidgetProvider() {
         val totalHours = widgetData.getInt("widgetTotalHours", -1)
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget)
-        if (days == null) {
-            views.setTextViewText(R.id.widget_days, "8.125일")
-            views.setTextViewText(R.id.widget_hours, "65시간")
-        } else {
-            views.setTextViewText(R.id.widget_days, "${days}일")
-            views.setTextViewText(R.id.widget_hours, "${totalHours}시간")
-        }
+        views.setTextViewText(R.id.widget_days, if (days != null) "${days}일" else "--일")
+        views.setTextViewText(R.id.widget_hours, if (totalHours >= 0) "${totalHours}시간" else "--시간")
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
