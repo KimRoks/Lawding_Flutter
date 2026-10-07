@@ -13,13 +13,13 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class LawdingWidgetLargeProvider : AppWidgetProvider() {
+class LawdingWidgetSmallNext : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == Intent.ACTION_DATE_CHANGED) {
             val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(ComponentName(context, LawdingWidgetLargeProvider::class.java))
+            val ids = manager.getAppWidgetIds(ComponentName(context, LawdingWidgetSmallNext::class.java))
             onUpdate(context, manager, ids)
         }
     }
@@ -61,25 +61,16 @@ class LawdingWidgetLargeProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val d = HomeWidgetPlugin.getData(context)
+        val widgetData = HomeWidgetPlugin.getData(context)
+        val nextDate = widgetData.getString("widgetMediumNextDate", null)
+        val nextType = widgetData.getString("widgetMediumNextType", null)
+        val nextDDay = computeDDay(widgetData.getString("widgetNextDateIso", null))
+            ?: widgetData.getString("widgetCalNextDDay", null)
 
-        val days = d.getString("widgetDays", null)
-        val totalDays = d.getString("widgetLargeTotalDays", null)
-        val usageRate = d.getString("widgetLargeUsageRate", null)
-        val progressPct = d.getInt("widgetLargeProgressPct", 0)
-        val period = d.getString("widgetLargePeriod", null)
-        val expiry = d.getString("widgetLargeExpiry", null)
-        val nextDateIso = d.getString("widgetNextDateIso", null)
-
-        val views = RemoteViews(context.packageName, R.layout.lawding_widget_large)
-
-        views.setTextViewText(R.id.widget_large_days, if (days != null) "${days}일" else "--일")
-        views.setTextViewText(R.id.widget_large_total_days, if (totalDays != null) "${totalDays}일" else "--일")
-        views.setTextViewText(R.id.widget_large_usage_rate, usageRate ?: "--")
-        views.setProgressBar(R.id.widget_large_progress, 100, progressPct.coerceIn(0, 100), false)
-        views.setTextViewText(R.id.widget_large_period, "사용 기간 : ${period ?: "--"}")
-        views.setTextViewText(R.id.widget_large_expiry, "다음 소멸 : ${expiry ?: "--"}")
-        views.setTextViewText(R.id.widget_large_next_date, "다음 연차 : ${nextDateIso ?: "--"}")
+        val views = RemoteViews(context.packageName, R.layout.lawding_widget_next)
+        views.setTextViewText(R.id.widget_next_date, nextDate ?: "--")
+        views.setTextViewText(R.id.widget_next_type, nextType ?: "--")
+        views.setTextViewText(R.id.widget_next_dday, nextDDay ?: "--")
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

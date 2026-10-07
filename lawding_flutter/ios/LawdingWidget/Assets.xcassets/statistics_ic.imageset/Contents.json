@@ -3,6 +3,16 @@
     {
       "filename" : "statistics_ic.svg",
       "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "statistics_ic_dark.svg",
+      "idiom" : "universal"
     }
   ],
   "info" : {

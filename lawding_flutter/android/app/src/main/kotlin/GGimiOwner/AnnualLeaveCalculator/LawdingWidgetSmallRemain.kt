@@ -7,7 +7,7 @@ import android.widget.RemoteViews
 import GGimiOwner.AnnualLeaveCalculator.R
 import es.antonborri.home_widget.HomeWidgetPlugin
 
-class LawdingWidgetProvider : AppWidgetProvider() {
+class LawdingWidgetSmallRemain : AppWidgetProvider() {
 
     override fun onUpdate(
         context: Context,

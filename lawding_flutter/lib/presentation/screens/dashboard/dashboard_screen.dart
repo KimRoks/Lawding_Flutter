@@ -12,6 +12,7 @@ import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_dashboard.dart';
 import '../../../domain/entities/public_holiday_period.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/widget_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/logo_app_bar.dart';
@@ -53,8 +54,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ? value.remainingLeaveMinutes / 60 / value.avgDailyWorkHours
           : 0.0;
       final daysStr = daysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
-      await HomeWidget.saveWidgetData('widgetDays', daysStr);
-      await HomeWidget.saveWidgetData('widgetTotalHours', totalHours);
+      await WidgetService.save('widgetDays', daysStr);
+      await WidgetService.save('widgetTotalHours', totalHours);
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final upcoming = value.recentLeaveUsages.where((u) {
@@ -77,17 +78,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         final diff = leaveDay.difference(today).inDays;
         return diff == 0 ? 'D-Day' : 'D-$diff';
       }
-      await HomeWidget.saveWidgetData('widgetMediumNextDate', upcoming.isNotEmpty ? fmtDate(upcoming[0]) : null);
-      await HomeWidget.saveWidgetData('widgetMediumNextType', upcoming.isNotEmpty ? fmtType(upcoming[0]) : null);
-      await HomeWidget.saveWidgetData('widgetMediumAfterNextDate', upcoming.length >= 2 ? fmtDate(upcoming[1]) : null);
-      await HomeWidget.saveWidgetData('widgetMediumAfterNextType', upcoming.length >= 2 ? fmtType(upcoming[1]) : null);
-      await HomeWidget.saveWidgetData('widgetCalNextDDay', upcoming.isNotEmpty ? fmtDDay(upcoming[0]) : null);
-      await HomeWidget.saveWidgetData('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
-      await HomeWidget.saveWidgetData('widgetNextDateIso', upcoming.isNotEmpty ? upcoming[0].startDatetime.substring(0, 10) : null);
-      await HomeWidget.saveWidgetData('widgetAfterNextDateIso', upcoming.length >= 2 ? upcoming[1].startDatetime.substring(0, 10) : null);
-      await HomeWidget.saveWidgetData('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
-      await HomeWidget.saveWidgetData('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
-      await HomeWidget.saveWidgetData('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetMediumNextDate', upcoming.isNotEmpty ? fmtDate(upcoming[0]) : null);
+      await WidgetService.save('widgetMediumNextType', upcoming.isNotEmpty ? fmtType(upcoming[0]) : null);
+      await WidgetService.save('widgetMediumAfterNextDate', upcoming.length >= 2 ? fmtDate(upcoming[1]) : null);
+      await WidgetService.save('widgetMediumAfterNextType', upcoming.length >= 2 ? fmtType(upcoming[1]) : null);
+      await WidgetService.save('widgetCalNextDDay', upcoming.isNotEmpty ? fmtDDay(upcoming[0]) : null);
+      await WidgetService.save('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
+      await WidgetService.save('widgetNextDateIso', upcoming.isNotEmpty ? upcoming[0].startDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetAfterNextDateIso', upcoming.length >= 2 ? upcoming[1].startDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
+      await WidgetService.save('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
+      await WidgetService.save('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
       // 4×4 large 위젯 전용
       final totalMinutes = value.totalLeaveMinutes;
       final usedMinutes = (totalMinutes - value.remainingLeaveMinutes).clamp(0, totalMinutes);
@@ -99,29 +100,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ? '${(usedMinutes / totalMinutes * 100).toStringAsFixed(1)}%'
           : '0.0%';
       final progressPct = totalMinutes > 0 ? (usedMinutes * 100 ~/ totalMinutes) : 0;
-      await HomeWidget.saveWidgetData('widgetLargeTotalDays', totalDaysStr);
-      await HomeWidget.saveWidgetData('widgetLargeUsageRate', usageRateStr);
-      await HomeWidget.saveWidgetData('widgetLargeProgressPct', progressPct);
-      await HomeWidget.saveWidgetData('widgetLargePeriod', '${value.leavePeriodStartDate} ~ ${value.leavePeriodEndDate}');
-      await HomeWidget.saveWidgetData('widgetLargeExpiry', value.leavePeriodEndDate);
+      await WidgetService.save('widgetLargeTotalDays', totalDaysStr);
+      await WidgetService.save('widgetLargeUsageRate', usageRateStr);
+      await WidgetService.save('widgetLargeProgressPct', progressPct);
+      await WidgetService.save('widgetLargePeriod', '${value.leavePeriodStartDate} ~ ${value.leavePeriodEndDate}');
+      await WidgetService.save('widgetLargeExpiry', value.leavePeriodEndDate);
       await HomeWidget.updateWidget(
-        androidName: 'LawdingWidgetProvider',
+        androidName: 'LawdingWidgetSmallRemain',
         iOSName: 'LawdingWidget',
       );
       await HomeWidget.updateWidget(
-        androidName: 'LawdingWidgetMediumProvider',
+        androidName: 'LawdingWidgetMediumSchedule',
         iOSName: 'LawdingWidget',
       );
       await HomeWidget.updateWidget(
-        androidName: 'LawdingWidgetCalendarProvider',
+        androidName: 'LawdingWidgetMediumPlus',
         iOSName: 'LawdingCalendarWidget',
       );
       await HomeWidget.updateWidget(
-        androidName: 'LawdingWidgetNextProvider',
+        androidName: 'LawdingWidgetSmallNext',
         iOSName: 'LawdingNextWidget',
       );
       await HomeWidget.updateWidget(
-        androidName: 'LawdingWidgetLargeProvider',
+        androidName: 'LawdingWidgetLargeOverview',
         iOSName: 'LawdingLargeWidget',
       );
     }

@@ -15,13 +15,13 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class LawdingWidgetCalendarProvider : AppWidgetProvider() {
+class LawdingWidgetMediumPlus : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == Intent.ACTION_DATE_CHANGED) {
             val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(ComponentName(context, LawdingWidgetCalendarProvider::class.java))
+            val ids = manager.getAppWidgetIds(ComponentName(context, LawdingWidgetMediumPlus::class.java))
             onUpdate(context, manager, ids)
         }
     }

@@ -7,7 +7,7 @@ import android.content.Context
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
 
-class LawdingWidgetMediumProvider : AppWidgetProvider() {
+class LawdingWidgetMediumSchedule : AppWidgetProvider() {
 
     override fun onUpdate(
         context: Context,

@@ -3,6 +3,18 @@ import SwiftUI
 
 private let appGroupId = "group.com.lawding.annualleavecalculator"
 
+extension View {
+    // 위젯 전체(시스템 여백 포함)를 지정 색으로 채운다. iOS 16은 콘텐츠 배경으로 폴백.
+    @ViewBuilder
+    func widgetBackground(_ color: Color) -> some View {
+        if #available(iOS 17.0, *) {
+            containerBackground(for: .widget) { color }
+        } else {
+            background(color)
+        }
+    }
+}
+
 struct LawdingEntry: TimelineEntry {
     let date: Date
     // 2×2 small
@@ -68,29 +80,35 @@ struct LawdingProvider: TimelineProvider {
         return diff == 0 ? "D-Day" : "D-\(diff)"
     }
 
+    // 빈 문자열은 "값 없음"으로 간주 (iOS home_widget이 null을 못 넣어 Dart가 ""를 저장함)
+    private func strVal(_ d: UserDefaults?, _ key: String) -> String? {
+        guard let v = d?.string(forKey: key), !v.isEmpty else { return nil }
+        return v
+    }
+
     private func loadEntry() -> LawdingEntry {
         let d = UserDefaults(suiteName: appGroupId)
         return LawdingEntry(
             date: Date(),
-            days: d?.string(forKey: "widgetDays"),
+            days: strVal(d, "widgetDays"),
             totalHours: d?.object(forKey: "widgetTotalHours") as? Int,
-            nextDate: d?.string(forKey: "widgetMediumNextDate"),
-            nextType: d?.string(forKey: "widgetMediumNextType"),
-            afterNextDate: d?.string(forKey: "widgetMediumAfterNextDate"),
-            afterNextType: d?.string(forKey: "widgetMediumAfterNextType"),
-            nextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetNextDateIso"))
-                ?? d?.string(forKey: "widgetCalNextDDay"),
-            afterNextDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetAfterNextDateIso"))
-                ?? d?.string(forKey: "widgetCalAfterDDay"),
-            thirdDate: d?.string(forKey: "widgetThirdDate"),
-            thirdType: d?.string(forKey: "widgetThirdType"),
-            thirdDDay: computeDDay(isoDateStr: d?.string(forKey: "widgetThirdDateIso")),
-            totalDays: d?.string(forKey: "widgetLargeTotalDays"),
-            usageRate: d?.string(forKey: "widgetLargeUsageRate"),
+            nextDate: strVal(d, "widgetMediumNextDate"),
+            nextType: strVal(d, "widgetMediumNextType"),
+            afterNextDate: strVal(d, "widgetMediumAfterNextDate"),
+            afterNextType: strVal(d, "widgetMediumAfterNextType"),
+            nextDDay: computeDDay(isoDateStr: strVal(d, "widgetNextDateIso"))
+                ?? strVal(d, "widgetCalNextDDay"),
+            afterNextDDay: computeDDay(isoDateStr: strVal(d, "widgetAfterNextDateIso"))
+                ?? strVal(d, "widgetCalAfterDDay"),
+            thirdDate: strVal(d, "widgetThirdDate"),
+            thirdType: strVal(d, "widgetThirdType"),
+            thirdDDay: computeDDay(isoDateStr: strVal(d, "widgetThirdDateIso")),
+            totalDays: strVal(d, "widgetLargeTotalDays"),
+            usageRate: strVal(d, "widgetLargeUsageRate"),
             progressPct: d?.object(forKey: "widgetLargeProgressPct") as? Int,
-            period: d?.string(forKey: "widgetLargePeriod"),
-            expiry: d?.string(forKey: "widgetLargeExpiry"),
-            nextDateIso: d?.string(forKey: "widgetNextDateIso")
+            period: strVal(d, "widgetLargePeriod"),
+            expiry: strVal(d, "widgetLargeExpiry"),
+            nextDateIso: strVal(d, "widgetNextDateIso")
         )
     }
 }
@@ -109,23 +127,23 @@ struct LawdingSmallView: View {
                     .frame(width: 18, height: 23)
                 Text("잔여 연차")
                     .font(.custom("Pretendard-Bold", size: 15))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
             }
             Spacer()
             Text(entry.days.map { "\($0)일" } ?? "--일")
                 .font(.custom("Pretendard-Bold", size: 36))
-                .foregroundColor(Color(hex: 0x111111))
+                .foregroundColor(Color("WidgetTextPrimary"))
             Spacer()
             Text(entry.totalHours.map { "\($0)시간" } ?? "--시간")
                 .font(.custom("Pretendard-Bold", size: 16))
-                .foregroundColor(Color(hex: 0x0057B8))
+                .foregroundColor(Color("WidgetAccent"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: 0xCFE6FF)))
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color("WidgetPillBlue")))
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
+        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
@@ -151,34 +169,34 @@ struct LawdingMediumView: View {
                     .frame(width: 18, height: 23)
                 Text("다음 예정 연차")
                     .font(.custom("Pretendard-Bold", size: 15))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
             }
             .frame(height: 24)
 
             Text(nextDateText)
                 .font(.custom("Pretendard-Bold", size: 26))
-                .foregroundColor(Color(hex: 0x111111))
+                .foregroundColor(Color("WidgetTextPrimary"))
                 .padding(.top, 6)
 
             Text(nextTypeText)
                 .font(.custom("Pretendard-SemiBold", size: 13))
-                .foregroundColor(Color(hex: 0x555555))
+                .foregroundColor(Color("WidgetTextSecondary"))
                 .padding(.top, 4)
 
             Rectangle()
-                .fill(Color(hex: 0xE1E1E1))
+                .fill(Color("WidgetDivider"))
                 .frame(height: 1)
                 .padding(.top, 8)
                 .padding(.bottom, 8)
 
             Text(afterNextText)
                 .font(.custom("Pretendard-SemiBold", size: 16))
-                .foregroundColor(Color(hex: 0x555555))
+                .foregroundColor(Color("WidgetTextSecondary"))
         }
         .padding(.horizontal, 22)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white)
+        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
@@ -198,18 +216,6 @@ struct LawdingWidgetView: View {
     }
 }
 
-// MARK: - Color Helper
-
-extension Color {
-    init(hex: UInt32) {
-        self.init(
-            red: Double((hex >> 16) & 0xFF) / 255,
-            green: Double((hex >> 8) & 0xFF) / 255,
-            blue: Double(hex & 0xFF) / 255
-        )
-    }
-}
-
 // MARK: - Next Leave Widget View (2×2)
 
 struct LawdingNextView: View {
@@ -224,7 +230,7 @@ struct LawdingNextView: View {
                     .frame(width: 18, height: 23)
                 Text("다음 연차")
                     .font(.custom("Pretendard-Bold", size: 15))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -232,31 +238,31 @@ struct LawdingNextView: View {
 
             Text(entry.nextDate ?? "--")
                 .font(.custom("Pretendard-Bold", size: 30))
-                .foregroundColor(Color(hex: 0x111111))
+                .foregroundColor(Color("WidgetTextPrimary"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .padding(.top, 9)
 
             Text(entry.nextType ?? "--")
                 .font(.custom("Pretendard-SemiBold", size: 16))
-                .foregroundColor(Color(hex: 0x555555))
+                .foregroundColor(Color("WidgetTextSecondary"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
                 .padding(.top, 8)
 
             Text(entry.nextDDay ?? "--")
                 .font(.custom("Pretendard-Bold", size: 20))
-                .foregroundColor(Color(hex: 0x0057B8))
+                .foregroundColor(Color("WidgetAccent"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .padding(.horizontal, 12)
                 .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: 0xCFE6FF)))
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color("WidgetPillBlue")))
                 .padding(.top, 8)
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.white)
+        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
@@ -290,12 +296,12 @@ struct LawdingCalendarView: View {
     private func ddayPill(text: String, isNext: Bool) -> some View {
         Text(text)
             .font(.custom("Pretendard-Bold", size: 14))
-            .foregroundColor(isNext ? Color(hex: 0x0057B8) : Color(hex: 0x555555))
+            .foregroundColor(isNext ? Color("WidgetAccent") : Color("WidgetTextSecondary"))
             .padding(.horizontal, 10)
             .frame(height: 24)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isNext ? Color(hex: 0xCFE6FF) : Color(hex: 0xE1E1E1))
+                    .fill(isNext ? Color("WidgetPillBlue") : Color("WidgetPillGray"))
             )
     }
 
@@ -305,18 +311,18 @@ struct LawdingCalendarView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("예정 연차")
                     .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
                     .frame(height: 24)
                 Text(nextDateText)
                     .font(.custom("Pretendard-Bold", size: 22))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .padding(.top, 6)
                 Text(nextTypeText)
                     .font(.custom("Pretendard-SemiBold", size: 13))
-                    .foregroundColor(Color(hex: 0x555555))
+                    .foregroundColor(Color("WidgetTextSecondary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                     .padding(.top, 4)
@@ -328,7 +334,7 @@ struct LawdingCalendarView: View {
 
             // 구분선
             Rectangle()
-                .fill(Color(hex: 0xE1E1E1))
+                .fill(Color("WidgetDivider"))
                 .frame(width: 1)
                 .padding(.vertical, 4)
 
@@ -336,19 +342,19 @@ struct LawdingCalendarView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("이후 예정 연차")
                     .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(height: 24)
                 Text(afterDateText)
                     .font(.custom("Pretendard-Bold", size: 22))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .padding(.top, 6)
                 Text(afterTypeText)
                     .font(.custom("Pretendard-SemiBold", size: 13))
-                    .foregroundColor(Color(hex: 0x555555))
+                    .foregroundColor(Color("WidgetTextSecondary"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
                     .padding(.top, 4)
@@ -365,7 +371,7 @@ struct LawdingCalendarView: View {
             Link(destination: URL(string: "ggimiowner.annualleavecalculator://add-calendar")!) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: 0x0057B8))
+                        .fill(Color("WidgetAccent"))
                         .frame(width: 40, height: 40)
                     Image(systemName: "plus")
                         .foregroundColor(.white)
@@ -376,7 +382,7 @@ struct LawdingCalendarView: View {
         }
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.white)
+        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
@@ -425,34 +431,34 @@ struct LawdingLargeView: View {
                     .frame(width: 25, height: 23)
                 Text("연차 종합현황")
                     .font(.custom("Pretendard-Bold", size: 18))
-                    .foregroundColor(Color(hex: 0x111111))
+                    .foregroundColor(Color("WidgetTextPrimary"))
             }
 
             // 잔여 연차 (큰 숫자)
             Text(entry.days.map { "\($0)일" } ?? "--일")
                 .font(.custom("Pretendard-Bold", size: 55))
-                .foregroundColor(Color(hex: 0x111111))
+                .foregroundColor(Color("WidgetTextPrimary"))
                 .padding(.top, 14)
 
             // 총 발생 연차
             Text("총 발생 연차")
                 .font(.custom("Pretendard-SemiBold", size: 16))
-                .foregroundColor(Color(hex: 0x999999))
+                .foregroundColor(Color("WidgetTextMuted"))
                 .padding(.top, 12)
             Text(entry.totalDays.map { "\($0)일" } ?? "--일")
                 .font(.custom("Pretendard-Bold", size: 24))
-                .foregroundColor(Color(hex: 0x999999))
+                .foregroundColor(Color("WidgetTextMuted"))
                 .padding(.top, 2)
 
             // 연차 사용률 + 비율
             HStack {
                 Text("연차 사용률")
                     .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(Color(hex: 0x0057B8))
+                    .foregroundColor(Color("WidgetAccent"))
                 Spacer()
                 Text(entry.usageRate ?? "--")
                     .font(.custom("Pretendard-Bold", size: 14))
-                    .foregroundColor(Color(hex: 0x0057B8))
+                    .foregroundColor(Color("WidgetAccent"))
             }
             .padding(.top, 12)
 
@@ -460,10 +466,10 @@ struct LawdingLargeView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 17)
-                        .fill(Color(hex: 0xF5F5F5))
+                        .fill(Color("WidgetProgressTrack"))
                     if let pct = entry.progressPct, pct > 0 {
                         RoundedRectangle(cornerRadius: 5)
-                            .fill(Color(hex: 0x0057B8))
+                            .fill(Color("WidgetAccent"))
                             .frame(width: geo.size.width * Double(min(pct, 100)) / 100.0)
                     }
                 }
@@ -482,13 +488,13 @@ struct LawdingLargeView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.white)
+        .widgetBackground(Color("WidgetBackground"))
     }
 
     private func infoLine(_ label: String, _ value: String) -> some View {
         Text("\(label) : \(value)")
             .font(.custom("Pretendard-SemiBold", size: 16))
-            .foregroundColor(Color(hex: 0x999999))
+            .foregroundColor(Color("WidgetTextMuted"))
     }
 }
 

@@ -5,6 +5,7 @@ import 'package:home_widget/home_widget.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/widget_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -103,10 +104,10 @@ class SettingScreen extends ConsumerWidget {
                 }
                 await ref.read(authRepositoryProvider).clearTokens();
                 for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay']) {
-                  await HomeWidget.saveWidgetData(key, null);
+                  await WidgetService.save(key, null);
                 }
-                await HomeWidget.updateWidget(androidName: 'LawdingWidgetProvider', iOSName: 'LawdingWidget');
-                await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumProvider', iOSName: 'LawdingWidget');
+                await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallRemain', iOSName: 'LawdingWidget');
+                await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumSchedule', iOSName: 'LawdingWidget');
                 if (!context.mounted) return;
                 ref.read(calendarAuthStateProvider.notifier).state = false;
                 ref.read(activeTabIndexProvider.notifier).state = 0;
@@ -206,10 +207,10 @@ class _LogoutButton extends ConsumerWidget {
           AnalyticsService().logSettingLogoutConfirmed();
           await ref.read(authRepositoryProvider).clearTokens();
           for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay']) {
-            await HomeWidget.saveWidgetData(key, null);
+            await WidgetService.save(key, null);
           }
-          await HomeWidget.updateWidget(androidName: 'LawdingWidgetProvider', iOSName: 'LawdingWidget');
-          await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumProvider', iOSName: 'LawdingWidget');
+          await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallRemain', iOSName: 'LawdingWidget');
+          await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumSchedule', iOSName: 'LawdingWidget');
           if (!context.mounted) return;
           ref.read(calendarAuthStateProvider.notifier).state = false;
           ToastManager().show(context, '로그아웃 되었습니다');

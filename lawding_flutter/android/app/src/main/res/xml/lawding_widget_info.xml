@@ -6,7 +6,7 @@
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/lawding_widget"
-    android:previewLayout="@layout/lawding_widget"
+    android:previewLayout="@layout/lawding_widget_preview"
     android:description="@string/widget_desc_small"
     android:widgetCategory="home_screen"
     android:resizeMode="none" />

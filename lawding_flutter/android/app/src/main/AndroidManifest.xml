@@ -38,7 +38,8 @@
             </intent-filter>
         </activity>
         <receiver
-            android:name="com.lawding.annualleavecalculator.LawdingWidgetProvider"
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetSmallRemain"
+            android:label="@string/widget_name_small_remain"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -48,7 +49,8 @@
                 android:resource="@xml/lawding_widget_info"/>
         </receiver>
         <receiver
-            android:name="com.lawding.annualleavecalculator.LawdingWidgetMediumProvider"
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetMediumSchedule"
+            android:label="@string/widget_name_medium_schedule"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -58,7 +60,8 @@
                 android:resource="@xml/lawding_widget_medium_info"/>
         </receiver>
         <receiver
-            android:name="com.lawding.annualleavecalculator.LawdingWidgetNextProvider"
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetSmallNext"
+            android:label="@string/widget_name_small_next"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -69,7 +72,8 @@
                 android:resource="@xml/lawding_widget_next_info"/>
         </receiver>
         <receiver
-            android:name="com.lawding.annualleavecalculator.LawdingWidgetCalendarProvider"
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetMediumPlus"
+            android:label="@string/widget_name_medium_plus"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -80,7 +84,8 @@
                 android:resource="@xml/lawding_widget_calendar_info"/>
         </receiver>
         <receiver
-            android:name="com.lawding.annualleavecalculator.LawdingWidgetLargeProvider"
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetLargeOverview"
+            android:label="@string/widget_name_large_overview"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>

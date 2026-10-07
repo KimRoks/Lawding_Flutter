@@ -4,12 +4,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:paddingStart="33dp"
-    android:paddingEnd="31dp"
-    android:paddingTop="32dp"
-    android:paddingBottom="38dp">
+    android:padding="16dp">
 
-    <!-- 그룹1: 헤더 -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -25,58 +21,48 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="9dp"
+            android:layout_marginStart="6dp"
             android:text="연차 종합현황"
             android:textColor="@color/widget_text_primary"
             android:textSize="18sp"
             android:fontFamily="@font/pretendard_variable"
-            android:textFontWeight="700"
-            android:includeFontPadding="false" />
+            android:textFontWeight="700" />
     </LinearLayout>
 
-    <!-- 그룹2: 큰 숫자 -->
     <TextView
-        android:id="@+id/widget_large_days"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:text="--일"
+        android:layout_marginTop="14dp"
+        android:text="8일"
         android:textColor="@color/widget_text_primary"
         android:textSize="55sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="700"
-        android:includeFontPadding="false" />
+        android:textFontWeight="700" />
 
-    <!-- 그룹3: 총 발생 연차 (레이블 + 값) -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="총 발생 연차"
         android:textColor="@color/widget_text_muted"
         android:textSize="16sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="500"
-        android:includeFontPadding="false" />
+        android:textFontWeight="600" />
 
     <TextView
-        android:id="@+id/widget_large_total_days"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="--일"
+        android:text="16일"
         android:textColor="@color/widget_text_muted"
         android:textSize="24sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="700"
-        android:includeFontPadding="false" />
+        android:textFontWeight="700" />
 
-    <!-- 그룹4: 연차 사용률 (레이블 + 그래프) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:layout_marginTop="12dp">
 
         <TextView
@@ -87,19 +73,16 @@
             android:textColor="@color/widget_accent"
             android:textSize="14sp"
             android:fontFamily="@font/pretendard_variable"
-            android:textFontWeight="700"
-            android:includeFontPadding="false" />
+            android:textFontWeight="700" />
 
         <TextView
-            android:id="@+id/widget_large_usage_rate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="--"
+            android:text="50%"
             android:textColor="@color/widget_accent"
             android:textSize="14sp"
             android:fontFamily="@font/pretendard_variable"
-            android:textFontWeight="700"
-            android:includeFontPadding="false" />
+            android:textFontWeight="700" />
     </LinearLayout>
 
     <ProgressBar
@@ -107,52 +90,44 @@
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:max="100"
-        android:progress="0"
+        android:progress="50"
         android:progressDrawable="@drawable/widget_progress_drawable" />
 
-    <!-- 스트레치 존: 화면 크기에 따라 여기만 늘어남 -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:minHeight="40dp" />
+        android:minHeight="10dp" />
 
-    <!-- 그룹5: 하단 3레이블 -->
     <TextView
-        android:id="@+id/widget_large_period"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="사용 기간 : --"
+        android:text="사용 기간 : 2024.01.01 ~ 2025.01.01"
         android:textColor="@color/widget_text_muted"
         android:textSize="16sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="600"
-        android:includeFontPadding="false" />
+        android:textFontWeight="600" />
 
     <TextView
-        android:id="@+id/widget_large_expiry"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:text="다음 소멸 : --"
+        android:layout_marginTop="12dp"
+        android:text="다음 소멸 : 2025.01.01"
         android:textColor="@color/widget_text_muted"
         android:textSize="16sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="600"
-        android:includeFontPadding="false" />
+        android:textFontWeight="600" />
 
     <TextView
-        android:id="@+id/widget_large_next_date"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:text="다음 연차 : --"
+        android:layout_marginTop="12dp"
+        android:text="다음 연차 : 10월 15일 연차"
         android:textColor="@color/widget_text_muted"
         android:textSize="16sp"
         android:fontFamily="@font/pretendard_variable"
-        android:textFontWeight="600"
-        android:includeFontPadding="false" />
+        android:textFontWeight="600" />
 
 </LinearLayout>

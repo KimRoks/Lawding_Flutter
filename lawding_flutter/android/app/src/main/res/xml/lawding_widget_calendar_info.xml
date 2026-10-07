@@ -6,7 +6,7 @@
     android:minHeight="110dp"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/lawding_widget_calendar"
-    android:previewLayout="@layout/lawding_widget_calendar"
+    android:previewLayout="@layout/lawding_widget_calendar_preview"
     android:description="@string/widget_desc_calendar"
     android:resizeMode="none"
     android:widgetCategory="home_screen" />

@@ -4,19 +4,19 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="12dp">
 
-    <!-- 달력 아이콘 + 잔여 연차 라벨 -->
+    <!-- 달력 아이콘 + 잔여 연차 라벨 (중앙 정렬) -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center">
 
         <ImageView
             android:id="@+id/widget_icon"
-            android:layout_width="18dp"
-            android:layout_height="23dp"
+            android:layout_width="16dp"
+            android:layout_height="21dp"
             android:src="@drawable/calendar_tabbar"
             android:contentDescription="달력" />
 
@@ -26,23 +26,35 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:text="잔여 연차"
-            android:textColor="#111111"
-            android:textSize="15sp"
-            android:fontFamily="@font/pretendard_bold" />
+            android:textColor="@color/widget_text_primary"
+            android:textSize="18sp"
+            android:fontFamily="@font/pretendard_variable"
+            android:textFontWeight="700" />
     </LinearLayout>
+
+    <!-- Spacer -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <!-- 남은 일수 -->
     <TextView
         android:id="@+id/widget_days"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="9dp"
+        android:layout_height="wrap_content"
         android:text="--일"
-        android:textColor="#111111"
-        android:textSize="40sp"
-        android:fontFamily="@font/pretendard_bold"
+        android:textColor="@color/widget_text_primary"
+        android:textSize="45sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="700"
         android:gravity="center" />
+
+    <!-- Spacer -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
     <!-- 시간 pill -->
     <TextView
@@ -55,8 +67,9 @@
         android:paddingEnd="16dp"
         android:gravity="center"
         android:text="--시간"
-        android:textColor="#0057B8"
-        android:textSize="16sp"
-        android:fontFamily="@font/pretendard_bold" />
+        android:textColor="@color/widget_accent"
+        android:textSize="18sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="700" />
 
 </LinearLayout>

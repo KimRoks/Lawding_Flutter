@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#1C1C1E</color>
+    <color name="widget_text_primary">#FFFFFF</color>
+    <color name="widget_text_secondary">#DADADA</color>
+    <color name="widget_text_muted">#DADADA</color>
+    <color name="widget_accent">#0057B8</color>
+    <color name="widget_pill_blue_bg">#CFE6FF</color>
+    <color name="widget_pill_gray_bg">#E1E1E1</color>
+    <color name="widget_divider">#FFFFFF</color>
+    <color name="widget_progress_track">#FFFFFF</color>
+</resources>
