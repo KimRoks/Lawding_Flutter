@@ -9,4 +9,7 @@
     <color name="widget_pill_gray_bg">#E1E1E1</color>
     <color name="widget_divider">#FFFFFF</color>
     <color name="widget_progress_track">#FFFFFF</color>
+    <color name="widget_holiday_text">#FF6B6B</color>
+    <color name="widget_holiday_bar">#F16767</color>
+    <color name="widget_event_bar">#636366</color>
 </resources>

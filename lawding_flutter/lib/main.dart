@@ -10,6 +10,7 @@ import 'package:home_widget/home_widget.dart';
 
 import 'firebase_options.dart';
 import 'infrastructure/services/analytics_service.dart';
+import 'infrastructure/services/calendar_widget_sync.dart';
 import 'infrastructure/services/crashlytics_service.dart';
 import 'presentation/core/app_colors.dart';
 import 'presentation/providers/providers.dart';
@@ -62,6 +63,7 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumPlus', iOSName: 'LawdingCalendarWidget');
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallNext', iOSName: 'LawdingNextWidget');
     await HomeWidget.updateWidget(androidName: 'LawdingWidgetLargeOverview', iOSName: 'LawdingLargeWidget');
+    await HomeWidget.updateWidget(androidName: CalendarWidgetSync.androidName, iOSName: CalendarWidgetSync.iOSName);
   }
 
   Future<void> _initDeepLinks() async {

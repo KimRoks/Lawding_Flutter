@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_dashboard.dart';
 import '../../../domain/entities/public_holiday_period.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/calendar_widget_sync.dart';
 import '../../../infrastructure/services/widget_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
@@ -49,6 +51,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     });
     if (result case Success(:final value)) {
+      // 대시보드 성공 = 인증 유효 시점. 토큰 갱신과 경합하지 않도록 이후에 실행한다.
+      unawaited(
+        CalendarWidgetSync(
+          ref.read(getHolidaysUseCaseProvider),
+          ref.read(getCalendarEventsUseCaseProvider),
+        ).sync(),
+      );
       final totalHours = value.remainingLeaveMinutes ~/ 60;
       final daysDouble = value.avgDailyWorkHours > 0
           ? value.remainingLeaveMinutes / 60 / value.avgDailyWorkHours

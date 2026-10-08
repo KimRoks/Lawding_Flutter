@@ -5,6 +5,7 @@ import 'package:home_widget/home_widget.dart';
 
 import '../../../domain/core/result.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/calendar_widget_sync.dart';
 import '../../../infrastructure/services/widget_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
@@ -103,11 +104,12 @@ class SettingScreen extends ConsumerWidget {
                   return;
                 }
                 await ref.read(authRepositoryProvider).clearTokens();
-                for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay']) {
+                for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay', CalendarWidgetSync.dataKey]) {
                   await WidgetService.save(key, null);
                 }
                 await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallRemain', iOSName: 'LawdingWidget');
                 await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumSchedule', iOSName: 'LawdingWidget');
+                await HomeWidget.updateWidget(androidName: CalendarWidgetSync.androidName, iOSName: CalendarWidgetSync.iOSName);
                 if (!context.mounted) return;
                 ref.read(calendarAuthStateProvider.notifier).state = false;
                 ref.read(activeTabIndexProvider.notifier).state = 0;
@@ -206,11 +208,12 @@ class _LogoutButton extends ConsumerWidget {
         if (confirmed == true) {
           AnalyticsService().logSettingLogoutConfirmed();
           await ref.read(authRepositoryProvider).clearTokens();
-          for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay']) {
+          for (final key in ['widgetDays', 'widgetTotalHours', 'widgetMediumNextDate', 'widgetMediumNextType', 'widgetMediumAfterNextDate', 'widgetMediumAfterNextType', 'widgetCalNextDDay', 'widgetCalAfterDDay', CalendarWidgetSync.dataKey]) {
             await WidgetService.save(key, null);
           }
           await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallRemain', iOSName: 'LawdingWidget');
           await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumSchedule', iOSName: 'LawdingWidget');
+          await HomeWidget.updateWidget(androidName: CalendarWidgetSync.androidName, iOSName: CalendarWidgetSync.iOSName);
           if (!context.mounted) return;
           ref.read(calendarAuthStateProvider.notifier).state = false;
           ToastManager().show(context, '로그아웃 되었습니다');
