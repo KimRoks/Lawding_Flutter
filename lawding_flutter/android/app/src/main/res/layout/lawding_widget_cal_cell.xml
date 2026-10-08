@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 셀 내부 요소는 위에서부터 고정 위치(디자인 측정값). 행이 늘어나도 아래쪽 여백만 커진다. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1">
+
+    <ImageView
+        android:id="@+id/cal_dot"
+        android:layout_width="4dp"
+        android:layout_height="4dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="0.25dp"
+        android:src="@drawable/widget_cal_dot"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/cal_day"
+        style="@style/WidgetCalDay" />
+
+    <TextView
+        android:id="@+id/cal_day_red"
+        style="@style/WidgetCalDay"
+        android:textColor="@color/widget_holiday_text"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2.7dp"
+        android:layout_marginEnd="2.7dp"
+        android:layout_marginTop="18.6dp"
+        android:orientation="vertical">
+
+        <ImageView android:id="@+id/cal_bar1" style="@style/WidgetCalBar" />
+        <ImageView android:id="@+id/cal_bar2" style="@style/WidgetCalBar" android:layout_marginTop="1dp" />
+        <ImageView android:id="@+id/cal_bar3" style="@style/WidgetCalBar" android:layout_marginTop="1dp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/cal_label"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="24.5dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/pretendard_variable"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:singleLine="true"
+        android:textColor="@color/widget_holiday_bar"
+        android:textFontWeight="600"
+        android:textSize="8sp"
+        android:visibility="gone" />
+</FrameLayout>

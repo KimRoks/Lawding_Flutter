@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="3dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/cal_item_bar"
+            android:layout_width="7dp"
+            android:layout_height="44dp"
+            android:scaleType="fitXY" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="13.4dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/cal_item_title"
+                android:layout_width="match_parent"
+                android:layout_height="18dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/pretendard_variable"
+                android:gravity="center_vertical"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="@color/widget_text_primary"
+                android:textFontWeight="700"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/cal_item_sub"
+                android:layout_width="match_parent"
+                android:layout_height="18dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/pretendard_variable"
+                android:gravity="center_vertical"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textColor="@color/widget_text_secondary"
+                android:textFontWeight="600"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/cal_item_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="14dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8.7dp"
+            android:background="@drawable/widget_pill_background"
+            android:fontFamily="@font/pretendard_variable"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:singleLine="true"
+            android:textColor="@color/widget_accent"
+            android:textFontWeight="700"
+            android:textSize="8sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/cal_item_divider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="2.5dp"
+        android:background="@color/widget_divider"
+        android:visibility="gone" />
+</LinearLayout>

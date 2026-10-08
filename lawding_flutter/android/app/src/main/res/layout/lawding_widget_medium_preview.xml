@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:paddingStart="22dp"
+    android:paddingEnd="22dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="23dp"
+            android:src="@drawable/calendar_tabbar"
+            android:contentDescription="달력" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="다음 예정 연차"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="15sp"
+            android:fontFamily="@font/pretendard_variable"
+            android:textFontWeight="700" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="10월 15일"
+        android:textColor="@color/widget_text_primary"
+        android:textSize="26sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="700" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="연차"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="13sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@color/widget_divider" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다음 일정  11월 3일 반차"
+        android:textColor="@color/widget_text_secondary"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+</LinearLayout>

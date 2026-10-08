@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="23dp"
+            android:src="@drawable/ic_statistics"
+            android:contentDescription="통계" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="연차 종합현황"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="18sp"
+            android:fontFamily="@font/pretendard_variable"
+            android:textFontWeight="700" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="8일"
+        android:textColor="@color/widget_text_primary"
+        android:textSize="55sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="700" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="총 발생 연차"
+        android:textColor="@color/widget_text_muted"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="16일"
+        android:textColor="@color/widget_text_muted"
+        android:textSize="24sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="700" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="연차 사용률"
+            android:textColor="@color/widget_accent"
+            android:textSize="14sp"
+            android:fontFamily="@font/pretendard_variable"
+            android:textFontWeight="700" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50%"
+            android:textColor="@color/widget_accent"
+            android:textSize="14sp"
+            android:fontFamily="@font/pretendard_variable"
+            android:textFontWeight="700" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/widget_large_progress"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="6dp"
+        android:max="100"
+        android:progress="50"
+        android:progressDrawable="@drawable/widget_progress_drawable" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:minHeight="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="사용 기간 : 2024.01.01 ~ 2025.01.01"
+        android:textColor="@color/widget_text_muted"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="다음 소멸 : 2025.01.01"
+        android:textColor="@color/widget_text_muted"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="다음 연차 : 10월 15일 연차"
+        android:textColor="@color/widget_text_muted"
+        android:textSize="16sp"
+        android:fontFamily="@font/pretendard_variable"
+        android:textFontWeight="600" />
+
+</LinearLayout>

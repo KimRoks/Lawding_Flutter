@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text_primary">#111111</color>
+    <color name="widget_text_secondary">#555555</color>
+    <color name="widget_text_muted">#999999</color>
+    <color name="widget_accent">#0057B8</color>
+    <color name="widget_pill_blue_bg">#CFE6FF</color>
+    <color name="widget_pill_gray_bg">#E1E1E1</color>
+    <color name="widget_divider">#E1E1E1</color>
+    <color name="widget_progress_track">#F5F5F5</color>
+    <color name="widget_holiday_text">#D30000</color>
+    <color name="widget_holiday_bar">#F16767</color>
+    <color name="widget_event_bar">#E1E1E1</color>
+</resources>

@@ -51,6 +51,8 @@ final calendarAuthStateProvider = StateProvider<bool>((ref) => false);
 /// 연차 데이터 refresh 신호 — increment 시 캘린더/대시보드가 데이터를 재조회
 final leaveDataRefreshProvider = StateProvider<int>((ref) => 0);
 
+/// 위젯에서 '연차 추가' 버튼 탭 시 CalendarScreen이 AddCalendarEventScreen을 열도록 신호
+
 /// dailyWorkMinutesProvider — 하루 평균 순 근무시간(분)
 /// 로그인 후 getUserMeUseCase에서 설정. 미조회 시 기본값 480(8시간)
 final dailyWorkMinutesProvider = StateProvider<int>((ref) => 480);

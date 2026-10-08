@@ -37,6 +37,76 @@
                 <data android:scheme="ggimiowner.annualleavecalculator"/>
             </intent-filter>
         </activity>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetSmallRemain"
+            android:label="@string/widget_name_small_remain"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_info"/>
+        </receiver>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetMediumSchedule"
+            android:label="@string/widget_name_medium_schedule"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_medium_info"/>
+        </receiver>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetSmallNext"
+            android:label="@string/widget_name_small_next"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_next_info"/>
+        </receiver>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetMediumPlus"
+            android:label="@string/widget_name_medium_plus"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_calendar_info"/>
+        </receiver>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetLargeOverview"
+            android:label="@string/widget_name_large_overview"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_large_info"/>
+        </receiver>
+        <receiver
+            android:name="com.lawding.annualleavecalculator.LawdingWidgetLargeCalendar"
+            android:label="@string/widget_name_large_calendar"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lawding_widget_cal_large_info"/>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

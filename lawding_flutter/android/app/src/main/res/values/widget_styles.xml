@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WidgetCalWeekday">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">@font/pretendard_variable</item>
+        <item name="android:textFontWeight">400</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@color/widget_text_primary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="WidgetCalDay" parent="WidgetCalWeekday">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">14dp</item>
+        <item name="android:layout_weight">0</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
+
+    <style name="WidgetCalBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:scaleType">fitXY</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <!-- 위젯 갤러리 미리보기 전용 (정적 레이아웃) -->
+    <style name="WidgetCalPreviewRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="WidgetCalPreviewCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="WidgetCalPreviewDay" parent="WidgetCalWeekday">
+        <item name="android:layout_height">14dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
+
+    <style name="WidgetCalPreviewRedDay" parent="WidgetCalPreviewDay">
+        <item name="android:textColor">@color/widget_holiday_text</item>
+    </style>
+
+    <style name="WidgetCalPreviewPlainDay" parent="WidgetCalWeekday">
+        <item name="android:gravity">top|center_horizontal</item>
+        <item name="android:paddingTop">5dp</item>
+    </style>
+
+    <style name="WidgetCalPreviewPlainRedDay" parent="WidgetCalPreviewPlainDay">
+        <item name="android:textColor">@color/widget_holiday_text</item>
+    </style>
+
+    <style name="WidgetCalPreviewLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">10dp</item>
+        <item name="android:layout_marginTop">24.5dp</item>
+        <item name="android:fontFamily">@font/pretendard_variable</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/widget_holiday_bar</item>
+        <item name="android:textFontWeight">600</item>
+        <item name="android:textSize">8sp</item>
+    </style>
+
+    <style name="WidgetCalPreviewCellBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:layout_marginStart">2.7dp</item>
+        <item name="android:layout_marginEnd">2.7dp</item>
+        <item name="android:layout_marginTop">18.6dp</item>
+        <item name="android:scaleType">fitXY</item>
+    </style>
+
+    <style name="WidgetCalItemTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">18dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFamily">@font/pretendard_variable</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/widget_text_primary</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="WidgetCalItemSub" parent="WidgetCalItemTitle">
+        <item name="android:textColor">@color/widget_text_secondary</item>
+        <item name="android:textFontWeight">600</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <style name="WidgetCalDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:background">@color/widget_divider</item>
+    </style>
+</resources>

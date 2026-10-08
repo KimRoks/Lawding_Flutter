@@ -39,7 +39,9 @@ class _MainTabScreenState extends ConsumerState<MainTabScreen> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
+    // 위젯 딥링크 등으로 이미 provider가 설정된 경우 해당 값을 초기 탭으로 사용
+    final providerIndex = ref.read(activeTabIndexProvider);
+    _currentIndex = providerIndex != 0 ? providerIndex : widget.initialIndex;
 
     // 초기 탭의 콜백 호출
     WidgetsBinding.instance.addPostFrameCallback((_) {

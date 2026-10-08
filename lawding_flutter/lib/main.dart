@@ -1,13 +1,19 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'firebase_options.dart';
 import 'infrastructure/services/analytics_service.dart';
+import 'infrastructure/services/calendar_widget_sync.dart';
 import 'infrastructure/services/crashlytics_service.dart';
 import 'presentation/core/app_colors.dart';
+import 'presentation/providers/providers.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 
 Future<void> main() async {
@@ -21,11 +27,71 @@ Future<void> main() async {
 
   await AnalyticsService().logAppLaunched();
 
+  HomeWidget.setAppGroupId('group.com.lawding.annualleavecalculator');
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  StreamSubscription<Uri>? _deepLinkSub;
+  DateTime? _lastAddCalendarHandled;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initDeepLinks();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshWidgets();
+    }
+  }
+
+  Future<void> _refreshWidgets() async {
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallRemain', iOSName: 'LawdingWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumSchedule', iOSName: 'LawdingWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetMediumPlus', iOSName: 'LawdingCalendarWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetSmallNext', iOSName: 'LawdingNextWidget');
+    await HomeWidget.updateWidget(androidName: 'LawdingWidgetLargeOverview', iOSName: 'LawdingLargeWidget');
+    await HomeWidget.updateWidget(androidName: CalendarWidgetSync.androidName, iOSName: CalendarWidgetSync.iOSName);
+  }
+
+  Future<void> _initDeepLinks() async {
+    final appLinks = AppLinks();
+    // cold start: 앱 미실행 상태에서 딥링크로 열린 경우
+    final initialLink = await appLinks.getInitialLink();
+    if (initialLink != null) _handleDeepLink(initialLink);
+    // background/foreground: 앱 실행 중 딥링크 수신
+    _deepLinkSub = appLinks.uriLinkStream.listen(_handleDeepLink);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _deepLinkSub?.cancel();
+    super.dispose();
+  }
+
+  void _handleDeepLink(Uri uri) {
+    if (uri.host != 'add-calendar') return;
+    // cold start 시 getInitialLink + uriLinkStream 중복 수신 방지
+    final now = DateTime.now();
+    if (_lastAddCalendarHandled != null &&
+        now.difference(_lastAddCalendarHandled!).inSeconds < 3) return;
+    _lastAddCalendarHandled = now;
+    ref.read(activeTabIndexProvider.notifier).state = 3;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +108,6 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Pretendard',
       ),
       builder: (context, child) {
-        // 테마 brightness 기반으로 status bar 아이콘 색상 자동 결정
-        // 라이트 모드 → 다크 아이콘 / 다크 모드 → 라이트 아이콘
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: isDark

@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:home_widget/home_widget.dart';
 
 import 'package:marquee/marquee.dart';
 
@@ -11,6 +13,8 @@ import '../../../domain/core/result.dart';
 import '../../../domain/entities/leave_dashboard.dart';
 import '../../../domain/entities/public_holiday_period.dart';
 import '../../../infrastructure/services/analytics_service.dart';
+import '../../../infrastructure/services/calendar_widget_sync.dart';
+import '../../../infrastructure/services/widget_service.dart';
 import '../../core/design_system.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common/logo_app_bar.dart';
@@ -46,6 +50,91 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         _dashboard = value;
       }
     });
+    if (result case Success(:final value)) {
+      // 대시보드 성공 = 인증 유효 시점. 토큰 갱신과 경합하지 않도록 이후에 실행한다.
+      unawaited(
+        CalendarWidgetSync(
+          ref.read(getHolidaysUseCaseProvider),
+          ref.read(getCalendarEventsUseCaseProvider),
+        ).sync(),
+      );
+      final totalHours = value.remainingLeaveMinutes ~/ 60;
+      final daysDouble = value.avgDailyWorkHours > 0
+          ? value.remainingLeaveMinutes / 60 / value.avgDailyWorkHours
+          : 0.0;
+      final daysStr = daysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
+      await WidgetService.save('widgetDays', daysStr);
+      await WidgetService.save('widgetTotalHours', totalHours);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final upcoming = value.recentLeaveUsages.where((u) {
+        final dt = DateTime.parse(u.startDatetime);
+        return !DateTime(dt.year, dt.month, dt.day).isBefore(today);
+      }).toList()
+        ..sort((a, b) => a.startDatetime.compareTo(b.startDatetime));
+      String fmtDate(RecentLeaveUsage u) {
+        final dt = DateTime.parse(u.startDatetime);
+        return '${dt.month}월 ${dt.day}일';
+      }
+      String fmtType(RecentLeaveUsage u) {
+        final h = u.usedLeaveMinutes / 60;
+        final hStr = (h % 1 == 0) ? '${h.toInt()}' : h.toStringAsFixed(1);
+        return '$hStr시간 사용 예정';
+      }
+      String fmtDDay(RecentLeaveUsage u) {
+        final dt = DateTime.parse(u.startDatetime);
+        final leaveDay = DateTime(dt.year, dt.month, dt.day);
+        final diff = leaveDay.difference(today).inDays;
+        return diff == 0 ? 'D-Day' : 'D-$diff';
+      }
+      await WidgetService.save('widgetMediumNextDate', upcoming.isNotEmpty ? fmtDate(upcoming[0]) : null);
+      await WidgetService.save('widgetMediumNextType', upcoming.isNotEmpty ? fmtType(upcoming[0]) : null);
+      await WidgetService.save('widgetMediumAfterNextDate', upcoming.length >= 2 ? fmtDate(upcoming[1]) : null);
+      await WidgetService.save('widgetMediumAfterNextType', upcoming.length >= 2 ? fmtType(upcoming[1]) : null);
+      await WidgetService.save('widgetCalNextDDay', upcoming.isNotEmpty ? fmtDDay(upcoming[0]) : null);
+      await WidgetService.save('widgetCalAfterDDay', upcoming.length >= 2 ? fmtDDay(upcoming[1]) : null);
+      await WidgetService.save('widgetNextDateIso', upcoming.isNotEmpty ? upcoming[0].startDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetAfterNextDateIso', upcoming.length >= 2 ? upcoming[1].startDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
+      await WidgetService.save('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
+      await WidgetService.save('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
+      // 4×4 large 위젯 전용
+      final totalMinutes = value.totalLeaveMinutes;
+      final usedMinutes = (totalMinutes - value.remainingLeaveMinutes).clamp(0, totalMinutes);
+      final totalDaysDouble = value.avgDailyWorkHours > 0
+          ? totalMinutes / 60 / value.avgDailyWorkHours
+          : 0.0;
+      final totalDaysStr = totalDaysDouble.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
+      final usageRateStr = totalMinutes > 0
+          ? '${(usedMinutes / totalMinutes * 100).toStringAsFixed(1)}%'
+          : '0.0%';
+      final progressPct = totalMinutes > 0 ? (usedMinutes * 100 ~/ totalMinutes) : 0;
+      await WidgetService.save('widgetLargeTotalDays', totalDaysStr);
+      await WidgetService.save('widgetLargeUsageRate', usageRateStr);
+      await WidgetService.save('widgetLargeProgressPct', progressPct);
+      await WidgetService.save('widgetLargePeriod', '${value.leavePeriodStartDate} ~ ${value.leavePeriodEndDate}');
+      await WidgetService.save('widgetLargeExpiry', value.leavePeriodEndDate);
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetSmallRemain',
+        iOSName: 'LawdingWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetMediumSchedule',
+        iOSName: 'LawdingWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetMediumPlus',
+        iOSName: 'LawdingCalendarWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetSmallNext',
+        iOSName: 'LawdingNextWidget',
+      );
+      await HomeWidget.updateWidget(
+        androidName: 'LawdingWidgetLargeOverview',
+        iOSName: 'LawdingLargeWidget',
+      );
+    }
   }
 
   double _toDays(int minutes) {
