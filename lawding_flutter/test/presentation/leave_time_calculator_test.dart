@@ -3,7 +3,7 @@ import 'package:lawding_flutter/domain/entities/holiday.dart';
 import 'package:lawding_flutter/domain/entities/leave_policy_request.dart';
 import 'package:lawding_flutter/presentation/screens/calendar/leave_time_calculator.dart';
 
-// 전제 조건: 월~금 09:00~18:00, 점심 12:00~13:00, avgDailyWorkHours = 8.0
+// 전제 조건: 월~금 09:00~18:00, 점심 12:00~13:00 → 하루 순근무 8h
 LeaveTimeCalculator _makeCalc({List<Holiday> holidays = const []}) {
   const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
   return LeaveTimeCalculator(
@@ -13,7 +13,6 @@ LeaveTimeCalculator _makeCalc({List<Holiday> holidays = const []}) {
     breakTimePattern: {
       for (final d in days) d: const WorkTimeSlot(start: '12:00', end: '13:00'),
     },
-    avgDailyWorkHours: 8.0,
     holidays: holidays,
   );
 }
@@ -79,7 +78,7 @@ void main() {
       );
     });
 
-    test('종일 → maxMin (8h = 480min)', () {
+    test('종일 → 해당 요일 순근무 (9h - 점심 1h = 480min)', () {
       final calc = _makeCalc();
       expect(
         calc.calcUsedMinutesForDate(
@@ -252,6 +251,53 @@ void main() {
       expect(
         calc.calcTotalUsedMinutes([_mon, _tue, _wed], startMin: 0, endMin: 0, isAllDay: true),
         equals(1440),
+      );
+    });
+  });
+
+  group('요일별 근무시간이 다른 근로자 — 평균이 아닌 해당 요일 근무시간 기준', () {
+    // 월 09:00~20:00(점심 1h) = 10h, 수 09:00~18:00(점심 1h) = 8h, 금 09:00~14:00(휴게 없음) = 5h
+    // 요일 평균은 (600 + 480 + 300) / 3 = 460분 — 이전 구현은 이 값을 썼다
+    const calc = LeaveTimeCalculator(
+      workPattern: {
+        'MONDAY': WorkTimeSlot(start: '09:00', end: '20:00'),
+        'WEDNESDAY': WorkTimeSlot(start: '09:00', end: '18:00'),
+        'FRIDAY': WorkTimeSlot(start: '09:00', end: '14:00'),
+      },
+      breakTimePattern: {
+        'MONDAY': WorkTimeSlot(start: '12:00', end: '13:00'),
+        'WEDNESDAY': WorkTimeSlot(start: '12:00', end: '13:00'),
+      },
+    );
+    final fri = DateTime(2026, 7, 31);
+
+    test('종일 월요일 → 월요일 순근무 10h', () {
+      expect(calc.calcUsedMinutesForDate(_mon, inputStartMin: 0, inputEndMin: 0, isAllDay: true), equals(600));
+    });
+
+    test('종일 금요일 → 금요일 순근무 5h', () {
+      expect(calc.calcUsedMinutesForDate(fri, inputStartMin: 0, inputEndMin: 0, isAllDay: true), equals(300));
+    });
+
+    test('월요일 09:00~20:00 시간 지정 → 평균으로 잘리지 않고 10h', () {
+      expect(
+        calc.calcUsedMinutesForDate(_mon, inputStartMin: 9 * 60, inputEndMin: 20 * 60, isAllDay: false),
+        equals(600),
+      );
+    });
+
+    test('종일 월~수 (화 비근로일) → 10h + 0 + 8h', () {
+      expect(
+        calc.calcTotalUsedMinutes([_mon, _tue, _wed], startMin: 0, endMin: 0, isAllDay: true),
+        equals(1080),
+      );
+    });
+
+    test('다일 시간 지정 월 15:00 ~ 수 11:00 → 월 4h + 수 2h', () {
+      // 월: 15:00~20:00 = 5h (휴게 겹침 없음) → 300, 수: 09:00~11:00 = 2h → 120
+      expect(
+        calc.calcTotalUsedMinutes([_mon, _tue, _wed], startMin: 15 * 60, endMin: 11 * 60, isAllDay: false),
+        equals(420),
       );
     });
   });

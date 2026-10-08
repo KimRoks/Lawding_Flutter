@@ -6,13 +6,11 @@ import '../../../domain/entities/leave_policy_request.dart';
 class LeaveTimeCalculator {
   final Map<String, WorkTimeSlot> workPattern;
   final Map<String, WorkTimeSlot> breakTimePattern;
-  final double avgDailyWorkHours;
   final List<Holiday> holidays;
 
   const LeaveTimeCalculator({
     required this.workPattern,
     required this.breakTimePattern,
-    required this.avgDailyWorkHours,
     this.holidays = const [],
   });
 
@@ -37,7 +35,8 @@ class LeaveTimeCalculator {
   bool isHolidayDate(DateTime date) =>
       holidays.any((h) => _isSameDay(h.date, date));
 
-  /// 단일 날짜의 연차 차감 시간(분).
+  /// 단일 날짜의 연차 차감 시간(분). 해당 요일의 근무시간·휴게시간 기준이며,
+  /// 종일이면 그 요일 근무시간 전체(휴게 제외)를 차감한다.
   /// [inputStartMin] / [inputEndMin]: 분 단위 시작·종료 시각 (다일 이벤트 위치에 따라 호출자가 조정).
   int calcUsedMinutesForDate(
     DateTime date, {
@@ -47,18 +46,15 @@ class LeaveTimeCalculator {
   }) {
     if (isHolidayDate(date)) return 0;
 
-    final maxMin = (avgDailyWorkHours * 60).round();
     final dayName = _weekdayNames[date.weekday]!;
     final workSlot = workPattern[dayName];
     if (workSlot == null) return 0;
 
-    if (isAllDay) return maxMin;
-
     final workStart = parseTimeStr(workSlot.start);
     final workEnd = parseTimeStr(workSlot.end);
 
-    final effStart = inputStartMin > workStart ? inputStartMin : workStart;
-    final effEnd = inputEndMin < workEnd ? inputEndMin : workEnd;
+    final effStart = isAllDay || inputStartMin < workStart ? workStart : inputStartMin;
+    final effEnd = isAllDay || inputEndMin > workEnd ? workEnd : inputEndMin;
     if (effStart >= effEnd) return 0;
 
     int breakDed = 0;
@@ -71,7 +67,7 @@ class LeaveTimeCalculator {
       if (oEnd > oStart) breakDed = oEnd - oStart;
     }
 
-    return (effEnd - effStart - breakDed).clamp(0, maxMin);
+    return effEnd - effStart - breakDed;
   }
 
   /// 날짜 목록 전체의 합산 연차 차감 시간(분).

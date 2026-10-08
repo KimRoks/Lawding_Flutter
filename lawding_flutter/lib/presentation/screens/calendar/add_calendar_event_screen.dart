@@ -184,7 +184,6 @@ class _AddCalendarEventScreenState
   LeaveTimeCalculator get _calculator => LeaveTimeCalculator(
         workPattern: _leavePolicy?.workPattern ?? const {},
         breakTimePattern: _leavePolicy?.breakTimePattern ?? const {},
-        avgDailyWorkHours: _avgDailyWorkHours,
         holidays: _holidays,
       );
 
