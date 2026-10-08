@@ -36,11 +36,10 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
   static const int _visibleCount = 5;
   static const double _pickerHeight = _itemExtent * _visibleCount;
 
-  // 의사 무한 스크롤: 양방향 5사이클 버퍼. lazy builder라 실제 빌드는 화면에 보이는 것만.
-  static const int _totalHourItems = 240;   // 10 × 24, 양방향 ±120스텝 여유
-  static const int _hourBase = 120;          // 5 × 24, 중앙 기준점
-  static const int _totalMinuteItems = 240;  // 20 × 12
-  static const int _minuteBase = 120;        // 10 × 12
+  // 시: 유한 스크롤. 인덱스 = 24시간제 시각 (0 = 오전 12시 ~ 23 = 오후 11시)
+  static const int _hourItemCount = 24;
+  // 분: 유한 스크롤 (0분 ~ 55분, 5분 단위)
+  static const int _minuteItemCount = 12;
 
   late bool _isAm;
   late int _hour;   // 1–12
@@ -58,13 +57,11 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
   void initState() {
     super.initState();
     _isAm = widget.initialTime.hour < 12;
-    final h = widget.initialTime.hour % 12;
-    _hour = h == 0 ? 12 : h;
+    _hour = _hour12(widget.initialTime.hour);
     _minute = ((widget.initialTime.minute / 5).round() * 5) % 60;
 
-    // 시 인덱스: base(AM 시작) + 12(PM이면) + (시 - 1)
-    final hourIndex = _hourBase + (_isAm ? 0 : 12) + (_hour - 1);
-    final minuteIndex = _minuteBase + (_minute ~/ 5);
+    final hourIndex = widget.initialTime.hour;
+    final minuteIndex = _minute ~/ 5;
 
     _selectedHourIndex = hourIndex;
     _selectedMinuteIndex = minuteIndex;
@@ -80,17 +77,20 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
     super.dispose();
   }
 
-  /// 세그먼트 탭 → 현재 위치에서 ±12 점프
+  /// 세그먼트 탭 → 같은 시각의 오전/오후로 ±12 점프
   void _switchAmPm(bool toAm) {
     if (_isAm == toAm) return;
     final current = _hourCtrl.selectedItem;
     final offset = toAm ? -12 : 12;
-    final target = (current + offset).clamp(0, _totalHourItems - 1);
+    final target = (current + offset).clamp(0, _hourItemCount - 1);
     _isProgrammatic = true;
     _hourCtrl.jumpToItem(target);
     HapticFeedback.lightImpact();
     setState(() => _isAm = toAm);
   }
+
+  /// 24시간제 시각(0~23) → 12시간제 표기(12, 1~11)
+  static int _hour12(int hour24) => hour24 % 12 == 0 ? 12 : hour24 % 12;
 
   TimeOfDay get _result {
     final h24 = _isAm
@@ -333,20 +333,17 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
       onSelectedItemChanged: (i) {
         if (!_isProgrammatic) HapticFeedback.selectionClick();
         _isProgrammatic = false;
-        final newHour = (i % 12) + 1;
-        final newIsAm = (i % 24) < 12;
         setState(() {
           _selectedHourIndex = i;
-          _hour = newHour;
-          _isAm = newIsAm;
+          _hour = _hour12(i);
+          _isAm = i < 12;
         });
       },
       childDelegate: ListWheelChildBuilderDelegate(
-        childCount: _totalHourItems,
+        childCount: _hourItemCount,
         builder: (_, i) {
-          final h = (i % 12) + 1;
-          final itemIsAm = (i % 24) < 12;
-          final period = itemIsAm ? '오전' : '오후';
+          final h = _hour12(i);
+          final period = i < 12 ? '오전' : '오후';
           final selected = _selectedHourIndex == i;
           return Center(
             child: Text(
@@ -376,13 +373,13 @@ class _LawdingTimePickerState extends State<_LawdingTimePicker> {
         if (!_isProgrammatic) HapticFeedback.selectionClick();
         setState(() {
           _selectedMinuteIndex = i;
-          _minute = (i % 12) * 5;
+          _minute = i * 5;
         });
       },
       childDelegate: ListWheelChildBuilderDelegate(
-        childCount: _totalMinuteItems,
+        childCount: _minuteItemCount,
         builder: (_, i) {
-          final m = (i % 12) * 5;
+          final m = i * 5;
           final selected = _selectedMinuteIndex == i;
           return Center(
             child: Text(
