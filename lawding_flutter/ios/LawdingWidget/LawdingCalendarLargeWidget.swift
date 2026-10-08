@@ -125,9 +125,39 @@ struct LawdingCalendarLargeView: View {
 
     // 디자인 원본 크기. 이 크기로 그린 뒤 기기 위젯 크기에 맞춰 균등 축소/확대한다.
     private static let designSize = CGSize(width: 364, height: 382)
-    private static let gridInset: CGFloat = 25
-    private static let colWidth: CGFloat = (364 - gridInset * 2) / 7
-    private static let rowHeight: CGFloat = 38.35
+
+    /// 디자인 측정값(pt). 행 안의 위치는 행 위쪽 기준이며 숫자 중심은 12.
+    private struct Layout {
+        let headerCenter: CGFloat
+        let arrowLeading: CGFloat
+        let arrowTrailing: CGFloat
+        let titleSize: CGFloat
+        let weekdayCenter: CGFloat
+        let gridInset: CGFloat
+        let gridTop: CGFloat
+        let rowHeight: CGFloat
+        let barInset: CGFloat
+        let barCenter: CGFloat
+        let labelCenter: CGFloat
+        let labelSize: CGFloat
+
+        static let withList = Layout(
+            headerCenter: 26.5, arrowLeading: 33, arrowTrailing: 34.5, titleSize: 17,
+            weekdayCenter: 66, gridInset: 25, gridTop: 74, rowHeight: 38.35,
+            barInset: 2.7, barCenter: 19.6, labelCenter: 29.5, labelSize: 8
+        )
+
+        /// 다가오는 일정이 없을 때의 별도 디자인. 마지막 주 아래 여백(21.5)을 유지하고
+        /// 남는 높이를 주끼리 나눈다 (5주면 디자인과 같은 55.08).
+        static func calendarOnly(weeks: Int) -> Layout {
+            Layout(
+                headerCenter: 36.2, arrowLeading: 40.6, arrowTrailing: 39.9, titleSize: 15,
+                weekdayCenter: 75, gridInset: 32.3, gridTop: 85.1,
+                rowHeight: (382 - 85.1 - 21.5) / CGFloat(weeks),
+                barInset: 3, barCenter: 24.1, labelCenter: 32.1, labelSize: 6
+            )
+        }
+    }
 
     private let primary = Color("WidgetTextPrimary")
     private let secondary = Color("WidgetTextSecondary")
@@ -146,60 +176,68 @@ struct LawdingCalendarLargeView: View {
     }
 
     private func content(_ model: CalendarMonthModel) -> some View {
-        VStack(spacing: 0) {
+        // 다가오는 일정이 없으면 리스트 없이 달력만 위젯을 채우는 디자인을 쓴다.
+        let l = model.upcoming.isEmpty ? Layout.calendarOnly(weeks: model.weeks.count) : Layout.withList
+        let colWidth = (Self.designSize.width - l.gridInset * 2) / 7
+        return VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Chevron(pointsLeft: true, color: primary)
                 Spacer(minLength: 0)
                 Text(model.title)
-                    .font(.custom("Pretendard-Bold", size: 17))
+                    .font(.custom("Pretendard-Bold", size: l.titleSize))
                     .foregroundColor(primary)
                 Spacer(minLength: 0)
                 Chevron(pointsLeft: false, color: primary)
             }
-            .padding(.leading, 33)
-            .padding(.trailing, 34.5)
+            .padding(.leading, l.arrowLeading)
+            .padding(.trailing, l.arrowTrailing)
             .frame(height: 24)
-            .padding(.top, 14.5)
+            .padding(.top, l.headerCenter - 12)
 
             HStack(spacing: 0) {
                 ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \.self) { label in
                     Text(label)
                         .font(.custom("Pretendard-Regular", size: 12))
                         .foregroundColor(primary)
-                        .frame(width: Self.colWidth)
+                        .frame(width: colWidth)
                 }
             }
             .frame(height: 16)
-            .padding(.top, 19.5)
+            .padding(.top, l.weekdayCenter - 8 - (l.headerCenter + 12))
 
             VStack(spacing: 0) {
                 ForEach(model.weeks.indices, id: \.self) { w in
                     HStack(spacing: 0) {
                         ForEach(model.weeks[w]) { day in
-                            cell(day)
+                            cell(day, layout: l, width: colWidth)
                         }
                     }
                 }
             }
-            .padding(.horizontal, Self.gridInset)
+            .padding(.horizontal, l.gridInset)
+            .padding(.top, l.gridTop - (l.weekdayCenter + 8))
 
-            list(model.upcoming)
+            if !model.upcoming.isEmpty {
+                // 달력과 리스트 사이 구분선(0.9 + 0.5)을 뺀 만큼 띄워 리스트 위치를 유지한다.
+                list(model.upcoming).padding(.top, 1.4)
+            }
 
             Spacer(minLength: 0)
         }
     }
 
-    private func cell(_ day: CalendarMonthModel.Day) -> some View {
+    private func cell(_ day: CalendarMonthModel.Day, layout l: Layout, width: CGFloat) -> some View {
         ZStack(alignment: .top) {
+            // 오늘: 숫자 중심(12)에 맞춘 지름 22 원 + 흰 숫자. 라이트·다크 동일.
             if day.isToday {
                 Circle()
                     .fill(accent)
-                    .frame(width: 4, height: 4)
-                    .padding(.top, 0.25)
+                    .frame(width: 22, height: 22)
+                    .padding(.top, 1)
             }
             Text(String(day.day))
                 .font(.custom("Pretendard-Regular", size: 12))
-                .foregroundColor(day.isRed ? Color("WidgetHolidayText") : primary)
+                .foregroundColor(day.isToday ? .white : day.isRed ? Color("WidgetHolidayText") : primary)
                 .frame(height: 14)
                 .padding(.top, 5)
             VStack(spacing: 1) {
@@ -209,33 +247,23 @@ struct LawdingCalendarLargeView: View {
                         .frame(height: 2)
                 }
             }
-            .padding(.horizontal, 2.7)
-            .padding(.top, 18.6)
+            .padding(.horizontal, l.barInset)
+            .padding(.top, l.barCenter - 1)
             if let label = day.label {
                 Text(label)
-                    .font(.custom("Pretendard-SemiBold", size: 8))
+                    .font(.custom("Pretendard-SemiBold", size: l.labelSize))
                     .foregroundColor(Color("WidgetHolidayBar"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .frame(height: 10)
-                    .padding(.top, 24.5)
+                    .padding(.top, l.labelCenter - 5)
             }
         }
-        .frame(width: Self.colWidth, height: Self.rowHeight, alignment: .top)
+        .frame(width: width, height: l.rowHeight, alignment: .top)
     }
 
     private func list(_ items: [CalendarWidgetItem]) -> some View {
         VStack(spacing: 0) {
-            divider.padding(.top, 0.9)
-            if items.isEmpty {
-                Text("다가오는 일정 없음")
-                    .font(.custom("Pretendard-SemiBold", size: 13))
-                    .foregroundColor(secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: 44)
-                    .padding(.leading, 20.4)
-                    .padding(.top, 3)
-            }
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 listRow(item).padding(.top, 3)
                 if index < items.count - 1 {

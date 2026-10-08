@@ -458,7 +458,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const AddCalendarEventScreen(),
+                      builder: (_) =>
+                          AddCalendarEventScreen(initialDate: _focusedDate),
                     ),
                   );
                   if (mounted) {
@@ -728,16 +729,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       ? _buildUpcomingEventList()
       : _buildFocusedEventList();
 
-  /// isFocused=false: 오늘~14일 이벤트, 날짜별 최대 3개
+  /// isFocused=false, 표시 중인 달의 이벤트 전부.
+  /// 이번 달이면 오늘~말일, 다른 달이면 1일~말일.
   Widget _buildUpcomingEventList() {
-    final end = _today.add(const Duration(days: 14));
+    final isCurrentMonth = _displayedMonth.year == _today.year &&
+        _displayedMonth.month == _today.month;
+    final start = isCurrentMonth ? _today : _displayedMonth;
+    final end = DateTime(_displayedMonth.year, _displayedMonth.month + 1, 1);
 
     // holidays + events 통합 후 날짜별 그룹핑
     final Map<DateTime, List<CalendarEvent>> grouped = {};
 
     for (final h in _holidays) {
       final d = DateTime(h.date.year, h.date.month, h.date.day);
-      if (!d.isBefore(_today) && d.isBefore(end)) {
+      if (!d.isBefore(start) && d.isBefore(end)) {
         final (label, detail) = _parseHolidayName(h.name);
         grouped
             .putIfAbsent(d, () => [])
@@ -761,20 +766,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         e.endDatetime.month,
         e.endDatetime.day,
       );
-      // 이벤트 기간이 오늘~14일 윈도우와 겹치면 포함
-      if (eEnd.isBefore(_today) || !eStart.isBefore(end)) continue;
-      // 진행 중인 이벤트(시작일 < 오늘)는 오늘 날짜 그룹에 표시
-      final d = eStart.isBefore(_today) ? _today : eStart;
+      // 이벤트 기간이 표시 범위와 겹치면 포함
+      if (eEnd.isBefore(start) || !eStart.isBefore(end)) continue;
+      // 범위 시작 전에 시작한 이벤트는 범위 첫날 그룹에 표시
+      final d = eStart.isBefore(start) ? start : eStart;
       grouped.putIfAbsent(d, () => []).add(e);
     }
 
-    // 날짜별로 정렬(type→time)하여 최대 3개씩 취합
+    // 날짜별로 정렬(type→time)하여 취합
     const typeOrder = [
       CalendarEventType.holiday,
       CalendarEventType.annualLeave,
       CalendarEventType.otherLeave,
     ];
-    final List<CalendarEvent> limited = [];
+    final List<CalendarEvent> events = [];
     for (final date in grouped.keys.toList()..sort()) {
       final sorted = grouped[date]!
         ..sort((a, b) {
@@ -783,12 +788,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           if (ti != tj) return ti.compareTo(tj);
           return _labelSortKey(a.label).compareTo(_labelSortKey(b.label));
         });
-      limited.addAll(sorted.take(3));
+      events.addAll(sorted);
     }
 
-    if (limited.isEmpty) return const SizedBox(height: 100);
+    if (events.isEmpty) return const SizedBox(height: 100);
 
-    return _buildEventListWidget(limited, expanded: false);
+    return _buildEventListWidget(events, expanded: false);
   }
 
   /// isFocused=true: 선택 날짜 이벤트 전부, 확장 카드

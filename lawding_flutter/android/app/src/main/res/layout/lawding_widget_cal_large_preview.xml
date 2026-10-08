@@ -80,12 +80,15 @@
             </FrameLayout>
             <FrameLayout style="@style/WidgetCalPreviewCell">
                 <ImageView
-                    android:layout_width="4dp"
-                    android:layout_height="4dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="top|center_horizontal"
-                    android:layout_marginTop="0.25dp"
-                    android:src="@drawable/widget_cal_dot" />
-                <TextView style="@style/WidgetCalPreviewDay" android:text="4" />
+                    android:layout_marginTop="1dp"
+                    android:src="@drawable/widget_cal_today" />
+                <TextView
+                    style="@style/WidgetCalPreviewDay"
+                    android:text="4"
+                    android:textColor="@android:color/white" />
             </FrameLayout>
             <TextView style="@style/WidgetCalPreviewPlainDay" android:text="5" />
             <TextView style="@style/WidgetCalPreviewPlainDay" android:text="6" />
@@ -140,8 +143,6 @@
         android:paddingStart="13.6dp"
         android:paddingEnd="15.4dp"
         android:paddingBottom="18dp">
-
-        <TextView style="@style/WidgetCalDivider" android:layout_marginTop="0.9dp" />
 
         <LinearLayout
             android:layout_width="match_parent"

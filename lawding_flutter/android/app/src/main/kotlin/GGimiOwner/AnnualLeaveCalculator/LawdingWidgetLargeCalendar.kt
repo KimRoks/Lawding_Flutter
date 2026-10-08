@@ -58,9 +58,6 @@ class LawdingWidgetLargeCalendar : AppWidgetProvider() {
         val month = today.get(Calendar.MONTH)
         val todayKey = dayKey(today)
 
-        val views = RemoteViews(context.packageName, R.layout.lawding_widget_cal_large)
-        views.setTextViewText(R.id.cal_title, "${year}년 ${month + 1}월")
-
         val first = Calendar.getInstance().apply {
             clear()
             set(year, month, 1)
@@ -68,27 +65,38 @@ class LawdingWidgetLargeCalendar : AppWidgetProvider() {
         val offset = first.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
         val weeks = (offset + first.getActualMaximum(Calendar.DAY_OF_MONTH) + 6) / 7
 
-        views.removeAllViews(R.id.cal_grid)
-        val cursor = (first.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, -offset) }
-        repeat(weeks) {
-            val row = RemoteViews(context.packageName, R.layout.lawding_widget_cal_row)
-            for (col in 0 until 7) {
-                row.addView(R.id.cal_row, buildCell(context, cursor, col, month, todayKey, items))
-                cursor.add(Calendar.DAY_OF_MONTH, 1)
-            }
-            views.addView(R.id.cal_grid, row)
-        }
-
         // 진행 중인 일정은 오늘 날짜로 취급해 정렬한다. 6주인 달은 공간이 부족해 1개만.
         val upcoming = items
             .filter { it.end >= todayKey }
             .sortedWith(compareBy({ maxOf(it.start, todayKey) }, { it.type }, { it.sortKey }))
             .take(if (weeks >= 6) 1 else 2)
-        views.removeAllViews(R.id.cal_list)
-        upcoming.forEachIndexed { i, item ->
-            views.addView(R.id.cal_list, buildListItem(context, item, isLast = i == upcoming.lastIndex))
+
+        // 다가오는 일정이 없으면 리스트 없이 달력이 위젯을 채우는 전용 레이아웃을 쓴다.
+        val calendarOnly = upcoming.isEmpty()
+        val views = RemoteViews(
+            context.packageName,
+            if (calendarOnly) R.layout.lawding_widget_cal_large_full else R.layout.lawding_widget_cal_large
+        )
+        val cellLayout = if (calendarOnly) R.layout.lawding_widget_cal_cell_full else R.layout.lawding_widget_cal_cell
+        views.setTextViewText(R.id.cal_title, "${year}년 ${month + 1}월")
+
+        views.removeAllViews(R.id.cal_grid)
+        val cursor = (first.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, -offset) }
+        repeat(weeks) {
+            val row = RemoteViews(context.packageName, R.layout.lawding_widget_cal_row)
+            for (col in 0 until 7) {
+                row.addView(R.id.cal_row, buildCell(context, cellLayout, cursor, col, month, todayKey, items))
+                cursor.add(Calendar.DAY_OF_MONTH, 1)
+            }
+            views.addView(R.id.cal_grid, row)
         }
-        views.setViewVisibility(R.id.cal_list_empty, if (upcoming.isEmpty()) View.VISIBLE else View.GONE)
+
+        if (!calendarOnly) {
+            views.removeAllViews(R.id.cal_list)
+            upcoming.forEachIndexed { i, item ->
+                views.addView(R.id.cal_list, buildListItem(context, item, isLast = i == upcoming.lastIndex))
+            }
+        }
 
         val openCalendar = Intent(
             Intent.ACTION_VIEW,
@@ -108,13 +116,14 @@ class LawdingWidgetLargeCalendar : AppWidgetProvider() {
 
     private fun buildCell(
         context: Context,
+        layoutId: Int,
         date: Calendar,
         col: Int,
         month: Int,
         todayKey: Int,
         items: List<Item>
     ): RemoteViews {
-        val cell = RemoteViews(context.packageName, R.layout.lawding_widget_cal_cell)
+        val cell = RemoteViews(context.packageName, layoutId)
         val day = date.get(Calendar.DAY_OF_MONTH).toString()
 
         // 앞뒤 달 날짜는 숫자만 표시 (디자인)
@@ -129,15 +138,18 @@ class LawdingWidgetLargeCalendar : AppWidgetProvider() {
             .sortedWith(compareBy({ it.type }, { it.sortKey }))
         val holiday = dayItems.firstOrNull { it.type == TYPE_HOLIDAY }
 
-        if (col == 0 || holiday != null) {
-            cell.setTextViewText(R.id.cal_day_red, day)
-            cell.setViewVisibility(R.id.cal_day, View.GONE)
-            cell.setViewVisibility(R.id.cal_day_red, View.VISIBLE)
-        } else {
-            cell.setTextViewText(R.id.cal_day, day)
+        // 오늘은 파란 원 위 흰 숫자 (일요일·공휴일이어도 흰색)
+        val dayViewId = when {
+            key == todayKey -> R.id.cal_day_today
+            col == 0 || holiday != null -> R.id.cal_day_red
+            else -> R.id.cal_day
         }
-
-        if (key == todayKey) cell.setViewVisibility(R.id.cal_dot, View.VISIBLE)
+        cell.setTextViewText(dayViewId, day)
+        if (dayViewId != R.id.cal_day) {
+            cell.setViewVisibility(R.id.cal_day, View.GONE)
+            cell.setViewVisibility(dayViewId, View.VISIBLE)
+        }
+        if (key == todayKey) cell.setViewVisibility(R.id.cal_today, View.VISIBLE)
 
         // 공휴일 라벨이 있으면 3번째 바가 라벨과 겹치므로 최대 2개
         val bars = dayItems.take(if (holiday != null) 2 else 3)
