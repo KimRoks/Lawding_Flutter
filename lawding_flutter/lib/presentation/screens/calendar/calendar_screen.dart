@@ -458,7 +458,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const AddCalendarEventScreen(),
+                      builder: (_) =>
+                          AddCalendarEventScreen(initialDate: _focusedDate),
                     ),
                   );
                   if (mounted) {

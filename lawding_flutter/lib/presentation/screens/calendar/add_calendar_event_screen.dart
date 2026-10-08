@@ -18,7 +18,10 @@ class AddCalendarEventScreen extends ConsumerStatefulWidget {
   /// null이면 등록 모드, non-null이면 수정 모드
   final CalendarEventEntity? editEvent;
 
-  const AddCalendarEventScreen({super.key, this.editEvent});
+  /// 등록 모드에서 시작일로 미리 선택할 날짜 (캘린더에서 포커스된 날짜)
+  final DateTime? initialDate;
+
+  const AddCalendarEventScreen({super.key, this.editEvent, this.initialDate});
 
   @override
   ConsumerState<AddCalendarEventScreen> createState() =>
@@ -28,6 +31,8 @@ class AddCalendarEventScreen extends ConsumerStatefulWidget {
 class _AddCalendarEventScreenState
     extends ConsumerState<AddCalendarEventScreen> {
   static const _dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+  static const _initialMonthPage = 1200;
+  static const _calendarCellHeight = 37.0;
 
   // ── 폼 상태 ──────────────────────────────────────────────────────────────
 
@@ -37,7 +42,8 @@ class _AddCalendarEventScreenState
   DateTime? _startDate;
   DateTime? _endDate;
   late DateTime _calendarMonth;
-  late List<List<DateTime>> _weeks;
+  late final DateTime _baseMonth; // _initialMonthPage 페이지에 해당하는 달
+  late final PageController _monthPageController;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   LeavePolicy? _leavePolicy;
@@ -74,10 +80,15 @@ class _AddCalendarEventScreenState
         1,
       );
     } else {
-      final now = DateTime.now();
-      _calendarMonth = DateTime(now.year, now.month, 1);
+      final initial = widget.initialDate;
+      if (initial != null) {
+        _startDate = DateTime(initial.year, initial.month, initial.day);
+      }
+      final month = initial ?? DateTime.now();
+      _calendarMonth = DateTime(month.year, month.month, 1);
     }
-    _weeks = _buildWeeks(_calendarMonth);
+    _baseMonth = _calendarMonth;
+    _monthPageController = PageController(initialPage: _initialMonthPage);
     _fetchHolidays();
     _fetchUserMe();
     AnalyticsService().logCalendarEventFormScreenViewed(isEdit: widget.editEvent != null);
@@ -85,6 +96,7 @@ class _AddCalendarEventScreenState
 
   @override
   void dispose() {
+    _monthPageController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -741,7 +753,7 @@ class _AddCalendarEventScreenState
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: _buildCalendarGrid(),
+              child: _buildSwipeableCalendarGrid(),
             ),
           ],
         ),
@@ -756,14 +768,10 @@ class _AddCalendarEventScreenState
         children: [
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              _calendarMonth = DateTime(
-                _calendarMonth.year,
-                _calendarMonth.month - 1,
-                1,
-              );
-              _weeks = _buildWeeks(_calendarMonth);
-            }),
+            onTap: () => _monthPageController.previousPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Image.asset(
@@ -786,14 +794,10 @@ class _AddCalendarEventScreenState
           ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() {
-              _calendarMonth = DateTime(
-                _calendarMonth.year,
-                _calendarMonth.month + 1,
-                1,
-              );
-              _weeks = _buildWeeks(_calendarMonth);
-            }),
+            onTap: () => _monthPageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Image.asset(
@@ -831,14 +835,39 @@ class _AddCalendarEventScreenState
     );
   }
 
-  Widget _buildCalendarGrid() {
+  DateTime _monthFromPage(int page) =>
+      DateTime(_baseMonth.year, _baseMonth.month + page - _initialMonthPage, 1);
+
+  /// 좌우 스와이프로 월 이동. 주 수(4~6)가 바뀌면 높이를 부드럽게 전환한다.
+  Widget _buildSwipeableCalendarGrid() {
+    final weeksCount = _buildWeeks(_calendarMonth).length;
+    return ClipRect(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        height: _calendarCellHeight * weeksCount,
+        child: PageView.builder(
+          controller: _monthPageController,
+          onPageChanged: (page) =>
+              setState(() => _calendarMonth = _monthFromPage(page)),
+          itemBuilder: (context, page) => OverflowBox(
+            alignment: Alignment.topCenter,
+            maxHeight: double.infinity,
+            child: _buildCalendarGrid(_monthFromPage(page)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarGrid(DateTime month) {
     return Column(
-      children: _weeks
+      children: _buildWeeks(month)
           .map(
             (week) => Row(
               children: List.generate(
                 7,
-                (i) => Expanded(child: _buildCalendarCell(week[i], i)),
+                (i) => Expanded(child: _buildCalendarCell(week[i], i, month)),
               ),
             ),
           )
@@ -846,8 +875,8 @@ class _AddCalendarEventScreenState
     );
   }
 
-  Widget _buildCalendarCell(DateTime date, int colIdx) {
-    final isCurrentMonth = date.month == _calendarMonth.month;
+  Widget _buildCalendarCell(DateTime date, int colIdx, DateTime month) {
+    final isCurrentMonth = date.month == month.month;
     final isStart = _startDate != null && _isSameDay(date, _startDate!);
     final isEnd = _endDate != null && _isSameDay(date, _endDate!);
     final isEndpoint = isStart || isEnd;
@@ -881,7 +910,7 @@ class _AddCalendarEventScreenState
     return GestureDetector(
       onTap: isCurrentMonth ? () => _onDateTapped(date) : null,
       child: SizedBox(
-        height: 37,
+        height: _calendarCellHeight,
         child: Stack(
           children: [
             // 띠: 비-positioned Row → Stack의 full width를 자연스럽게 채움
