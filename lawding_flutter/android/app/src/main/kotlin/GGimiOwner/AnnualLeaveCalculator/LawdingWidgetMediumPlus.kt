@@ -10,10 +10,6 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class LawdingWidgetMediumPlus : AppWidgetProvider() {
 
@@ -36,52 +32,24 @@ class LawdingWidgetMediumPlus : AppWidgetProvider() {
         }
     }
 
-    private fun computeDDay(isoDate: String?): String? {
-        if (isoDate == null) return null
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            sdf.isLenient = false
-            val eventDate = sdf.parse(isoDate.take(10)) ?: return null
-            val today = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val event = Calendar.getInstance().apply {
-                time = eventDate
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val diff = TimeUnit.MILLISECONDS.toDays(event.timeInMillis - today.timeInMillis)
-            if (diff == 0L) "D-Day" else "D-$diff"
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     private fun updateWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val widgetData = HomeWidgetPlugin.getData(context)
-        val nextDate = widgetData.getString("widgetMediumNextDate", null)
-        val nextType = widgetData.getString("widgetMediumNextType", null)
-        val nextDDay = computeDDay(widgetData.getString("widgetNextDateIso", null))
-            ?: widgetData.getString("widgetCalNextDDay", null)
-        val afterDate = widgetData.getString("widgetMediumAfterNextDate", null)
-        val afterType = widgetData.getString("widgetMediumAfterNextType", null)
-        val afterDDay = computeDDay(widgetData.getString("widgetAfterNextDateIso", null))
-            ?: widgetData.getString("widgetCalAfterDDay", null)
+        val leaves = UpcomingLeaves.load(HomeWidgetPlugin.getData(context))
+        val next = leaves.getOrNull(0)
+        val afterNext = leaves.getOrNull(1)
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget_calendar)
 
-        views.setTextViewText(R.id.widget_cal_left_date, nextDate ?: "--")
-        views.setTextViewText(R.id.widget_cal_left_type, nextType ?: "--")
-        views.setTextViewText(R.id.widget_cal_left_dday, nextDDay ?: "--")
+        views.setTextViewText(R.id.widget_cal_left_date, next?.date ?: "--")
+        views.setTextViewText(R.id.widget_cal_left_type, next?.type ?: "--")
+        views.setTextViewText(R.id.widget_cal_left_dday, next?.dDay() ?: "--")
 
-        views.setTextViewText(R.id.widget_cal_right_date, afterDate ?: "--")
-        views.setTextViewText(R.id.widget_cal_right_type, afterType ?: "--")
-        views.setTextViewText(R.id.widget_cal_right_dday, afterDDay ?: "--")
+        views.setTextViewText(R.id.widget_cal_right_date, afterNext?.date ?: "--")
+        views.setTextViewText(R.id.widget_cal_right_type, afterNext?.type ?: "--")
+        views.setTextViewText(R.id.widget_cal_right_dday, afterNext?.dDay() ?: "--")
 
         val addIntent = Intent(Intent.ACTION_VIEW,
             Uri.parse("ggimiowner.annualleavecalculator://add-calendar")).apply {

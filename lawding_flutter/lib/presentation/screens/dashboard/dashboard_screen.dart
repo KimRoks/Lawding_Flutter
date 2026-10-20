@@ -98,6 +98,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await WidgetService.save('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
       await WidgetService.save('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
       await WidgetService.save('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
+      // 위젯이 완전히 지난 일정(종료일 < 오늘)을 직접 걸러내는 데 쓴다
+      await WidgetService.save('widgetNextEndIso', upcoming.isNotEmpty ? upcoming[0].endDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetAfterNextEndIso', upcoming.length >= 2 ? upcoming[1].endDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetThirdEndIso', upcoming.length >= 3 ? upcoming[2].endDatetime.substring(0, 10) : null);
       // 4×4 large 위젯 전용
       final totalMinutes = value.totalLeaveMinutes;
       final usedMinutes = (totalMinutes - value.remainingLeaveMinutes).clamp(0, totalMinutes);

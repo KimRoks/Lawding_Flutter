@@ -8,10 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class LawdingWidgetSmallNext : AppWidgetProvider() {
 
@@ -34,43 +30,17 @@ class LawdingWidgetSmallNext : AppWidgetProvider() {
         }
     }
 
-    private fun computeDDay(isoDate: String?): String? {
-        if (isoDate == null) return null
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            sdf.isLenient = false
-            val eventDate = sdf.parse(isoDate.take(10)) ?: return null
-            val today = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val event = Calendar.getInstance().apply {
-                time = eventDate
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val diff = TimeUnit.MILLISECONDS.toDays(event.timeInMillis - today.timeInMillis)
-            if (diff == 0L) "D-Day" else "D-$diff"
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     private fun updateWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        val widgetData = HomeWidgetPlugin.getData(context)
-        val nextDate = widgetData.getString("widgetMediumNextDate", null)
-        val nextType = widgetData.getString("widgetMediumNextType", null)
-        val nextDDay = computeDDay(widgetData.getString("widgetNextDateIso", null))
-            ?: widgetData.getString("widgetCalNextDDay", null)
+        val next = UpcomingLeaves.load(HomeWidgetPlugin.getData(context)).firstOrNull()
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget_next)
-        views.setTextViewText(R.id.widget_next_date, nextDate ?: "--")
-        views.setTextViewText(R.id.widget_next_type, nextType ?: "--")
-        views.setTextViewText(R.id.widget_next_dday, nextDDay ?: "--")
+        views.setTextViewText(R.id.widget_next_date, next?.date ?: "--")
+        views.setTextViewText(R.id.widget_next_type, next?.type ?: "--")
+        views.setTextViewText(R.id.widget_next_dday, next?.dDay() ?: "--")
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }

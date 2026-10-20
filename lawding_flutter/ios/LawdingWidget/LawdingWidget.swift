@@ -68,16 +68,47 @@ struct LawdingProvider: TimelineProvider {
         completion(Timeline(entries: [loadEntry()], policy: .after(midnight)))
     }
 
-    private func computeDDay(isoDateStr: String?) -> String? {
-        guard let str = isoDateStr else { return nil }
+    private func parseDay(_ iso: String?) -> Date? {
+        guard let iso else { return nil }
         let fmt = DateFormatter()
+        // 기기 달력이 일본력·불교력이어도 ISO 날짜를 양력으로 읽도록 고정
+        fmt.calendar = Calendar(identifier: .gregorian)
+        fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "yyyy-MM-dd"
-        guard let eventDate = fmt.date(from: String(str.prefix(10))) else { return nil }
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let event = cal.startOfDay(for: eventDate)
-        let diff = cal.dateComponents([.day], from: today, to: event).day ?? 0
-        return diff == 0 ? "D-Day" : "D-\(diff)"
+        guard let date = fmt.date(from: String(iso.prefix(10))) else { return nil }
+        return Calendar.current.startOfDay(for: date)
+    }
+
+    /// 시작 전이면 D-n, 시작일~종료일 사이(진행 중)면 D-Day
+    private func computeDDay(isoDateStr: String?) -> String? {
+        guard let event = parseDay(isoDateStr) else { return nil }
+        let today = Calendar.current.startOfDay(for: Date())
+        let diff = Calendar.current.dateComponents([.day], from: today, to: event).day ?? 0
+        return diff <= 0 ? "D-Day" : "D-\(diff)"
+    }
+
+    private struct UpcomingLeave {
+        let date: String
+        let type: String?
+        let startIso: String?
+    }
+
+    /// 대시보드가 저장한 다음 연차 세 칸에서 완전히 지난 일정(종료일 < 오늘)을 빼고 앞으로 당긴다.
+    /// 앱을 열지 않아 데이터가 갱신되지 않아도 지난 일정을 보여주지 않기 위함.
+    private func upcomingLeaves(_ d: UserDefaults?) -> [UpcomingLeave] {
+        let slots = [
+            ("widgetMediumNextDate", "widgetMediumNextType", "widgetNextDateIso", "widgetNextEndIso"),
+            ("widgetMediumAfterNextDate", "widgetMediumAfterNextType", "widgetAfterNextDateIso", "widgetAfterNextEndIso"),
+            ("widgetThirdDate", "widgetThirdType", "widgetThirdDateIso", "widgetThirdEndIso"),
+        ]
+        let today = Calendar.current.startOfDay(for: Date())
+        return slots.compactMap { dateKey, typeKey, startKey, endKey in
+            guard let date = strVal(d, dateKey) else { return nil }
+            let startIso = strVal(d, startKey)
+            // 종료일이 없는 예전 데이터는 시작일로 판단
+            if let end = parseDay(strVal(d, endKey) ?? startIso), end < today { return nil }
+            return UpcomingLeave(date: date, type: strVal(d, typeKey), startIso: startIso)
+        }
     }
 
     // 빈 문자열은 "값 없음"으로 간주 (iOS home_widget이 null을 못 넣어 Dart가 ""를 저장함)
@@ -88,27 +119,29 @@ struct LawdingProvider: TimelineProvider {
 
     private func loadEntry() -> LawdingEntry {
         let d = UserDefaults(suiteName: appGroupId)
+        let leaves = upcomingLeaves(d)
+        let next = leaves.indices.contains(0) ? leaves[0] : nil
+        let afterNext = leaves.indices.contains(1) ? leaves[1] : nil
+        let third = leaves.indices.contains(2) ? leaves[2] : nil
         return LawdingEntry(
             date: Date(),
             days: strVal(d, "widgetDays"),
             totalHours: d?.object(forKey: "widgetTotalHours") as? Int,
-            nextDate: strVal(d, "widgetMediumNextDate"),
-            nextType: strVal(d, "widgetMediumNextType"),
-            afterNextDate: strVal(d, "widgetMediumAfterNextDate"),
-            afterNextType: strVal(d, "widgetMediumAfterNextType"),
-            nextDDay: computeDDay(isoDateStr: strVal(d, "widgetNextDateIso"))
-                ?? strVal(d, "widgetCalNextDDay"),
-            afterNextDDay: computeDDay(isoDateStr: strVal(d, "widgetAfterNextDateIso"))
-                ?? strVal(d, "widgetCalAfterDDay"),
-            thirdDate: strVal(d, "widgetThirdDate"),
-            thirdType: strVal(d, "widgetThirdType"),
-            thirdDDay: computeDDay(isoDateStr: strVal(d, "widgetThirdDateIso")),
+            nextDate: next?.date,
+            nextType: next?.type,
+            afterNextDate: afterNext?.date,
+            afterNextType: afterNext?.type,
+            nextDDay: computeDDay(isoDateStr: next?.startIso),
+            afterNextDDay: computeDDay(isoDateStr: afterNext?.startIso),
+            thirdDate: third?.date,
+            thirdType: third?.type,
+            thirdDDay: computeDDay(isoDateStr: third?.startIso),
             totalDays: strVal(d, "widgetLargeTotalDays"),
             usageRate: strVal(d, "widgetLargeUsageRate"),
             progressPct: d?.object(forKey: "widgetLargeProgressPct") as? Int,
             period: strVal(d, "widgetLargePeriod"),
             expiry: strVal(d, "widgetLargeExpiry"),
-            nextDateIso: strVal(d, "widgetNextDateIso")
+            nextDateIso: next?.startIso
         )
     }
 }
