@@ -68,7 +68,7 @@
         android:gravity="center"
         android:text="--시간"
         android:textColor="@color/widget_accent"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:fontFamily="@font/pretendard_variable"
         android:textFontWeight="700" />
 
