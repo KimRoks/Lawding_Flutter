@@ -112,7 +112,7 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:text="D-25"
-            android:textColor="@color/widget_text_secondary"
+            android:textColor="@color/widget_pill_gray_text"
             android:textSize="14sp"
             android:fontFamily="@font/pretendard_variable"
             android:textFontWeight="700"

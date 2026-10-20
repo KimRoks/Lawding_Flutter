@@ -296,7 +296,7 @@ struct LawdingCalendarView: View {
     private func ddayPill(text: String, isNext: Bool) -> some View {
         Text(text)
             .font(.custom("Pretendard-Bold", size: 14))
-            .foregroundColor(isNext ? Color("WidgetAccent") : Color("WidgetTextSecondary"))
+            .foregroundColor(isNext ? Color("WidgetAccent") : Color("WidgetPillGrayText"))
             .padding(.horizontal, 10)
             .frame(height: 24)
             .background(
