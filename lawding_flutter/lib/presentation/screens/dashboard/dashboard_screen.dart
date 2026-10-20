@@ -440,6 +440,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return upcoming.isEmpty ? null : upcoming.first;
   }
 
+  // 오늘까지 시작된 연차만, 최근 것부터 (미래 예정 연차 제외)
+  List<RecentLeaveUsage> _usedLeaves() {
+    final usages = _dashboard?.recentLeaveUsages ?? [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return usages.where((u) {
+      final dt = DateTime.parse(u.startDatetime);
+      return !DateTime(dt.year, dt.month, dt.day).isAfter(today);
+    }).toList()..sort((a, b) => b.startDatetime.compareTo(a.startDatetime));
+  }
+
   Widget _buildNextLeaveCard() {
     final nextUsage = _nextLeave();
 
@@ -592,7 +603,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => RecentLeaveHistoryScreen(
-                          usages: _dashboard?.recentLeaveUsages ?? [],
+                          usages: _usedLeaves(),
                         ),
                       ),
                     );
@@ -631,8 +642,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildRecentUsageRows() {
-    final usages = _dashboard?.recentLeaveUsages;
-    if (usages == null || usages.isEmpty) {
+    final usages = _usedLeaves();
+    if (usages.isEmpty) {
       return Center(
         child: Text(
           '최근 사용된 연차가 없습니다',
