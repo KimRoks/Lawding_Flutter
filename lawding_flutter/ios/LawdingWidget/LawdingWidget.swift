@@ -3,7 +3,31 @@ import SwiftUI
 
 private let appGroupId = "group.com.lawding.annualleavecalculator"
 
+@available(iOS 17.0, *)
+private struct IgnoreWidgetContentMargins: ViewModifier {
+    @Environment(\.widgetContentMargins) private var margins
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.top, -margins.top)
+            .padding(.bottom, -margins.bottom)
+            .padding(.leading, -margins.leading)
+            .padding(.trailing, -margins.trailing)
+    }
+}
+
 extension View {
+    /// 시스템이 자동으로 넣는 콘텐츠 여백(iOS 17+)을 이 뷰에서만 상쇄해 위젯 가장자리 기준으로 그린다.
+    /// 같은 위젯 설정을 쓰는 다른 크기(family)의 여백에는 영향이 없다.
+    @ViewBuilder
+    func ignoringWidgetContentMargins() -> some View {
+        if #available(iOS 17.0, *) {
+            modifier(IgnoreWidgetContentMargins())
+        } else {
+            self
+        }
+    }
+
     // 위젯 전체(시스템 여백 포함)를 지정 색으로 채운다. iOS 16은 콘텐츠 배경으로 폴백.
     @ViewBuilder
     func widgetBackground(_ color: Color) -> some View {
@@ -151,32 +175,52 @@ struct LawdingProvider: TimelineProvider {
 struct LawdingSmallView: View {
     let entry: LawdingEntry
 
+    // 디자인 원본 크기(pt). 이 크기로 측정 위치에 그린 뒤 기기 위젯 크기에 맞춰 균등 확대/축소한다.
+    private static let designSide: CGFloat = 170
+
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 6) {
+        GeometryReader { geo in
+            let scale = min(geo.size.width, geo.size.height) / Self.designSide
+            design
+                .frame(width: Self.designSide, height: Self.designSide)
+                .scaleEffect(scale)
+                .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .ignoringWidgetContentMargins()
+        .widgetBackground(Color("WidgetBackground"))
+    }
+
+    private var design: some View {
+        ZStack {
+            HStack(spacing: 9.5) {
                 Image("calendar_tabbar")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 18, height: 23)
+                    .frame(width: 18, height: 24)
                 Text("잔여 연차")
-                    .font(.custom("Pretendard-Bold", size: 15))
+                    .font(.custom("Pretendard-Bold", size: 18))
                     .foregroundColor(Color("WidgetTextPrimary"))
             }
-            Spacer()
+            .position(x: 80.4, y: 30.6)
+
+            // 소수점 일수(예: 1.875일)는 폭을 넘을 때만 줄어든다
             Text(entry.days.map { "\($0)일" } ?? "--일")
-                .font(.custom("Pretendard-Bold", size: 36))
+                .font(.custom("Pretendard-Bold", size: 45))
                 .foregroundColor(Color("WidgetTextPrimary"))
-            Spacer()
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(width: 146)
+                .position(x: 84.5, y: 82.7)
+
             Text(entry.totalHours.map { "\($0)시간" } ?? "--시간")
-                .font(.custom("Pretendard-Bold", size: 16))
+                .font(.custom("Pretendard-Bold", size: 20))
                 .foregroundColor(Color("WidgetAccent"))
+                .lineLimit(1)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color("WidgetPillBlue")))
+                .frame(height: 30)
+                .background(Capsule().fill(Color("WidgetPillBlue")))
+                .position(x: 84.5, y: 137.4)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
@@ -254,48 +298,61 @@ struct LawdingWidgetView: View {
 struct LawdingNextView: View {
     let entry: LawdingEntry
 
+    // 디자인 원본 크기(pt). 이 크기로 측정 위치에 그린 뒤 기기 위젯 크기에 맞춰 균등 확대/축소한다.
+    private static let designSide: CGFloat = 170
+
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 6) {
+        GeometryReader { geo in
+            let scale = min(geo.size.width, geo.size.height) / Self.designSide
+            design
+                .frame(width: Self.designSide, height: Self.designSide)
+                .scaleEffect(scale)
+                .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .ignoringWidgetContentMargins()
+        .widgetBackground(Color("WidgetBackground"))
+    }
+
+    private var design: some View {
+        ZStack {
+            HStack(spacing: 10) {
                 Image("calendar_tabbar")
                     .resizable()
                     .renderingMode(.original)
-                    .frame(width: 18, height: 23)
+                    .frame(width: 18, height: 24)
                 Text("다음 연차")
-                    .font(.custom("Pretendard-Bold", size: 15))
+                    .font(.custom("Pretendard-Bold", size: 18))
                     .foregroundColor(Color("WidgetTextPrimary"))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
             }
-            .frame(height: 24)
+            .position(x: 80.25, y: 29.9)
 
+            // 긴 날짜(예: 12월 25일)는 폭을 넘을 때만 줄어든다
             Text(entry.nextDate ?? "--")
                 .font(.custom("Pretendard-Bold", size: 30))
                 .foregroundColor(Color("WidgetTextPrimary"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .padding(.top, 9)
+                .frame(width: 150)
+                .position(x: 84.4, y: 69.9)
 
             Text(entry.nextType ?? "--")
                 .font(.custom("Pretendard-SemiBold", size: 16))
                 .foregroundColor(Color("WidgetTextSecondary"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
-                .padding(.top, 8)
+                .frame(width: 150)
+                .position(x: 84.4, y: 104.6)
 
             Text(entry.nextDDay ?? "--")
                 .font(.custom("Pretendard-Bold", size: 20))
                 .foregroundColor(Color("WidgetAccent"))
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 14.5)
                 .frame(height: 30)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color("WidgetPillBlue")))
-                .padding(.top, 8)
+                .background(Capsule().fill(Color("WidgetPillBlue")))
+                .position(x: 84.4, y: 137.8)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .widgetBackground(Color("WidgetBackground"))
     }
 }
 
