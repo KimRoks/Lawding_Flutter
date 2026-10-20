@@ -9,13 +9,15 @@ class RecentLeaveHistoryScreen extends StatelessWidget {
 
   const RecentLeaveHistoryScreen({super.key, required this.usages});
 
-  String _formatMonthDay(String isoDatetime) {
+  // "2026-10-12T..." → "26년 10월 12일"
+  String _formatDate(String isoDatetime) {
     final dateStr = isoDatetime.split('T').first;
     final parts = dateStr.split('-');
     if (parts.length != 3) return isoDatetime;
+    final year = (int.tryParse(parts[0]) ?? 0) % 100;
     final month = int.tryParse(parts[1]) ?? 0;
     final day = int.tryParse(parts[2]) ?? 0;
-    return '$month월 $day일';
+    return '$year년 $month월 $day일';
   }
 
   String _hoursLabel(int minutes) {
@@ -86,8 +88,8 @@ class RecentLeaveHistoryScreen extends StatelessWidget {
   }
 
   Widget _buildItem(RecentLeaveUsage usage) {
-    final startDate = _formatMonthDay(usage.startDatetime);
-    final endDate = _formatMonthDay(usage.endDatetime);
+    final startDate = _formatDate(usage.startDatetime);
+    final endDate = _formatDate(usage.endDatetime);
     final dateLabel = startDate == endDate ? startDate : '$startDate-$endDate';
 
     return Padding(

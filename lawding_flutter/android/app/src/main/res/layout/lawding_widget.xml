@@ -42,13 +42,18 @@
     <TextView
         android:id="@+id/widget_days"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="66dp"
         android:text="--일"
         android:textColor="@color/widget_text_primary"
         android:textSize="45sp"
         android:fontFamily="@font/pretendard_variable"
         android:textFontWeight="700"
-        android:gravity="center" />
+        android:gravity="center"
+        android:maxLines="1"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="20sp"
+        android:autoSizeMaxTextSize="45sp"
+        android:autoSizeStepGranularity="1sp" />
 
     <!-- Spacer -->
     <TextView
@@ -68,7 +73,7 @@
         android:gravity="center"
         android:text="--시간"
         android:textColor="@color/widget_accent"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:fontFamily="@font/pretendard_variable"
         android:textFontWeight="700" />
 

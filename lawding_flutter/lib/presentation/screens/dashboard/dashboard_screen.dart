@@ -98,6 +98,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await WidgetService.save('widgetThirdDate', upcoming.length >= 3 ? fmtDate(upcoming[2]) : null);
       await WidgetService.save('widgetThirdType', upcoming.length >= 3 ? fmtType(upcoming[2]) : null);
       await WidgetService.save('widgetThirdDateIso', upcoming.length >= 3 ? upcoming[2].startDatetime.substring(0, 10) : null);
+      // 위젯이 완전히 지난 일정(종료일 < 오늘)을 직접 걸러내는 데 쓴다
+      await WidgetService.save('widgetNextEndIso', upcoming.isNotEmpty ? upcoming[0].endDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetAfterNextEndIso', upcoming.length >= 2 ? upcoming[1].endDatetime.substring(0, 10) : null);
+      await WidgetService.save('widgetThirdEndIso', upcoming.length >= 3 ? upcoming[2].endDatetime.substring(0, 10) : null);
       // 4×4 large 위젯 전용
       final totalMinutes = value.totalLeaveMinutes;
       final usedMinutes = (totalMinutes - value.remainingLeaveMinutes).clamp(0, totalMinutes);
@@ -436,6 +440,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return upcoming.isEmpty ? null : upcoming.first;
   }
 
+  // 오늘까지 시작된 연차만, 최근 것부터 (미래 예정 연차 제외)
+  List<RecentLeaveUsage> _usedLeaves() {
+    final usages = _dashboard?.recentLeaveUsages ?? [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return usages.where((u) {
+      final dt = DateTime.parse(u.startDatetime);
+      return !DateTime(dt.year, dt.month, dt.day).isAfter(today);
+    }).toList()..sort((a, b) => b.startDatetime.compareTo(a.startDatetime));
+  }
+
   Widget _buildNextLeaveCard() {
     final nextUsage = _nextLeave();
 
@@ -588,7 +603,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => RecentLeaveHistoryScreen(
-                          usages: _dashboard?.recentLeaveUsages ?? [],
+                          usages: _usedLeaves(),
                         ),
                       ),
                     );
@@ -627,8 +642,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildRecentUsageRows() {
-    final usages = _dashboard?.recentLeaveUsages;
-    if (usages == null || usages.isEmpty) {
+    final usages = _usedLeaves();
+    if (usages.isEmpty) {
       return Center(
         child: Text(
           '최근 사용된 연차가 없습니다',

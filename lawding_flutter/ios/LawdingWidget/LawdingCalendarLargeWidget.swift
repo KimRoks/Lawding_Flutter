@@ -354,8 +354,8 @@ struct LawdingCalendarLargeWidget: Widget {
         StaticConfiguration(kind: kind, provider: CalendarLargeProvider()) { entry in
             LawdingCalendarLargeView(entry: entry)
         }
-        .configurationDisplayName("월간 캘린더")
-        .description("이번 달 공휴일과 다가오는 일정을 한눈에 확인하세요.")
+        .configurationDisplayName("연차 캘린더")
+        .description("달력에서 연차 일정과 등록된 일정을 한눈에 확인해보세요")
         .supportedFamilies([.systemLarge])
         // 디자인 좌표가 위젯 가장자리 기준이라 시스템 기본 여백을 끈다.
         .contentMarginsDisabled()

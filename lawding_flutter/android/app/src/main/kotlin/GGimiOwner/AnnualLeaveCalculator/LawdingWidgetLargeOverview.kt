@@ -8,10 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 class LawdingWidgetLargeOverview : AppWidgetProvider() {
 
@@ -34,28 +30,6 @@ class LawdingWidgetLargeOverview : AppWidgetProvider() {
         }
     }
 
-    private fun computeDDay(isoDate: String?): String? {
-        if (isoDate == null) return null
-        return try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            sdf.isLenient = false
-            val eventDate = sdf.parse(isoDate.take(10)) ?: return null
-            val today = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val event = Calendar.getInstance().apply {
-                time = eventDate
-                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            val diff = TimeUnit.MILLISECONDS.toDays(event.timeInMillis - today.timeInMillis)
-            if (diff == 0L) "D-Day" else "D-$diff"
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     private fun updateWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -69,7 +43,7 @@ class LawdingWidgetLargeOverview : AppWidgetProvider() {
         val progressPct = d.getInt("widgetLargeProgressPct", 0)
         val period = d.getString("widgetLargePeriod", null)
         val expiry = d.getString("widgetLargeExpiry", null)
-        val nextDateIso = d.getString("widgetNextDateIso", null)
+        val nextDateIso = UpcomingLeaves.load(d).firstOrNull()?.startIso
 
         val views = RemoteViews(context.packageName, R.layout.lawding_widget_large)
 

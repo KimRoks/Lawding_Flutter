@@ -79,7 +79,7 @@
         android:paddingEnd="12dp"
         android:text="--"
         android:textColor="@color/widget_accent"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:fontFamily="@font/pretendard_variable"
         android:textFontWeight="700"
         android:gravity="center"
